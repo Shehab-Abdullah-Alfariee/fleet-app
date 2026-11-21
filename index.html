@@ -1,0 +1,2327 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>نظام متابعة وثائق وتفاويض الأسطول</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#2563eb" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="تفاويض الأسطول" />
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='112' fill='%232563eb'/%3E%3Ctext x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial, sans-serif' font-weight='bold' font-size='210' fill='white'%3EFS%3C/text%3E%3C/svg%3E" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap');
+    body {
+      font-family: 'Cairo', sans-serif;
+      background-color: #f1f5f9;
+      color: #0f172a;
+    }
+    .modal-backdrop {
+      background-color: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(2px);
+    }
+    @keyframes spinSlow {
+      to { transform: rotate(360deg); }
+    }
+    .loader-spinner {
+      animation: spinSlow 0.85s linear infinite;
+    }
+  </style>
+</head>
+<body class="min-h-screen">
+
+  <!-- طبقة التحميل أثناء العمليات والمزامنة -->
+  <div id="loadingOverlay" class="hidden fixed inset-0 z-[70] bg-slate-900/65 backdrop-blur-[2px] flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 px-7 py-6 flex flex-col items-center gap-3 max-w-sm w-full text-center">
+      <div class="w-11 h-11 rounded-full border-4 border-blue-100 border-t-blue-600 loader-spinner"></div>
+      <p id="loadingMessage" class="text-sm font-extrabold text-slate-800">جاري التحميل ومعالجة البيانات...</p>
+      <p class="text-xs text-slate-500">يرجى الانتظار حتى اكتمال العملية</p>
+    </div>
+  </div>
+
+  <!-- شاشة تسجيل الدخول -->
+  <div id="loginScreen" class="min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-200 p-6 sm:p-8">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-11 h-11 rounded-xl bg-blue-600 text-white flex items-center justify-center font-extrabold text-lg">
+          FS
+        </div>
+        <div>
+          <h1 class="text-xl font-extrabold text-slate-900">تسجيل الدخول إلى النظام</h1>
+          <p class="text-xs text-slate-500">نظام متابعة وثائق وتفاويض الأسطول</p>
+        </div>
+      </div>
+
+      <p class="text-xs text-slate-600 leading-relaxed mb-5 bg-slate-50 p-3 rounded-xl border border-slate-200">
+        سجّل الدخول بالبريد الإلكتروني وكلمة المرور في الوضع السحابي (Supabase)، أو استخدم الوضع المحلي للتجربة السريعة.
+      </p>
+
+      <div id="loginErrorBox" class="hidden mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-sm font-semibold"></div>
+
+      <form id="loginForm" onsubmit="handleLoginSubmit(event)" class="space-y-4">
+        <div>
+          <label class="block text-sm font-bold text-slate-700 mb-1">البريد الإلكتروني</label>
+          <input id="loginEmail" type="email" required placeholder="name@example.com"
+            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" />
+        </div>
+
+        <div>
+          <label class="block text-sm font-bold text-slate-700 mb-1">كلمة المرور</label>
+          <input id="loginPassword" type="password" required placeholder="••••••••••••"
+            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" />
+        </div>
+
+        <button type="submit" id="loginSubmitBtn"
+          class="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm transition">
+          دخول
+        </button>
+      </form>
+
+      <div class="mt-5 pt-4 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2">
+        <button type="button" onclick="openCloudSettingsModal()"
+          class="px-3 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold">
+          إعدادات الربط السحابي (Supabase)
+        </button>
+        <button type="button" onclick="quickLocalDemoLogin()"
+          class="px-3 py-2 rounded-xl border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold">
+          دخول تجريبي محلي (Admin)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- التطبيق الرئيسي بعد الدخول -->
+  <div id="appShell" class="hidden min-h-screen flex flex-col">
+
+    <!-- الشريط العلوي -->
+    <header class="bg-slate-900 text-white shadow-md">
+      <div class="max-w-7xl mx-auto px-4 py-4 flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-xl bg-blue-600 flex items-center justify-center font-extrabold text-lg">
+            🛡️
+          </div>
+          <div>
+            <h1 class="text-lg sm:text-xl font-extrabold">نظام متابعة وثائق وتفاويض الأسطول</h1>
+            <p id="todayDateLabel" class="text-xs text-slate-300"></p>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <span id="modeBadge" class="px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+            الوضع: سحابي (Supabase)
+          </span>
+          <span id="userBadge" class="px-3 py-1.5 rounded-full text-xs font-bold bg-slate-800 text-slate-100 border border-slate-700">
+            مستخدم
+          </span>
+          <button type="button" onclick="openCloudSettingsModal()"
+            class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold border border-slate-700">
+            الربط السحابي
+          </button>
+          <button type="button" onclick="logoutUser()"
+            class="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-xs font-bold text-white">
+            تسجيل خروج
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- شريط التنقل الرئيسي -->
+    <nav class="bg-white border-b border-slate-200">
+      <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex flex-wrap items-center gap-2">
+          <button type="button" data-main-tab="dashboard" onclick="switchMainTab('dashboard')"
+            class="main-tab-btn px-4 py-2 rounded-xl text-sm font-bold bg-blue-600 text-white">
+            لوحة المتابعة
+          </button>
+          <button type="button" data-main-tab="users" onclick="switchMainTab('users')"
+            class="main-tab-btn px-4 py-2 rounded-xl text-sm font-bold bg-slate-100 hover:bg-slate-200 text-slate-700">
+            المستخدمون والصلاحيات
+          </button>
+          <button type="button" data-main-tab="logs" onclick="switchMainTab('logs')"
+            class="main-tab-btn px-4 py-2 rounded-xl text-sm font-bold bg-slate-100 hover:bg-slate-200 text-slate-700">
+            سجل العمليات
+          </button>
+        </div>
+
+        <div id="roleCapabilityBadge" class="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-600 text-xs font-bold">
+          صلاحياتك: إدارة كاملة للمركبات والوثائق والمستخدمين
+        </div>
+      </div>
+    </nav>
+
+    <!-- المحتوى الرئيسي -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 py-6 space-y-6">
+
+      <!-- شريط إشعارات النظام -->
+      <div id="systemBanner" class="hidden rounded-2xl px-4 py-3 text-sm font-bold border flex items-center justify-between gap-3">
+        <span id="systemBannerText"></span>
+        <button type="button" onclick="hideSystemBanner()" class="text-xs px-2.5 py-1 rounded-lg bg-white/80 hover:bg-white text-slate-800">إخفاء</button>
+      </div>
+
+      <!-- تبويب لوحة المتابعة -->
+      <section id="tab-dashboard" class="space-y-6">
+
+        <!-- البطاقات الإحصائية التحليلية للقسم النشط -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div onclick="setStatusFilter('all')" class="cursor-pointer bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:border-blue-400 transition">
+            <p id="statTotalTitle" class="text-xs font-bold text-slate-500 mb-2">إجمالي المركبات (التفاويض)</p>
+            <p id="statTotalVehicles" class="text-3xl font-extrabold text-slate-900">0</p>
+            <p class="text-xs text-slate-400 mt-1">انقر لعرض جميع مركبات القسم</p>
+          </div>
+
+          <div onclick="setStatusFilter('expired')" class="cursor-pointer bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:border-rose-400 transition">
+            <p id="statExpiredTitle" class="text-xs font-bold text-slate-500 mb-2">منتهية (التفاويض)</p>
+            <p id="statExpired" class="text-3xl font-extrabold text-rose-600">0</p>
+            <p class="text-xs text-rose-500 mt-1">وثائق منتهية الصلاحية في القسم</p>
+          </div>
+
+          <div onclick="setStatusFilter('expiring_soon')" class="cursor-pointer bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:border-amber-400 transition">
+            <p id="statSoonTitle" class="text-xs font-bold text-slate-500 mb-2">قريبة الانتهاء (≤ 15 يوم)</p>
+            <p id="statExpiringSoon" class="text-3xl font-extrabold text-amber-500">0</p>
+            <p class="text-xs text-amber-600 mt-1">تحتاج متابعة خلال 15 يوماً</p>
+          </div>
+
+          <div onclick="setStatusFilter('valid')" class="cursor-pointer bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:border-emerald-400 transition">
+            <p id="statValidTitle" class="text-xs font-bold text-slate-500 mb-2">سارية (التفاويض)</p>
+            <p id="statValid" class="text-3xl font-extrabold text-emerald-600">0</p>
+            <p class="text-xs text-emerald-600 mt-1">وثائق سارية المفعول</p>
+          </div>
+        </div>
+
+        <!-- صندوق الأقسام والاستيراد والتصدير والبحث والجدول -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4">
+
+          <!-- شريط أقسام الوثائق المستقلة واستيراد/تصدير إكسيل لكل قسم -->
+          <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 id="sectionHeadingTitle" class="text-sm font-extrabold text-slate-800">قسم التفاويض — جدول واستيراد وتحليل ملفات الإكسيل</h2>
+                <p class="text-xs text-slate-500">عند رفع ملف إكسيل للقسم يتم استبدال بيانات هذا القسم السابقة بالبيانات الجديدة بدون تكرار للوحات مع تفضيل التفويض الفعّال.</p>
+              </div>
+              <span id="activeSectionHint" class="px-3 py-1 rounded-lg bg-blue-100 text-blue-800 text-xs font-bold">
+                القسم النشط: التفاويض
+              </span>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
+              <div class="flex flex-wrap gap-2">
+                <button type="button" data-doc="authorization" onclick="setActiveDocSection('authorization')"
+                  class="doc-tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-blue-600 text-white">
+                  التفاويض
+                </button>
+                <button type="button" data-doc="registration" onclick="setActiveDocSection('registration')"
+                  class="doc-tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-white text-slate-700 border border-slate-300 hover:bg-slate-100">
+                  رخص السير
+                </button>
+                <button type="button" data-doc="periodic_inspection" onclick="setActiveDocSection('periodic_inspection')"
+                  class="doc-tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-white text-slate-700 border border-slate-300 hover:bg-slate-100">
+                  الفحص الدوري
+                </button>
+                <button type="button" data-doc="insurance" onclick="setActiveDocSection('insurance')"
+                  class="doc-tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-white text-slate-700 border border-slate-300 hover:bg-slate-100">
+                  التأمين
+                </button>
+                <button type="button" data-doc="all" onclick="setActiveDocSection('all')"
+                  class="doc-tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-white text-slate-700 border border-slate-300 hover:bg-slate-100">
+                  عرض الكل
+                </button>
+              </div>
+
+              <div class="flex flex-wrap items-center gap-2">
+                <button type="button" id="importSectionExcelBtn" onclick="openSectionFilePicker()"
+                  class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold transition">
+                  استيراد إكسيل: التفاويض
+                </button>
+                <button type="button" id="exportSectionExcelBtn" onclick="exportCurrentSectionExcel()"
+                  class="px-4 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 text-xs sm:text-sm font-bold transition">
+                  تصدير إكسيل: التفاويض
+                </button>
+                <input id="sectionExcelFileInput" type="file" accept=".xlsx,.xls,.csv" class="hidden" onchange="importSectionExcelFile(event)" />
+              </div>
+            </div>
+          </div>
+
+          <!-- شريط إضافة مركبة وحذف المحدد وتحديث البيانات والبحث والفلترة -->
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div class="flex flex-wrap items-center gap-2">
+              <button type="button" id="addVehicleBtn" onclick="openVehicleModal()"
+                class="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold">
+                + إضافة مركبة
+              </button>
+              <button type="button" id="deleteSelectedBtn" onclick="deleteSelectedVehicles()"
+                class="hidden px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs sm:text-sm font-bold transition">
+                حذف المحدد (<span id="selectedCountLabel">0</span>)
+              </button>
+              <button type="button" id="refreshDataBtn" onclick="refreshCloudData(true)"
+                class="px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-bold">
+                تحديث البيانات
+              </button>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2 flex-1 sm:flex-initial justify-end">
+              <input id="searchInput" type="text" oninput="renderVehiclesTable()"
+                placeholder="بحث برقم اللوحة، المركبة، أو السائق..."
+                class="w-full sm:w-64 px-3.5 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+
+              <select id="statusFilterSelect" onchange="renderVehiclesTable()"
+                class="px-3.5 py-2 rounded-xl border border-slate-300 bg-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="all">كل الحالات</option>
+                <option value="expired">منتهية</option>
+                <option value="expiring_soon">قريبة الانتهاء (≤ 15 يوم)</option>
+                <option value="valid">سارية</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- جدول المركبات والوثائق حسب القسم النشط -->
+          <div class="overflow-x-auto">
+            <table class="w-full text-right border-collapse">
+              <thead id="vehiclesTableHead"></thead>
+              <tbody id="vehiclesTableBody" class="divide-y divide-slate-100 text-sm"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- تبويب المستخدمون والصلاحيات -->
+      <section id="tab-users" class="hidden space-y-4">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+          <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <div>
+              <h2 class="text-base font-extrabold text-slate-900">المستخدمون والصلاحيات</h2>
+              <p class="text-xs text-slate-500">إدارة حسابات النظام وأدوار الوصول (Admin / Supervisor / Viewer).</p>
+            </div>
+            <button type="button" id="addUserBtn" onclick="openUserModal()"
+              class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold">
+              + إضافة مستخدم
+            </button>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-right border-collapse">
+              <thead>
+                <tr class="border-b border-slate-200 text-slate-500 text-xs sm:text-sm bg-slate-50">
+                  <th class="py-3 px-3 font-bold">الاسم الكامل</th>
+                  <th class="py-3 px-3 font-bold">البريد الإلكتروني</th>
+                  <th class="py-3 px-3 font-bold">الدور</th>
+                  <th class="py-3 px-3 font-bold">الحالة</th>
+                  <th class="py-3 px-3 font-bold">الإجراءات</th>
+                </tr>
+              </thead>
+              <tbody id="usersTableBody" class="divide-y divide-slate-100 text-sm"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- تبويب سجل العمليات -->
+      <section id="tab-logs" class="hidden space-y-4">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+          <div class="mb-4">
+            <h2 class="text-base font-extrabold text-slate-900">سجل العمليات</h2>
+            <p class="text-xs text-slate-500">تتبع عمليات الإضافة والتعديل والحذف واستيراد ملفات الإكسيل.</p>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-right border-collapse">
+              <thead>
+                <tr class="border-b border-slate-200 text-slate-500 text-xs sm:text-sm bg-slate-50">
+                  <th class="py-3 px-3 font-bold">الوقت</th>
+                  <th class="py-3 px-3 font-bold">المستخدم</th>
+                  <th class="py-3 px-3 font-bold">الدور</th>
+                  <th class="py-3 px-3 font-bold">العملية</th>
+                  <th class="py-3 px-3 font-bold">العنصر</th>
+                  <th class="py-3 px-3 font-bold">التفاصيل</th>
+                </tr>
+              </thead>
+              <tbody id="logsTableBody" class="divide-y divide-slate-100 text-sm"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- نافذة إعدادات الربط السحابي -->
+  <div id="cloudSettingsModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
+    <div class="w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 class="text-lg font-extrabold text-slate-900">إعدادات الربط السحابي (Supabase)</h3>
+        <button type="button" onclick="closeCloudSettingsModal()" class="text-slate-400 hover:text-slate-700 text-xl font-bold">×</button>
+      </div>
+
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Project URL</label>
+          <input id="cloudUrlInput" type="text" placeholder="https://bnndrgctlhexavypqvwa.supabase.co"
+            class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Publishable / Anon Public Key</label>
+          <input id="cloudKeyInput" type="text" placeholder="sb_publishable_..."
+            class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">وضع التخزين</label>
+          <select id="storageModeInput" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 bg-white text-sm font-semibold">
+            <option value="cloud">سحابي مشترك (Supabase)</option>
+            <option value="local">محلي على هذا الجهاز</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-2 pt-2">
+        <button type="button" onclick="closeCloudSettingsModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-sm font-bold text-slate-700">
+          إلغاء
+        </button>
+        <button type="button" onclick="saveCloudSettings()" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-sm font-bold text-white">
+          حفظ الإعدادات
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- نافذة إضافة / تعديل مركبة -->
+  <div id="vehicleModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
+    <div class="w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between">
+        <h3 id="vehicleModalTitle" class="text-lg font-extrabold text-slate-900">إضافة مركبة جديدة</h3>
+        <button type="button" onclick="closeVehicleModal()" class="text-slate-400 hover:text-slate-700 text-xl font-bold">×</button>
+      </div>
+
+      <form id="vehicleForm" onsubmit="saveVehicleForm(event)" class="space-y-4">
+        <input type="hidden" id="vehicleEditId" />
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">رقم اللوحة *</label>
+            <input id="vPlateNumber" type="text" required placeholder="أ ب ج 1234"
+              class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">اسم / نوع المركبة *</label>
+            <input id="vVehicleName" type="text" required placeholder="تويوتا هايلوكس 2025"
+              class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">السائق / المفوّض *</label>
+            <input id="vAssignedDriver" type="text" required placeholder="اسم السائق"
+              class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">انتهاء التفويض</label>
+            <input id="vDocAuth" type="date" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">انتهاء رخصة السير</label>
+            <input id="vDocReg" type="date" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">انتهاء الفحص الدوري</label>
+            <input id="vDocInsp" type="date" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">انتهاء التأمين</label>
+            <input id="vDocIns" type="date" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">ملاحظات</label>
+          <input id="vNotes" type="text" placeholder="ملاحظات إضافية..."
+            class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" />
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeVehicleModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-sm font-bold text-slate-700">
+            إلغاء
+          </button>
+          <button type="submit" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-sm font-bold text-white">
+            حفظ المركبة
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- نافذة إضافة / تعديل مستخدم -->
+  <div id="userModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
+    <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 id="userModalTitle" class="text-lg font-extrabold text-slate-900">إضافة مستخدم جديد</h3>
+        <button type="button" onclick="closeUserModal()" class="text-slate-400 hover:text-slate-700 text-xl font-bold">×</button>
+      </div>
+
+      <form id="userForm" onsubmit="saveUserForm(event)" class="space-y-3">
+        <input type="hidden" id="userEditId" />
+        <input type="hidden" id="userOriginalEmail" />
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">الاسم الكامل *</label>
+          <input id="uFullName" type="text" required placeholder="مثال: أحمد محمد"
+            class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">البريد الإلكتروني *</label>
+          <input id="uEmail" type="email" required placeholder="user@example.com"
+            class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" />
+        </div>
+
+        <div>
+          <label id="uPasswordLabel" class="block text-xs font-bold text-slate-700 mb-1">كلمة المرور *</label>
+          <input id="uPassword" type="password" minlength="6" placeholder="6 أحرف أو أرقام على الأقل"
+            class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" />
+          <p class="text-[11px] text-slate-500 mt-1">
+            تُستخدم لإنشاء حساب الدخول في Supabase Auth (اتركها فارغة عند التعديل إذا لم ترغب بتغييرها).
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">الدور *</label>
+            <select id="uRole" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-sm font-semibold">
+              <option value="supervisor">supervisor (مشرف)</option>
+              <option value="viewer">viewer (مشاهد)</option>
+              <option value="admin">admin (مدير)</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">الحالة *</label>
+            <select id="uActive" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-sm font-semibold">
+              <option value="true">نشط</option>
+              <option value="false">معطّل</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeUserModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-sm font-bold text-slate-700">
+            إلغاء
+          </button>
+          <button type="submit" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-sm font-bold text-white">
+            حفظ المستخدم
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const DEFAULT_SUPABASE_URL = 'https://bnndrgctlhexavypqvwa.supabase.co';
+    const DEFAULT_SUPABASE_KEY = '';
+    const SETTINGS_STORAGE_KEY = 'fleet_compliance_cloud_settings_v1';
+    const LOCAL_STATE_KEY = 'fleet_compliance_local_state_v1';
+
+    const DOC_SECTION_CONFIG = {
+      authorization: {
+        key: 'authorization',
+        label: 'التفاويض',
+        shortLabel: 'التفويض',
+        fileName: 'authorizations-section.xlsx',
+        dateHints: ['تاريخ نهاية التفويض', 'نهاية التفويض', 'انتهاء التفويض', 'تاريخ الانتهاء', 'انتهاء الوثيقة', 'الانتهاء', 'expiry_date', 'expiry'],
+        statusHints: ['الحاله', 'الحالة', 'حالة التفويض']
+      },
+      registration: {
+        key: 'registration',
+        label: 'رخص السير',
+        shortLabel: 'رخصة السير',
+        fileName: 'registrations-section.xlsx',
+        dateHints: ['تاريخ انتهاء رخصة السير', 'انتهاء رخصة السير', 'رخصة السير', 'الاستمارة', 'تاريخ الانتهاء', 'انتهاء الوثيقة', 'الانتهاء', 'expiry_date', 'expiry'],
+        statusHints: ['حالة رخصة السير', 'حالة الاستمارة', 'الحالة']
+      },
+      periodic_inspection: {
+        key: 'periodic_inspection',
+        label: 'الفحص الدوري',
+        shortLabel: 'الفحص الدوري',
+        fileName: 'periodic-inspections-section.xlsx',
+        dateHints: ['تاريخ انتهاء الفحص', 'انتهاء الفحص الدوري', 'الفحص الدوري', 'الفحص', 'تاريخ الانتهاء', 'انتهاء الوثيقة', 'الانتهاء', 'expiry_date', 'expiry'],
+        statusHints: ['حالة الفحص', 'حالة الفحص الدوري', 'الحالة']
+      },
+      insurance: {
+        key: 'insurance',
+        label: 'التأمين',
+        shortLabel: 'التأمين',
+        fileName: 'insurances-section.xlsx',
+        dateHints: ['تاريخ انتهاء التأمين', 'انتهاء التأمين', 'التأمين', 'تاريخ الانتهاء', 'انتهاء الوثيقة', 'الانتهاء', 'expiry_date', 'expiry'],
+        statusHints: ['حالة التأمين', 'الحالة']
+      },
+      all: {
+        key: 'all',
+        label: 'جميع الوثائق',
+        shortLabel: 'جميع الوثائق',
+        fileName: 'all-fleet-documents.xlsx',
+        dateHints: ['تاريخ الانتهاء', 'انتهاء الوثيقة', 'الانتهاء', 'expiry_date'],
+        statusHints: []
+      }
+    };
+
+    let cloudSettings = loadCloudSettings();
+    let sbClient = null;
+    let currentUser = null;
+    let activeMainTab = 'dashboard';
+    let activeDocSection = 'authorization';
+    let state = loadLocalState();
+    let selectedVehicleIds = new Set();
+
+    function canEditRecords() {
+      return Boolean(currentUser && (currentUser.role === 'admin' || currentUser.role === 'supervisor'));
+    }
+
+    function canDeleteRecords() {
+      return Boolean(currentUser && (currentUser.role === 'admin' || currentUser.role === 'supervisor'));
+    }
+
+    function setLoading(isLoading, message = 'جاري التحميل ومعالجة البيانات...') {
+      const overlay = document.getElementById('loadingOverlay');
+      const msgEl = document.getElementById('loadingMessage');
+      if (!overlay) return;
+      if (msgEl) msgEl.textContent = message;
+      overlay.classList.toggle('hidden', !isLoading);
+    }
+
+    function showSystemBanner(message, type = 'info') {
+      const banner = document.getElementById('systemBanner');
+      const textEl = document.getElementById('systemBannerText');
+      if (!banner || !textEl) return;
+
+      const styles = {
+        success: 'bg-emerald-50 border-emerald-200 text-emerald-800',
+        error: 'bg-rose-50 border-rose-200 text-rose-800',
+        warning: 'bg-amber-50 border-amber-200 text-amber-800',
+        info: 'bg-blue-50 border-blue-200 text-blue-800'
+      };
+
+      banner.className = `rounded-2xl px-4 py-3 text-sm font-bold border flex items-center justify-between gap-3 ${styles[type] || styles.info}`;
+      textEl.textContent = message;
+      banner.classList.remove('hidden');
+    }
+
+    function hideSystemBanner() {
+      document.getElementById('systemBanner')?.classList.add('hidden');
+    }
+
+    function loadCloudSettings() {
+      try {
+        const raw = localStorage.getItem(SETTINGS_STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          return {
+            url: (parsed.url || DEFAULT_SUPABASE_URL).trim(),
+            anonKey: (parsed.anonKey || DEFAULT_SUPABASE_KEY).trim(),
+            mode: parsed.mode === 'local' ? 'local' : 'cloud'
+          };
+        }
+      } catch {}
+      return {
+        url: DEFAULT_SUPABASE_URL,
+        anonKey: DEFAULT_SUPABASE_KEY,
+        mode: 'cloud'
+      };
+    }
+
+    function persistCloudSettings() {
+      localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(cloudSettings));
+    }
+
+    function isCloudMode() {
+      return cloudSettings.mode === 'cloud';
+    }
+
+    function initSupabaseClient() {
+      if (!window.supabase || !cloudSettings.url || !cloudSettings.anonKey) {
+        sbClient = null;
+        return null;
+      }
+      sbClient = window.supabase.createClient(cloudSettings.url, cloudSettings.anonKey);
+      return sbClient;
+    }
+
+    function createEphemeralAuthClient() {
+      if (!window.supabase || !cloudSettings.url || !cloudSettings.anonKey) return null;
+      return window.supabase.createClient(cloudSettings.url, cloudSettings.anonKey, {
+        auth: {
+          persistSession: false,
+          autoRefreshToken: false,
+          detectSessionInUrl: false,
+          storageKey: 'fleet_ephemeral_signup_' + Date.now()
+        }
+      });
+    }
+
+    function loadLocalState() {
+      try {
+        const raw = localStorage.getItem(LOCAL_STATE_KEY);
+        if (raw) {
+          const p = JSON.parse(raw);
+          return {
+            vehicles: Array.isArray(p.vehicles) ? p.vehicles : [],
+            users: Array.isArray(p.users) && p.users.length ? p.users : [
+              { id: 'u_admin', full_name: 'شهاب الفريعي', email: 'shehab.a.alfariee@gmail.com', role: 'admin', is_active: true }
+            ],
+            logs: Array.isArray(p.logs) ? p.logs : []
+          };
+        }
+      } catch {}
+      return {
+        vehicles: [],
+        users: [
+          { id: 'u_admin', full_name: 'شهاب الفريعي', email: 'shehab.a.alfariee@gmail.com', role: 'admin', is_active: true }
+        ],
+        logs: []
+      };
+    }
+
+    function saveLocalState() {
+      localStorage.setItem(LOCAL_STATE_KEY, JSON.stringify(state));
+    }
+
+    function formatArabicToday() {
+      try {
+        const now = new Date();
+        const formatted = now.toLocaleDateString('ar-SA', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        });
+        document.getElementById('todayDateLabel').textContent = `تاريخ اليوم: ${formatted}`;
+      } catch {
+        document.getElementById('todayDateLabel').textContent = '';
+      }
+    }
+
+    function showLoginError(msg) {
+      const box = document.getElementById('loginErrorBox');
+      box.textContent = msg;
+      box.classList.remove('hidden');
+    }
+
+    function clearLoginError() {
+      const box = document.getElementById('loginErrorBox');
+      box.textContent = '';
+      box.classList.add('hidden');
+    }
+
+    async function handleLoginSubmit(event) {
+      event.preventDefault();
+      clearLoginError();
+
+      const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+      const password = document.getElementById('loginPassword').value;
+
+      if (!email || !password) {
+        showLoginError('يرجى إدخال البريد الإلكتروني وكلمة المرور.');
+        return;
+      }
+
+      if (isCloudMode()) {
+        initSupabaseClient();
+        if (!sbClient) {
+          showLoginError('يرجى ضبط Project URL ومفتاح Publishable Key في إعدادات الربط السحابي أولاً.');
+          return;
+        }
+
+        const btn = document.getElementById('loginSubmitBtn');
+        btn.disabled = true;
+        btn.textContent = 'جاري التحقق...';
+        setLoading(true, 'جاري تسجيل الدخول ومزامنة البيانات...');
+
+        try {
+          const { data: authData, error: authErr } = await sbClient.auth.signInWithPassword({ email, password });
+          if (authErr || !authData?.user) {
+            showLoginError('بيانات تسجيل الدخول غير صحيحة أو الحساب غير مفعل في المصادقة.');
+            return;
+          }
+
+          const { data: profile, error: profErr } = await sbClient
+            .from('app_users')
+            .select('id, full_name, email, role, is_active')
+            .ilike('email', email)
+            .maybeSingle();
+
+          if (profErr) {
+            showLoginError(`تعذر قراءة ملف المستخدم من جدول app_users (${profErr.message}).`);
+            return;
+          }
+
+          if (!profile) {
+            showLoginError('تم التحقق من الحساب، ولكن لم يتم العثور على ملف المستخدم في جدول app_users.');
+            return;
+          }
+
+          if (!profile.is_active) {
+            showLoginError('هذا الحساب معطّل حالياً.');
+            return;
+          }
+
+          currentUser = profile;
+          await refreshCloudData(false, false);
+          enterApp();
+        } finally {
+          setLoading(false);
+          btn.disabled = false;
+          btn.textContent = 'دخول';
+        }
+      } else {
+        const found = (state.users || []).find(u => (u.email || '').toLowerCase() === email && u.is_active !== false);
+        if (!found) {
+          showLoginError('المستخدم غير موجود في الوضع المحلي.');
+          return;
+        }
+        currentUser = found;
+        enterApp();
+      }
+    }
+
+    function quickLocalDemoLogin() {
+      clearLoginError();
+      cloudSettings.mode = 'local';
+      persistCloudSettings();
+      currentUser = {
+        id: 'u_admin',
+        full_name: 'شهاب الفريعي',
+        email: 'shehab.a.alfariee@gmail.com',
+        role: 'admin',
+        is_active: true
+      };
+      enterApp();
+    }
+
+    function enterApp() {
+      document.getElementById('loginScreen').classList.add('hidden');
+      document.getElementById('appShell').classList.remove('hidden');
+      updateHeaderBadges();
+      setActiveDocSection(activeDocSection);
+      switchMainTab('dashboard');
+      renderAll();
+    }
+
+    async function logoutUser() {
+      setLoading(true, 'جاري تسجيل الخروج...');
+      try {
+        if (isCloudMode() && sbClient) {
+          try {
+            await sbClient.auth.signOut();
+          } catch {}
+        }
+        currentUser = null;
+        selectedVehicleIds.clear();
+        hideSystemBanner();
+        document.getElementById('appShell').classList.add('hidden');
+        document.getElementById('loginScreen').classList.remove('hidden');
+        document.getElementById('loginPassword').value = '';
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    function updateHeaderBadges() {
+      const modeBadge = document.getElementById('modeBadge');
+      if (isCloudMode()) {
+        modeBadge.textContent = 'الوضع: سحابي (Supabase)';
+        modeBadge.className = 'px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30';
+      } else {
+        modeBadge.textContent = 'الوضع: محلي';
+        modeBadge.className = 'px-3 py-1.5 rounded-full text-xs font-bold bg-amber-500/20 text-amber-200 border border-amber-400/30';
+      }
+
+      const roleLabel = currentUser?.role === 'admin'
+        ? 'مدير النظام (Admin)'
+        : currentUser?.role === 'supervisor'
+          ? 'مشرف (Supervisor)'
+          : 'مشاهد (Viewer)';
+
+      document.getElementById('userBadge').textContent = `${currentUser?.full_name || ''} · ${roleLabel}`;
+
+      const capBadge = document.getElementById('roleCapabilityBadge');
+      const addVehicleBtn = document.getElementById('addVehicleBtn');
+      const importBtn = document.getElementById('importSectionExcelBtn');
+      const addUserBtn = document.getElementById('addUserBtn');
+
+      const canEdit = canEditRecords();
+      const isAdmin = currentUser && currentUser.role === 'admin';
+
+      if (addVehicleBtn) addVehicleBtn.classList.toggle('hidden', !canEdit);
+      if (importBtn) importBtn.classList.toggle('hidden', !canEdit);
+      if (addUserBtn) addUserBtn.classList.toggle('hidden', !isAdmin);
+
+      if (isAdmin) {
+        capBadge.textContent = 'صلاحياتك: إدارة كاملة للمركبات والوثائق والمستخدمين';
+      } else if (canEdit) {
+        capBadge.textContent = 'صلاحياتك: إضافة وتعديل وحذف المركبات والوثائق واستيراد الإكسيل';
+      } else {
+        capBadge.textContent = 'صلاحياتك: عرض البيانات وتصدير التقارير فقط (بدون تعديل أو حذف)';
+      }
+    }
+
+    async function refreshCloudData(showBanner = false, useLoader = true) {
+      const btn = document.getElementById('refreshDataBtn');
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'جاري التحديث...';
+      }
+      if (useLoader) setLoading(true, 'جاري تحديث البيانات من قاعدة البيانات...');
+
+      try {
+        if (!isCloudMode()) {
+          renderAll();
+          if (showBanner) showSystemBanner('تم تحديث البيانات المحلية بنجاح.', 'success');
+          return;
+        }
+
+        initSupabaseClient();
+        if (!sbClient) {
+          if (showBanner) showSystemBanner('لم يتم إعداد Supabase بشكل صحيح.', 'error');
+          return;
+        }
+
+        const [vRes, dRes, uRes, lRes] = await Promise.all([
+          sbClient.from('vehicles').select('*').order('created_at', { ascending: false }),
+          sbClient.from('vehicle_documents').select('*'),
+          sbClient.from('app_users').select('*').order('created_at', { ascending: true }),
+          sbClient.from('audit_logs').select('*').order('created_at', { ascending: false }).limit(100)
+        ]);
+
+        if (vRes.error) {
+          if (showBanner) showSystemBanner(`خطأ في قراءة المركبات: ${vRes.error.message}`, 'error');
+          return;
+        }
+
+        const docsByVehicle = {};
+        if (!dRes.error && Array.isArray(dRes.data)) {
+          for (const doc of dRes.data) {
+            if (!docsByVehicle[doc.vehicle_id]) docsByVehicle[doc.vehicle_id] = {};
+            docsByVehicle[doc.vehicle_id][doc.doc_type] = doc.expiry_date;
+          }
+        }
+
+        if (Array.isArray(vRes.data)) {
+          state.vehicles = vRes.data.map(v => ({
+            id: v.id,
+            plate_number: v.plate_number,
+            vehicle_name: v.vehicle_name,
+            assigned_driver: v.assigned_driver,
+            notes: v.notes || '',
+            docs: docsByVehicle[v.id] || {}
+          }));
+        }
+
+        if (!uRes.error && Array.isArray(uRes.data)) {
+          state.users = uRes.data;
+        }
+
+        if (!lRes.error && Array.isArray(lRes.data)) {
+          state.logs = lRes.data;
+        }
+
+        renderAll();
+        if (showBanner) {
+          const sectionCount = getSectionVehiclesList(activeDocSection).length;
+          showSystemBanner(`تم تحديث البيانات بنجاح (${sectionCount} سجل في القسم النشط).`, 'success');
+        }
+      } catch (err) {
+        if (showBanner) showSystemBanner(`تعذر تحديث البيانات: ${err.message || err}`, 'error');
+      } finally {
+        if (useLoader) setLoading(false);
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = 'تحديث البيانات';
+        }
+      }
+    }
+
+    async function recordActionLog(actionType, targetLabel, details = '') {
+      const entry = {
+        actor_email: currentUser?.email || 'system',
+        actor_role: currentUser?.role || 'admin',
+        action_type: actionType,
+        target_label: targetLabel,
+        details,
+        created_at: new Date().toISOString()
+      };
+
+      if (isCloudMode() && sbClient) {
+        await sbClient.from('audit_logs').insert([entry]);
+      } else {
+        state.logs.unshift({ id: 'log_' + Date.now(), ...entry });
+        saveLocalState();
+      }
+    }
+
+    function switchMainTab(tabName) {
+      activeMainTab = tabName;
+      document.getElementById('tab-dashboard').classList.toggle('hidden', tabName !== 'dashboard');
+      document.getElementById('tab-users').classList.toggle('hidden', tabName !== 'users');
+      document.getElementById('tab-logs').classList.toggle('hidden', tabName !== 'logs');
+
+      document.querySelectorAll('.main-tab-btn').forEach(btn => {
+        const selected = btn.dataset.mainTab === tabName;
+        btn.className = selected
+          ? 'main-tab-btn px-4 py-2 rounded-xl text-sm font-bold bg-blue-600 text-white'
+          : 'main-tab-btn px-4 py-2 rounded-xl text-sm font-bold bg-slate-100 hover:bg-slate-200 text-slate-700';
+      });
+    }
+
+    function setActiveDocSection(sectionKey) {
+      activeDocSection = DOC_SECTION_CONFIG[sectionKey] ? sectionKey : 'authorization';
+      const cfg = DOC_SECTION_CONFIG[activeDocSection];
+      const importTarget = activeDocSection === 'all' ? DOC_SECTION_CONFIG.authorization : cfg;
+
+      document.querySelectorAll('.doc-tab-btn').forEach(btn => {
+        const active = btn.dataset.doc === activeDocSection;
+        btn.className = active
+          ? 'doc-tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-blue-600 text-white'
+          : 'doc-tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-white text-slate-700 border border-slate-300 hover:bg-slate-100';
+      });
+
+      document.getElementById('sectionHeadingTitle').textContent =
+        `قسم ${cfg.label} — جدول واستيراد وتحليل ملفات الإكسيل`;
+      document.getElementById('activeSectionHint').textContent = `القسم النشط: ${cfg.label}`;
+      document.getElementById('importSectionExcelBtn').textContent = `استيراد إكسيل: ${importTarget.label}`;
+      document.getElementById('exportSectionExcelBtn').textContent = `تصدير إكسيل: ${cfg.label}`;
+
+      document.getElementById('statTotalTitle').textContent = `إجمالي المركبات (${cfg.label})`;
+      document.getElementById('statExpiredTitle').textContent = `منتهية (${cfg.label})`;
+      document.getElementById('statSoonTitle').textContent = `قريبة الانتهاء (≤ 15 يوم)`;
+      document.getElementById('statValidTitle').textContent = `سارية (${cfg.label})`;
+
+      renderAll();
+    }
+
+    function setStatusFilter(statusVal) {
+      document.getElementById('statusFilterSelect').value = statusVal;
+      renderVehiclesTable();
+    }
+
+    function evaluateDocDate(dateStr) {
+      if (!dateStr) {
+        return { code: 'missing', label: 'غير محدد', badgeClass: 'bg-slate-100 text-slate-500' };
+      }
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const target = new Date(`${dateStr}T00:00:00`);
+      if (isNaN(target.getTime())) {
+        return { code: 'missing', label: dateStr, badgeClass: 'bg-slate-100 text-slate-500' };
+      }
+      const diffDays = Math.round((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      if (diffDays < 0) {
+        return { code: 'expired', label: `منتهي (${dateStr})`, badgeClass: 'bg-rose-100 text-rose-700' };
+      }
+      if (diffDays <= 15) {
+        return { code: 'expiring_soon', label: `ينتهي خلال ${diffDays} يوم (${dateStr})`, badgeClass: 'bg-amber-100 text-amber-800' };
+      }
+      return { code: 'valid', label: `ساري (${dateStr})`, badgeClass: 'bg-emerald-100 text-emerald-700' };
+    }
+
+    function getVehicleSectionStatus(vehicle, sectionKey = activeDocSection) {
+      if (sectionKey === 'all') {
+        const keys = ['authorization', 'registration', 'periodic_inspection', 'insurance'];
+        const statuses = keys
+          .map(k => vehicle.docs?.[k])
+          .filter(Boolean)
+          .map(dt => evaluateDocDate(dt));
+        if (!statuses.length) return 'missing';
+        if (statuses.some(s => s.code === 'expired')) return 'expired';
+        if (statuses.some(s => s.code === 'expiring_soon')) return 'expiring_soon';
+        return 'valid';
+      }
+      const docDate = vehicle.docs?.[sectionKey];
+      if (!docDate) return 'missing';
+      return evaluateDocDate(docDate).code;
+    }
+
+    function getSectionVehiclesList(sectionKey = activeDocSection) {
+      const vehicles = state.vehicles || [];
+      if (sectionKey === 'all') return vehicles;
+      return vehicles.filter(v => Boolean(v.docs && v.docs[sectionKey]));
+    }
+
+    function renderStats() {
+      const sectionList = getSectionVehiclesList(activeDocSection);
+      let expired = 0;
+      let expiringSoon = 0;
+      let valid = 0;
+
+      for (const v of sectionList) {
+        const code = getVehicleSectionStatus(v, activeDocSection);
+        if (code === 'expired') expired++;
+        else if (code === 'expiring_soon') expiringSoon++;
+        else if (code === 'valid') valid++;
+      }
+
+      document.getElementById('statTotalVehicles').textContent = sectionList.length;
+      document.getElementById('statExpired').textContent = expired;
+      document.getElementById('statExpiringSoon').textContent = expiringSoon;
+      document.getElementById('statValid').textContent = valid;
+    }
+
+    function renderDocCell(dateStr) {
+      const st = evaluateDocDate(dateStr);
+      const formattedLabel = dateStr
+        ? st.label.replace(dateStr, `<span dir="ltr" class="inline-block font-mono">${escapeHtml(dateStr)}</span>`)
+        : escapeHtml(st.label);
+      return `<span class="inline-block px-2.5 py-1 rounded-lg text-xs font-bold ${st.badgeClass}">${formattedLabel}</span>`;
+    }
+
+    function syncSelectedVehiclesUI() {
+      const btn = document.getElementById('deleteSelectedBtn');
+      const countEl = document.getElementById('selectedCountLabel');
+      const selectAllEl = document.getElementById('selectAllVehiclesCheckbox');
+
+      if (!canDeleteRecords()) {
+        selectedVehicleIds.clear();
+        if (countEl) countEl.textContent = '0';
+        if (btn) btn.classList.add('hidden');
+        return;
+      }
+
+      const validIds = new Set((state.vehicles || []).map(v => String(v.id)));
+      selectedVehicleIds = new Set(Array.from(selectedVehicleIds).filter(id => validIds.has(id)));
+
+      if (countEl) countEl.textContent = selectedVehicleIds.size;
+      if (btn) btn.classList.toggle('hidden', selectedVehicleIds.size === 0);
+
+      if (selectAllEl) {
+        const rowCheckboxes = Array.from(document.querySelectorAll('.vehicle-row-checkbox'));
+        if (!rowCheckboxes.length) {
+          selectAllEl.checked = false;
+          selectAllEl.indeterminate = false;
+        } else {
+          const checkedCount = rowCheckboxes.filter(cb => cb.checked).length;
+          selectAllEl.checked = checkedCount === rowCheckboxes.length;
+          selectAllEl.indeterminate = checkedCount > 0 && checkedCount < rowCheckboxes.length;
+        }
+      }
+    }
+
+    function toggleSelectVehicle(vehicleId, checked) {
+      if (!canDeleteRecords()) return;
+      const key = String(vehicleId);
+      if (checked) selectedVehicleIds.add(key);
+      else selectedVehicleIds.delete(key);
+      syncSelectedVehiclesUI();
+    }
+
+    function toggleSelectAllVehicles(checked) {
+      if (!canDeleteRecords()) return;
+      const rowCheckboxes = document.querySelectorAll('.vehicle-row-checkbox');
+      rowCheckboxes.forEach(cb => {
+        cb.checked = checked;
+        const key = String(cb.value);
+        if (checked) selectedVehicleIds.add(key);
+        else selectedVehicleIds.delete(key);
+      });
+      syncSelectedVehiclesUI();
+    }
+
+    function renderVehiclesTable() {
+      const headEl = document.getElementById('vehiclesTableHead');
+      const tbody = document.getElementById('vehiclesTableBody');
+      if (!headEl || !tbody) return;
+
+      const cfg = DOC_SECTION_CONFIG[activeDocSection] || DOC_SECTION_CONFIG.authorization;
+      const canEdit = canEditRecords();
+      const canDelete = canDeleteRecords();
+
+      const checkboxTh = canDelete
+        ? `<th class="py-3 px-3 w-10"><input id="selectAllVehiclesCheckbox" type="checkbox" onchange="toggleSelectAllVehicles(this.checked)" class="w-4 h-4 rounded border-slate-300 cursor-pointer" /></th>`
+        : '';
+
+      if (activeDocSection === 'all') {
+        headEl.innerHTML = `
+          <tr class="border-b border-slate-200 text-slate-500 text-xs sm:text-sm bg-slate-50">
+            ${checkboxTh}
+            <th class="py-3 px-3 font-bold">المركبة واللوحة</th>
+            <th class="py-3 px-3 font-bold">السائق / المفوّض</th>
+            <th class="py-3 px-3 font-bold">التفويض</th>
+            <th class="py-3 px-3 font-bold">رخصة السير</th>
+            <th class="py-3 px-3 font-bold">الفحص الدوري</th>
+            <th class="py-3 px-3 font-bold">التأمين</th>
+            <th class="py-3 px-3 font-bold">الإجراءات</th>
+          </tr>`;
+      } else {
+        headEl.innerHTML = `
+          <tr class="border-b border-slate-200 text-slate-500 text-xs sm:text-sm bg-slate-50">
+            ${checkboxTh}
+            <th class="py-3 px-3 font-bold">المركبة واللوحة</th>
+            <th class="py-3 px-3 font-bold">السائق / المفوّض</th>
+            <th class="py-3 px-3 font-bold">تاريخ انتهاء ${escapeHtml(cfg.shortLabel)}</th>
+            <th class="py-3 px-3 font-bold">حالة ${escapeHtml(cfg.label)}</th>
+            <th class="py-3 px-3 font-bold">الإجراءات</th>
+          </tr>`;
+      }
+
+      const query = (document.getElementById('searchInput')?.value || '').trim().toLowerCase();
+      const statusFilter = document.getElementById('statusFilterSelect')?.value || 'all';
+
+      const baseList = getSectionVehiclesList(activeDocSection);
+
+      const filtered = baseList.filter(v => {
+        const matchQuery = !query ||
+          String(v.plate_number || '').toLowerCase().includes(query) ||
+          String(v.vehicle_name || '').toLowerCase().includes(query) ||
+          String(v.assigned_driver || '').toLowerCase().includes(query);
+
+        const stCode = getVehicleSectionStatus(v, activeDocSection);
+        const matchStatus = statusFilter === 'all' || stCode === statusFilter;
+        return matchQuery && matchStatus;
+      });
+
+      const baseCols = activeDocSection === 'all' ? 7 : 5;
+      const colCount = baseCols + (canDelete ? 1 : 0);
+
+      if (!filtered.length) {
+        const emptyMsg = activeDocSection === 'all'
+          ? 'لا توجد مركبات مطابقة للبحث أو الفلتر المحدد.'
+          : `لا توجد بيانات مرفوعة في قسم (${cfg.label}) بعد. اضغط «استيراد إكسيل: ${cfg.label}» لرفع ملف القسم.`;
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="${colCount}" class="py-10 text-center text-slate-400 font-semibold">
+              ${escapeHtml(emptyMsg)}
+            </td>
+          </tr>`;
+        syncSelectedVehiclesUI();
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(v => {
+        const docs = v.docs || {};
+        const isChecked = selectedVehicleIds.has(String(v.id)) ? 'checked' : '';
+        const checkboxTd = canDelete
+          ? `<td class="py-3 px-3">
+               <input type="checkbox" value="${escapeHtml(v.id)}" ${isChecked}
+                 onchange="toggleSelectVehicle('${escapeHtml(v.id)}', this.checked)"
+                 class="vehicle-row-checkbox w-4 h-4 rounded border-slate-300 cursor-pointer" />
+             </td>`
+          : '';
+
+        const editBtn = canEdit
+          ? `<button type="button" onclick="openVehicleModal('${escapeHtml(v.id)}')" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold">تعديل</button>`
+          : '';
+        const delBtn = canDelete
+          ? `<button type="button" onclick="deleteVehicle('${escapeHtml(v.id)}')" class="px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold">حذف</button>`
+          : '';
+
+        const actionsHtml = `
+          <td class="py-3 px-3 whitespace-nowrap space-x-1 space-x-reverse">
+            ${(editBtn || delBtn) ? `${editBtn}${delBtn}` : '<span class="text-xs text-slate-400">عرض فقط</span>'}
+          </td>`;
+
+        const vehicleCell = `
+          <td class="py-3 px-3">
+            <div class="font-bold text-slate-900">${escapeHtml(v.vehicle_name)}</div>
+            <div class="text-xs text-slate-500 font-semibold" dir="ltr">${escapeHtml(v.plate_number)}</div>
+          </td>`;
+
+        const driverCell = `<td class="py-3 px-3 text-slate-700 font-medium">${escapeHtml(v.assigned_driver)}</td>`;
+
+        if (activeDocSection === 'all') {
+          return `
+            <tr class="hover:bg-slate-50">
+              ${checkboxTd}
+              ${vehicleCell}
+              ${driverCell}
+              <td class="py-3 px-3">${renderDocCell(docs.authorization)}</td>
+              <td class="py-3 px-3">${renderDocCell(docs.registration)}</td>
+              <td class="py-3 px-3">${renderDocCell(docs.periodic_inspection)}</td>
+              <td class="py-3 px-3">${renderDocCell(docs.insurance)}</td>
+              ${actionsHtml}
+            </tr>`;
+        }
+
+        const sectionDate = docs[activeDocSection] || '';
+        const dateFormatted = sectionDate
+          ? `<span dir="ltr" class="font-mono font-bold text-slate-800">${escapeHtml(sectionDate)}</span>`
+          : `<span class="text-slate-400 text-xs">غير محدد</span>`;
+
+        return `
+          <tr class="hover:bg-slate-50">
+            ${checkboxTd}
+            ${vehicleCell}
+            ${driverCell}
+            <td class="py-3 px-3">${dateFormatted}</td>
+            <td class="py-3 px-3">${renderDocCell(sectionDate)}</td>
+            ${actionsHtml}
+          </tr>`;
+      }).join('');
+
+      syncSelectedVehiclesUI();
+    }
+
+    function renderUsersTable() {
+      const tbody = document.getElementById('usersTableBody');
+      if (!tbody) return;
+      const isAdmin = currentUser && currentUser.role === 'admin';
+
+      tbody.innerHTML = (state.users || []).map(u => {
+        const isCurrentUser = currentUser &&
+          ((u.id && currentUser.id && String(u.id) === String(currentUser.id)) ||
+           (u.email && currentUser.email && u.email.toLowerCase() === currentUser.email.toLowerCase()));
+
+        const identifier = encodeURIComponent(String(u.id || u.email || ''));
+
+        return `
+          <tr class="hover:bg-slate-50">
+            <td class="py-3 px-3 font-bold text-slate-900">${escapeHtml(u.full_name)}</td>
+            <td class="py-3 px-3 text-slate-700">${escapeHtml(u.email)}</td>
+            <td class="py-3 px-3"><span class="px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 text-xs font-bold">${escapeHtml(u.role)}</span></td>
+            <td class="py-3 px-3">
+              <span class="px-2.5 py-1 rounded-lg text-xs font-bold ${u.is_active !== false ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}">
+                ${u.is_active !== false ? 'نشط' : 'معطّل'}
+              </span>
+            </td>
+            <td class="py-3 px-3 whitespace-nowrap space-x-1 space-x-reverse">
+              ${isAdmin ? `
+                <button type="button" onclick="openUserModal(decodeURIComponent('${identifier}'))" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-xs font-bold text-slate-700">
+                  تعديل
+                </button>
+                <button type="button" onclick="toggleUserActive(decodeURIComponent('${identifier}'))" class="px-2.5 py-1 rounded-lg bg-amber-50 hover:bg-amber-100 text-xs font-bold text-amber-800">
+                  ${u.is_active !== false ? 'تعطيل' : 'تفعيل'}
+                </button>
+                ${!isCurrentUser ? `
+                  <button type="button" onclick="deleteUserItem(decodeURIComponent('${identifier}'))" class="px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-xs font-bold text-rose-700">
+                    حذف
+                  </button>` : ''}
+              ` : '<span class="text-xs text-slate-400">—</span>'}
+            </td>
+          </tr>`;
+      }).join('');
+    }
+
+    function renderLogsTable() {
+      const tbody = document.getElementById('logsTableBody');
+      if (!tbody) return;
+
+      if (!(state.logs || []).length) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-slate-400">لا توجد عمليات مسجلة بعد.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = (state.logs || []).map(l => `
+        <tr class="hover:bg-slate-50">
+          <td class="py-3 px-3 text-xs text-slate-500">${escapeHtml(new Date(l.created_at).toLocaleString('ar-SA'))}</td>
+          <td class="py-3 px-3 text-xs font-semibold text-slate-800">${escapeHtml(l.actor_email)}</td>
+          <td class="py-3 px-3 text-xs"><span class="px-2 py-0.5 rounded bg-slate-100 font-bold">${escapeHtml(l.actor_role)}</span></td>
+          <td class="py-3 px-3 text-xs font-bold text-blue-700">${escapeHtml(l.action_type)}</td>
+          <td class="py-3 px-3 text-xs font-semibold text-slate-800">${escapeHtml(l.target_label)}</td>
+          <td class="py-3 px-3 text-xs text-slate-600">${escapeHtml(l.details || '')}</td>
+        </tr>
+      `).join('');
+    }
+
+    function renderAll() {
+      updateHeaderBadges();
+      renderStats();
+      renderVehiclesTable();
+      renderUsersTable();
+      renderLogsTable();
+    }
+
+    function escapeHtml(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    // نافذة الربط السحابي
+    function openCloudSettingsModal() {
+      document.getElementById('cloudUrlInput').value = cloudSettings.url || DEFAULT_SUPABASE_URL;
+      document.getElementById('cloudKeyInput').value = cloudSettings.anonKey || '';
+      document.getElementById('storageModeInput').value = cloudSettings.mode || 'cloud';
+      document.getElementById('cloudSettingsModal').classList.remove('hidden');
+    }
+
+    function closeCloudSettingsModal() {
+      document.getElementById('cloudSettingsModal').classList.add('hidden');
+    }
+
+    async function saveCloudSettings() {
+      setLoading(true, 'جاري حفظ إعدادات الربط السحابي...');
+      try {
+        cloudSettings = {
+          url: document.getElementById('cloudUrlInput').value.trim() || DEFAULT_SUPABASE_URL,
+          anonKey: document.getElementById('cloudKeyInput').value.trim(),
+          mode: document.getElementById('storageModeInput').value === 'local' ? 'local' : 'cloud'
+        };
+        persistCloudSettings();
+        initSupabaseClient();
+        closeCloudSettingsModal();
+        updateHeaderBadges();
+        if (currentUser && isCloudMode()) {
+          await refreshCloudData(false, false);
+        }
+        showSystemBanner('تم حفظ إعدادات الربط السحابي بنجاح.', 'success');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    // نافذة المركبات
+    function openVehicleModal(vehicleId = null) {
+      if (!canEditRecords()) {
+        showSystemBanner('ليس لديك صلاحية إضافة أو تعديل المركبات.', 'error');
+        return;
+      }
+
+      const form = document.getElementById('vehicleForm');
+      form.reset();
+      document.getElementById('vehicleEditId').value = '';
+
+      if (vehicleId) {
+        const v = (state.vehicles || []).find(item => String(item.id) === String(vehicleId));
+        if (v) {
+          document.getElementById('vehicleModalTitle').textContent = 'تعديل بيانات المركبة والوثائق';
+          document.getElementById('vehicleEditId').value = v.id;
+          document.getElementById('vPlateNumber').value = v.plate_number || '';
+          document.getElementById('vVehicleName').value = v.vehicle_name || '';
+          document.getElementById('vAssignedDriver').value = v.assigned_driver || '';
+          document.getElementById('vDocAuth').value = v.docs?.authorization || '';
+          document.getElementById('vDocReg').value = v.docs?.registration || '';
+          document.getElementById('vDocInsp').value = v.docs?.periodic_inspection || '';
+          document.getElementById('vDocIns').value = v.docs?.insurance || '';
+          document.getElementById('vNotes').value = v.notes || '';
+        }
+      } else {
+        document.getElementById('vehicleModalTitle').textContent = 'إضافة مركبة جديدة';
+      }
+
+      document.getElementById('vehicleModal').classList.remove('hidden');
+    }
+
+    function closeVehicleModal() {
+      document.getElementById('vehicleModal').classList.add('hidden');
+    }
+
+    async function saveVehicleForm(event) {
+      event.preventDefault();
+      if (!canEditRecords()) {
+        showSystemBanner('ليس لديك صلاحية حفظ بيانات المركبات.', 'error');
+        return;
+      }
+
+      const editId = document.getElementById('vehicleEditId').value.trim();
+      const plate_number = document.getElementById('vPlateNumber').value.trim();
+      const vehicle_name = document.getElementById('vVehicleName').value.trim();
+      const assigned_driver = document.getElementById('vAssignedDriver').value.trim();
+      const notes = document.getElementById('vNotes').value.trim();
+
+      const docs = {
+        authorization: document.getElementById('vDocAuth').value || '',
+        registration: document.getElementById('vDocReg').value || '',
+        periodic_inspection: document.getElementById('vDocInsp').value || '',
+        insurance: document.getElementById('vDocIns').value || ''
+      };
+
+      setLoading(true, editId ? 'جاري حفظ تعديلات المركبة...' : 'جاري إضافة المركبة...');
+      try {
+        if (isCloudMode() && sbClient) {
+          let targetId = editId;
+          if (editId) {
+            const { error } = await sbClient
+              .from('vehicles')
+              .update({ plate_number, vehicle_name, assigned_driver, notes, updated_at: new Date().toISOString() })
+              .eq('id', editId);
+            if (error) {
+              showSystemBanner(`تعذر تحديث المركبة: ${error.message}`, 'error');
+              return;
+            }
+          } else {
+            const { data: inserted, error } = await sbClient
+              .from('vehicles')
+              .insert([{ plate_number, vehicle_name, assigned_driver, notes }])
+              .select()
+              .single();
+            if (error || !inserted) {
+              showSystemBanner(`تعذر إضافة المركبة: ${error?.message || ''}`, 'error');
+              return;
+            }
+            targetId = inserted.id;
+          }
+
+          const docRows = Object.entries(docs)
+            .filter(([, dt]) => Boolean(dt))
+            .map(([doc_type, expiry_date]) => ({ vehicle_id: targetId, doc_type, expiry_date }));
+
+          if (docRows.length) {
+            await sbClient.from('vehicle_documents').upsert(docRows, { onConflict: 'vehicle_id,doc_type' });
+          }
+
+          await recordActionLog(editId ? 'تعديل مركبة' : 'إضافة مركبة', `${vehicle_name} (${plate_number})`, assigned_driver);
+          await refreshCloudData(false, false);
+          showSystemBanner(editId ? 'تم تحديث بيانات المركبة بنجاح.' : 'تمت إضافة المركبة بنجاح.', 'success');
+        } else {
+          if (editId) {
+            const idx = state.vehicles.findIndex(v => String(v.id) === String(editId));
+            if (idx >= 0) {
+              state.vehicles[idx] = { ...state.vehicles[idx], plate_number, vehicle_name, assigned_driver, notes, docs };
+            }
+          } else {
+            state.vehicles.unshift({ id: 'v_' + Date.now(), plate_number, vehicle_name, assigned_driver, notes, docs });
+          }
+          saveLocalState();
+          await recordActionLog(editId ? 'تعديل مركبة' : 'إضافة مركبة', `${vehicle_name} (${plate_number})`, assigned_driver);
+          renderAll();
+          showSystemBanner(editId ? 'تم تحديث بيانات المركبة محلياً.' : 'تمت إضافة المركبة محلياً.', 'success');
+        }
+
+        closeVehicleModal();
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    async function deleteVehiclesBatch(idsList) {
+      if (!canDeleteRecords()) {
+        showSystemBanner('ليس لديك صلاحية حذف السجلات؛ هذا الحساب بصلاحية مشاهد (Viewer) فقط.', 'error');
+        return;
+      }
+
+      const uniqueIds = Array.from(new Set((idsList || []).map(String)));
+      if (!uniqueIds.length) return;
+
+      const cfg = DOC_SECTION_CONFIG[activeDocSection] || DOC_SECTION_CONFIG.all;
+      const isSectionOnly = activeDocSection !== 'all';
+
+      setLoading(
+        true,
+        isSectionOnly
+          ? `جاري حذف (${uniqueIds.length}) سجل من قسم (${cfg.label})...`
+          : `جاري حذف (${uniqueIds.length}) مركبة...`
+      );
+
+      try {
+        if (isCloudMode() && sbClient) {
+          if (isSectionOnly) {
+            const { error: dErr } = await sbClient
+              .from('vehicle_documents')
+              .delete()
+              .in('vehicle_id', uniqueIds)
+              .eq('doc_type', activeDocSection);
+
+            if (dErr) {
+              showSystemBanner(`تعذر حذف السجلات من القسم: ${dErr.message}`, 'error');
+              return;
+            }
+          } else {
+            await sbClient.from('vehicle_documents').delete().in('vehicle_id', uniqueIds);
+            const { error: vErr } = await sbClient.from('vehicles').delete().in('id', uniqueIds);
+            if (vErr) {
+              showSystemBanner(`تعذر حذف المركبات: ${vErr.message}`, 'error');
+              return;
+            }
+          }
+
+          await recordActionLog(
+            isSectionOnly ? `حذف جماعي (${cfg.label})` : 'حذف جماعي للمركبات',
+            `${uniqueIds.length} عنصر`,
+            isSectionOnly ? `إزالة وثيقة ${cfg.label}` : 'حذف كامل للمركبات'
+          );
+
+          uniqueIds.forEach(id => selectedVehicleIds.delete(id));
+          await refreshCloudData(false, false);
+        } else {
+          if (isSectionOnly) {
+            for (const v of state.vehicles || []) {
+              if (uniqueIds.includes(String(v.id)) && v.docs) {
+                delete v.docs[activeDocSection];
+              }
+            }
+          } else {
+            state.vehicles = (state.vehicles || []).filter(v => !uniqueIds.includes(String(v.id)));
+          }
+
+          uniqueIds.forEach(id => selectedVehicleIds.delete(id));
+          saveLocalState();
+          await recordActionLog(
+            isSectionOnly ? `حذف جماعي (${cfg.label})` : 'حذف جماعي للمركبات',
+            `${uniqueIds.length} عنصر`,
+            isSectionOnly ? `إزالة وثيقة ${cfg.label}` : 'حذف كامل للمركبات'
+          );
+          renderAll();
+        }
+
+        showSystemBanner(
+          isSectionOnly
+            ? `تم حذف (${uniqueIds.length}) سجل من قسم (${cfg.label}) بنجاح.`
+            : `تم حذف (${uniqueIds.length}) مركبة بنجاح.`,
+          'success'
+        );
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    async function deleteVehicle(vehicleId) {
+      if (!canDeleteRecords()) {
+        showSystemBanner('ليس لديك صلاحية حذف السجلات؛ هذا الحساب بصلاحية مشاهد (Viewer) فقط.', 'error');
+        return;
+      }
+      await deleteVehiclesBatch([vehicleId]);
+    }
+
+    async function deleteSelectedVehicles() {
+      if (!canDeleteRecords()) {
+        showSystemBanner('ليس لديك صلاحية حذف السجلات؛ هذا الحساب بصلاحية مشاهد (Viewer) فقط.', 'error');
+        return;
+      }
+      const ids = Array.from(selectedVehicleIds);
+      if (!ids.length) return;
+      await deleteVehiclesBatch(ids);
+    }
+
+    // إدارة المستخدمين والصلاحيات
+    function openUserModal(userIdentifier = null) {
+      const form = document.getElementById('userForm');
+      form.reset();
+      document.getElementById('userEditId').value = '';
+      document.getElementById('userOriginalEmail').value = '';
+      document.getElementById('uActive').value = 'true';
+
+      const passInput = document.getElementById('uPassword');
+      const passLabel = document.getElementById('uPasswordLabel');
+
+      if (userIdentifier) {
+        const u = (state.users || []).find(
+          item => String(item.id) === String(userIdentifier) || String(item.email).toLowerCase() === String(userIdentifier).toLowerCase()
+        );
+        if (u) {
+          document.getElementById('userModalTitle').textContent = 'تعديل بيانات المستخدم وصلاحياته';
+          document.getElementById('userEditId').value = u.id || '';
+          document.getElementById('userOriginalEmail').value = u.email || '';
+          document.getElementById('uFullName').value = u.full_name || '';
+          document.getElementById('uEmail').value = u.email || '';
+          document.getElementById('uRole').value = u.role || 'supervisor';
+          document.getElementById('uActive').value = u.is_active !== false ? 'true' : 'false';
+          passInput.required = false;
+          passLabel.textContent = 'كلمة المرور الجديدة (اختياري)';
+          document.getElementById('userModal').classList.remove('hidden');
+          return;
+        }
+      }
+
+      document.getElementById('userModalTitle').textContent = 'إضافة مستخدم جديد';
+      passInput.required = true;
+      passLabel.textContent = 'كلمة المرور *';
+      document.getElementById('userModal').classList.remove('hidden');
+    }
+
+    function closeUserModal() {
+      document.getElementById('userModal').classList.add('hidden');
+    }
+
+    async function saveUserForm(event) {
+      event.preventDefault();
+      const editId = document.getElementById('userEditId').value.trim();
+      const originalEmail = document.getElementById('userOriginalEmail').value.trim().toLowerCase();
+      const full_name = document.getElementById('uFullName').value.trim();
+      const email = document.getElementById('uEmail').value.trim().toLowerCase();
+      const password = document.getElementById('uPassword').value;
+      const role = document.getElementById('uRole').value;
+      const is_active = document.getElementById('uActive').value === 'true';
+
+      if (!editId && (!password || password.length < 6)) {
+        showSystemBanner('يرجى إدخال كلمة مرور لا تقل عن 6 أحرف للمستخدم الجديد.', 'warning');
+        return;
+      }
+
+      setLoading(true, 'جاري حفظ بيانات المستخدم...');
+      try {
+        let authNote = '';
+
+        if (isCloudMode() && sbClient) {
+          if (password && password.length >= 6) {
+            const tempClient = createEphemeralAuthClient();
+            if (tempClient) {
+              const { error: signUpErr } = await tempClient.auth.signUp({
+                email,
+                password,
+                options: { data: { full_name, role } }
+              });
+              if (signUpErr) {
+                authNote = ` (تنبيه Auth: ${signUpErr.message})`;
+              } else {
+                authNote = ' وتم تسجيل حساب الدخول في Auth.';
+              }
+            }
+          }
+
+          const payload = { full_name, email, role, is_active };
+          let dbErr = null;
+
+          if (editId) {
+            const res = await sbClient.from('app_users').update(payload).eq('id', editId);
+            dbErr = res.error;
+          } else {
+            const res = await sbClient.from('app_users').upsert([payload], { onConflict: 'email' });
+            dbErr = res.error;
+          }
+
+          if (dbErr) {
+            showSystemBanner(`تعذر حفظ المستخدم: ${dbErr.message}`, 'error');
+            return;
+          }
+
+          await recordActionLog(
+            editId ? 'تعديل مستخدم' : 'إضافة مستخدم',
+            `${full_name} (${email})`,
+            `الدور: ${role} | الحالة: ${is_active ? 'نشط' : 'معطّل'}`
+          );
+          await refreshCloudData(false, false);
+        } else {
+          if (editId || originalEmail) {
+            const idx = (state.users || []).findIndex(
+              u => (editId && String(u.id) === String(editId)) ||
+                   (originalEmail && String(u.email || '').toLowerCase() === originalEmail)
+            );
+            if (idx >= 0) {
+              state.users[idx] = {
+                ...state.users[idx],
+                full_name,
+                email,
+                role,
+                is_active,
+                ...(password ? { password_hint_set: true } : {})
+              };
+            }
+          } else {
+            state.users.push({
+              id: 'u_' + Date.now(),
+              full_name,
+              email,
+              role,
+              is_active,
+              ...(password ? { password_hint_set: true } : {})
+            });
+          }
+
+          saveLocalState();
+          await recordActionLog(
+            editId ? 'تعديل مستخدم' : 'إضافة مستخدم',
+            `${full_name} (${email})`,
+            `الدور: ${role} | الحالة: ${is_active ? 'نشط' : 'معطّل'}`
+          );
+          renderUsersTable();
+        }
+
+        closeUserModal();
+        showSystemBanner(`تم حفظ بيانات المستخدم (${email}) بنجاح.${authNote}`, 'success');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    async function toggleUserActive(userIdentifier) {
+      const u = (state.users || []).find(
+        item => String(item.id) === String(userIdentifier) || String(item.email).toLowerCase() === String(userIdentifier).toLowerCase()
+      );
+      if (!u) return;
+      const nextStatus = u.is_active === false ? true : false;
+
+      setLoading(true, 'جاري تحديث حالة المستخدم...');
+      try {
+        if (isCloudMode() && sbClient) {
+          const query = u.id
+            ? sbClient.from('app_users').update({ is_active: nextStatus }).eq('id', u.id)
+            : sbClient.from('app_users').update({ is_active: nextStatus }).eq('email', u.email);
+          const { error } = await query;
+          if (error) {
+            showSystemBanner(`تعذر تحديث حالة المستخدم: ${error.message}`, 'error');
+            return;
+          }
+          await refreshCloudData(false, false);
+        } else {
+          u.is_active = nextStatus;
+          saveLocalState();
+          renderUsersTable();
+        }
+        showSystemBanner(`تم تحديث حالة المستخدم (${u.email}) إلى ${nextStatus ? 'نشط' : 'معطّل'}.`, 'success');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    async function deleteUserItem(userIdentifier) {
+      const u = (state.users || []).find(
+        item => String(item.id) === String(userIdentifier) || String(item.email).toLowerCase() === String(userIdentifier).toLowerCase()
+      );
+      if (!u) return;
+
+      setLoading(true, `جاري حذف المستخدم (${u.email})...`);
+      try {
+        if (isCloudMode() && sbClient) {
+          const query = u.id
+            ? sbClient.from('app_users').delete().eq('id', u.id)
+            : sbClient.from('app_users').delete().eq('email', u.email);
+          const { error } = await query;
+          if (error) {
+            showSystemBanner(`تعذر حذف المستخدم: ${error.message}`, 'error');
+            return;
+          }
+          await recordActionLog('حذف مستخدم', `${u.full_name} (${u.email})`);
+          await refreshCloudData(false, false);
+        } else {
+          state.users = (state.users || []).filter(
+            item => !(u.id && String(item.id) === String(u.id)) &&
+                     !(u.email && String(item.email || '').toLowerCase() === String(u.email).toLowerCase())
+          );
+          saveLocalState();
+          await recordActionLog('حذف مستخدم', `${u.full_name} (${u.email})`);
+          renderUsersTable();
+        }
+        showSystemBanner(`تم حذف المستخدم (${u.email}) بنجاح.`, 'success');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    // استيراد وتصدير الإكسيل حسب القسم مع منع التكرار وتفضيل الفعّال
+    function openSectionFilePicker() {
+      if (activeDocSection === 'all') {
+        setActiveDocSection('authorization');
+      }
+      const input = document.getElementById('sectionExcelFileInput');
+      if (input) input.click();
+    }
+
+    function toWesternDigits(str) {
+      const arabicDigits = '٠١٢٣٤٥٦٧٨٩';
+      const persianDigits = '۰۱۲۳۴۵۶۷۸۹';
+      return String(str || '').replace(/[٠-٩۰-۹]/g, ch => {
+        const i1 = arabicDigits.indexOf(ch);
+        if (i1 > -1) return String(i1);
+        const i2 = persianDigits.indexOf(ch);
+        if (i2 > -1) return String(i2);
+        return ch;
+      });
+    }
+
+    function normalizePlateKey(plate) {
+      return toWesternDigits(plate)
+        .trim()
+        .replace(/[أإآ]/g, 'ا')
+        .replace(/ى/g, 'ي')
+        .replace(/ة/g, 'ه')
+        .replace(/[^\p{L}\p{N}]/gu, '')
+        .toUpperCase();
+    }
+
+    function hijriToGregorianISO(hy, hm, hd) {
+      try {
+        let gDate = new Date(Date.UTC(Number(hy) + 579, Number(hm) - 1, Number(hd)));
+        const fmt = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura-nu-latn', {
+          year: 'numeric',
+          month: 'numeric',
+          day: 'numeric',
+          timeZone: 'UTC'
+        });
+
+        for (let step = 0; step < 400; step++) {
+          const parts = fmt.formatToParts(gDate);
+          const cy = Number(parts.find(p => p.type === 'year')?.value || 0);
+          const cm = Number(parts.find(p => p.type === 'month')?.value || 0);
+          const cd = Number(parts.find(p => p.type === 'day')?.value || 0);
+
+          if (cy === Number(hy) && cm === Number(hm) && cd === Number(hd)) {
+            return gDate.toISOString().slice(0, 10);
+          }
+
+          const currentOrdinal = cy * 360 + cm * 30 + cd;
+          const targetOrdinal = Number(hy) * 360 + Number(hm) * 30 + Number(hd);
+          const diffDays = targetOrdinal - currentOrdinal;
+          gDate = new Date(gDate.getTime() + (diffDays !== 0 ? diffDays : 1) * 86400000);
+        }
+      } catch {}
+      return '';
+    }
+
+    function parseAnyExcelDate(value) {
+      if (value === null || value === undefined || value === '') return '';
+
+      if (typeof value === 'number' && window.XLSX?.SSF?.parse_date_code) {
+        const dt = XLSX.SSF.parse_date_code(value);
+        if (dt && dt.y && dt.m && dt.d) {
+          if (dt.y < 1700) return hijriToGregorianISO(dt.y, dt.m, dt.d);
+          return `${String(dt.y).padStart(4, '0')}-${String(dt.m).padStart(2, '0')}-${String(dt.d).padStart(2, '0')}`;
+        }
+      }
+
+      if (value instanceof Date && !isNaN(value.getTime())) {
+        const y = value.getFullYear();
+        const m = String(value.getMonth() + 1).padStart(2, '0');
+        const d = String(value.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+      }
+
+      let str = toWesternDigits(value).trim().split(/[T\s]/)[0];
+
+      let m = str.match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})$/);
+      if (m) {
+        const y = Number(m[1]);
+        const mo = String(Number(m[2])).padStart(2, '0');
+        const da = String(Number(m[3])).padStart(2, '0');
+        if (y < 1700) return hijriToGregorianISO(y, mo, da);
+        return `${String(y).padStart(4, '0')}-${mo}-${da}`;
+      }
+
+      m = str.match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})$/);
+      if (m) {
+        const y = Number(m[3]);
+        const mo = String(Number(m[2])).padStart(2, '0');
+        const da = String(Number(m[1])).padStart(2, '0');
+        if (y < 1700) return hijriToGregorianISO(y, mo, da);
+        return `${String(y).padStart(4, '0')}-${mo}-${da}`;
+      }
+
+      return '';
+    }
+
+    function pickColumnValue(row, hintList) {
+      const keys = Object.keys(row || {});
+      for (const hint of hintList) {
+        const h = hint.trim().toLowerCase();
+        for (const k of keys) {
+          const ck = k.trim().toLowerCase();
+          if (ck === h || ck.includes(h)) {
+            const val = row[k];
+            if (val !== undefined && val !== null && String(val).trim() !== '') {
+              return val;
+            }
+          }
+        }
+      }
+      return '';
+    }
+
+    function deriveFallbackDateFromStatus(statusText) {
+      const s = String(statusText || '').trim();
+      if (!s) return '';
+      if (s.includes('منتهي') || s.includes('غير ساري') || s.includes('ملغي')) {
+        const d = new Date();
+        d.setDate(d.getDate() - 1);
+        return d.toISOString().slice(0, 10);
+      }
+      if (s.includes('ساري') || s.includes('فعال')) {
+        const d = new Date();
+        d.setFullYear(d.getFullYear() + 1);
+        return d.toISOString().slice(0, 10);
+      }
+      return '';
+    }
+
+    function isActiveAuthorizationStatus(statusText, expiryDateStr) {
+      const s = String(statusText || '').trim().toLowerCase();
+      if (s.includes('فعال') || s.includes('ساري') || s === 'active') {
+        return true;
+      }
+      if (s.includes('منته') || s.includes('ملغ') || s.includes('غير ساري') || s.includes('expired')) {
+        return false;
+      }
+      if (expiryDateStr) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const target = new Date(`${expiryDateStr}T00:00:00`);
+        if (!isNaN(target.getTime()) && target >= today) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function compareDateStringsAsc(a, b) {
+      const da = a ? new Date(`${a}T00:00:00`).getTime() : 0;
+      const db = b ? new Date(`${b}T00:00:00`).getTime() : 0;
+      return (isNaN(da) ? 0 : da) - (isNaN(db) ? 0 : db);
+    }
+
+    function selectBestRowForDuplicatePlate(existingCandidate, incomingCandidate) {
+      const aActive = existingCandidate.isActive;
+      const bActive = incomingCandidate.isActive;
+
+      if (bActive && !aActive) return incomingCandidate;
+      if (aActive && !bActive) return existingCandidate;
+
+      const cmp = compareDateStringsAsc(existingCandidate.expiryDate, incomingCandidate.expiryDate);
+      if (cmp > 0) return existingCandidate;
+      return incomingCandidate;
+    }
+
+    async function importSectionExcelFile(event) {
+      const inputEl = event.target;
+      const file = inputEl.files && inputEl.files[0];
+      if (!file) return;
+
+      if (!window.XLSX) {
+        showSystemBanner('تعذر تحميل مكتبة الإكسيل، تحقق من الاتصال بالإنترنت.', 'error');
+        inputEl.value = '';
+        return;
+      }
+
+      if (!canEditRecords()) {
+        showSystemBanner('ليس لديك صلاحية استيراد البيانات.', 'error');
+        inputEl.value = '';
+        return;
+      }
+
+      const targetDocType = activeDocSection === 'all' ? 'authorization' : activeDocSection;
+      const cfg = DOC_SECTION_CONFIG[targetDocType];
+
+      setLoading(true, `جاري قراءة ملف (${cfg.label})...`);
+
+      const reader = new FileReader();
+      reader.onload = async () => {
+        try {
+          const bytes = new Uint8Array(reader.result);
+          const wb = XLSX.read(bytes, { type: 'array', cellDates: true });
+          const sheet = wb.Sheets[wb.SheetNames[0]];
+          const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+
+          if (!rows.length) {
+            showSystemBanner('ملف الإكسيل لا يحتوي على بيانات.', 'warning');
+            return;
+          }
+
+          setLoading(true, `جاري تصفية التكرارات من ${rows.length} سطراً...`);
+
+          const uniqueByPlate = new Map();
+          let skippedRows = 0;
+
+          for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+
+            const rawPlate = pickColumnValue(row, [
+              'معلومات اللوحة', 'رقم اللوحة', 'اللوحة', 'لوحة السيارة', 'لوحة المركبة', 'plate_number', 'plate'
+            ]);
+            const plateNumber = toWesternDigits(rawPlate).trim();
+            const plateKey = normalizePlateKey(plateNumber);
+
+            const rawDate = pickColumnValue(row, cfg.dateHints);
+            let expiryDate = parseAnyExcelDate(rawDate);
+
+            const statusColValue = String(pickColumnValue(row, cfg.statusHints) || '').trim();
+            if (!expiryDate && statusColValue) {
+              expiryDate = deriveFallbackDateFromStatus(statusColValue);
+            }
+
+            if (!plateNumber || !plateKey || !expiryDate) {
+              skippedRows++;
+              continue;
+            }
+
+            const isActive = isActiveAuthorizationStatus(statusColValue, expiryDate);
+
+            const make = String(pickColumnValue(row, ['الماركة']) || '').trim();
+            const model = String(pickColumnValue(row, ['الطراز']) || '').trim();
+            const year = String(toWesternDigits(pickColumnValue(row, ['سنة الصنع']) || '')).trim();
+            const builtName = [make, model, year].filter(Boolean).join(' ');
+
+            const explicitVehicleName = String(
+              pickColumnValue(row, ['اسم / نوع المركبة', 'نوع المركبة', 'نوع السيارة', 'vehicle_name']) || ''
+            ).trim();
+
+            const vehicleName = explicitVehicleName || builtName || `مركبة ${plateNumber}`;
+
+            const driverName = String(
+              pickColumnValue(row, ['اسم المفوض', 'اسم السائق', 'السائق / المفوّض', 'السائق', 'المفوض', 'assigned_driver']) || ''
+            ).trim();
+            const driverId = String(toWesternDigits(pickColumnValue(row, ['رقم هوية المفوض']) || '')).trim();
+            const driverPhone = String(toWesternDigits(pickColumnValue(row, ['رقم جوال المفوض']) || '')).trim();
+
+            const assignedDriver = driverName ||
+              [driverId ? `هوية: ${driverId}` : '', driverPhone ? `جوال: ${driverPhone}` : ''].filter(Boolean).join(' | ') ||
+              'غير محدد';
+
+            const serialNo = String(toWesternDigits(pickColumnValue(row, ['الرقم التسلسلي']) || '')).trim();
+            const statusText = String(pickColumnValue(row, ['وضع المركبة', 'الحاله', 'الحالة']) || '').trim();
+            const notes = [serialNo ? `تسلسلي: ${serialNo}` : '', statusText ? `الحالة: ${statusText}` : '']
+              .filter(Boolean)
+              .join(' | ');
+
+            const candidate = {
+              plateKey,
+              plateNumber,
+              expiryDate,
+              isActive,
+              builtName,
+              vehicleName,
+              assignedDriver,
+              notes
+            };
+
+            if (!uniqueByPlate.has(plateKey)) {
+              uniqueByPlate.set(plateKey, candidate);
+            } else {
+              const chosen = selectBestRowForDuplicatePlate(uniqueByPlate.get(plateKey), candidate);
+              uniqueByPlate.set(plateKey, chosen);
+            }
+          }
+
+          const deduplicatedList = Array.from(uniqueByPlate.values());
+          const duplicatesRemoved = Math.max(0, rows.length - skippedRows - deduplicatedList.length);
+
+          if (!deduplicatedList.length) {
+            showSystemBanner('لم يتم العثور على صفوف صالحة تحتوي على لوحة وتاريخ.', 'warning');
+            return;
+          }
+
+          setLoading(true, `جاري تفريغ بيانات قسم (${cfg.label}) السابقة...`);
+
+          for (const v of state.vehicles || []) {
+            if (v.docs && Object.prototype.hasOwnProperty.call(v.docs, targetDocType)) {
+              delete v.docs[targetDocType];
+            }
+          }
+
+          if (isCloudMode() && sbClient) {
+            const { error: delErr } = await sbClient
+              .from('vehicle_documents')
+              .delete()
+              .eq('doc_type', targetDocType);
+            if (delErr) {
+              showSystemBanner(`تعذر تفريغ بيانات قسم (${cfg.label}) السابقة: ${delErr.message}`, 'error');
+              return;
+            }
+          }
+
+          const plateIndexMap = new Map();
+          (state.vehicles || []).forEach((v, idx) => {
+            const key = normalizePlateKey(v.plate_number);
+            if (key && !plateIndexMap.has(key)) {
+              plateIndexMap.set(key, idx);
+            }
+          });
+
+          const newVehiclesToInsert = [];
+          const newVehiclesMeta = [];
+          const existingDocUpserts = [];
+          const nameFixUpdates = [];
+
+          let updatedVehicles = 0;
+          let newVehicles = 0;
+
+          for (let i = 0; i < deduplicatedList.length; i++) {
+            const item = deduplicatedList[i];
+            const matchIndex = plateIndexMap.has(item.plateKey) ? plateIndexMap.get(item.plateKey) : -1;
+
+            if (matchIndex >= 0) {
+              const existingV = state.vehicles[matchIndex];
+              existingV.docs = existingV.docs || {};
+              existingV.docs[targetDocType] = item.expiryDate;
+
+              if (item.builtName && existingV.vehicle_name === 'صالحة') {
+                existingV.vehicle_name = item.builtName;
+                if (existingV.id) {
+                  nameFixUpdates.push({ id: existingV.id, vehicle_name: item.builtName });
+                }
+              }
+
+              if (existingV.id) {
+                existingDocUpserts.push({
+                  vehicle_id: existingV.id,
+                  doc_type: targetDocType,
+                  expiry_date: item.expiryDate
+                });
+              }
+              updatedVehicles++;
+            } else {
+              const tempId = 'v_' + Date.now() + '_' + i;
+              const newObj = {
+                id: tempId,
+                plate_number: item.plateNumber,
+                vehicle_name: item.vehicleName,
+                assigned_driver: item.assignedDriver,
+                notes: item.notes,
+                docs: { [targetDocType]: item.expiryDate }
+              };
+              newVehiclesMeta.push(newObj);
+              newVehiclesToInsert.push({
+                plate_number: item.plateNumber,
+                vehicle_name: item.vehicleName,
+                assigned_driver: item.assignedDriver,
+                notes: item.notes
+              });
+              plateIndexMap.set(item.plateKey, state.vehicles.length + newVehiclesMeta.length - 1);
+              newVehicles++;
+            }
+          }
+
+          if (isCloudMode() && sbClient) {
+            const CHUNK_SIZE = 100;
+            const allDocUpserts = [...existingDocUpserts];
+
+            if (newVehiclesToInsert.length > 0) {
+              setLoading(true, `جاري إضافة ${newVehiclesToInsert.length} مركبة جديدة بدون تكرار...`);
+              for (let start = 0; start < newVehiclesToInsert.length; start += CHUNK_SIZE) {
+                const chunk = newVehiclesToInsert.slice(start, start + CHUNK_SIZE);
+                const metaChunk = newVehiclesMeta.slice(start, start + CHUNK_SIZE);
+
+                const { data: createdList, error: cErr } = await sbClient
+                  .from('vehicles')
+                  .insert(chunk)
+                  .select();
+
+                if (cErr) {
+                  showSystemBanner(`تعذر إضافة المركبات الجديدة: ${cErr.message}`, 'error');
+                  return;
+                }
+
+                if (Array.isArray(createdList)) {
+                  createdList.forEach((createdRow, idx) => {
+                    const metaItem = metaChunk[idx];
+                    const expDate = metaItem?.docs?.[targetDocType];
+                    if (createdRow?.id && expDate) {
+                      allDocUpserts.push({
+                        vehicle_id: createdRow.id,
+                        doc_type: targetDocType,
+                        expiry_date: expDate
+                      });
+                    }
+                  });
+                }
+              }
+            }
+
+            if (nameFixUpdates.length > 0) {
+              for (const fix of nameFixUpdates) {
+                await sbClient.from('vehicles').update({ vehicle_name: fix.vehicle_name }).eq('id', fix.id);
+              }
+            }
+
+            if (allDocUpserts.length > 0) {
+              setLoading(true, `جاري حفظ ${allDocUpserts.length} وثيقة في قسم (${cfg.label})...`);
+              for (let start = 0; start < allDocUpserts.length; start += CHUNK_SIZE) {
+                const docChunk = allDocUpserts.slice(start, start + CHUNK_SIZE);
+                const { error: uErr } = await sbClient
+                  .from('vehicle_documents')
+                  .upsert(docChunk, { onConflict: 'vehicle_id,doc_type' });
+                if (uErr) {
+                  showSystemBanner(`تعذر حفظ وثائق القسم: ${uErr.message}`, 'error');
+                  return;
+                }
+              }
+            }
+          } else {
+            if (newVehiclesMeta.length > 0) {
+              state.vehicles = [...newVehiclesMeta, ...state.vehicles];
+            }
+          }
+
+          await recordActionLog(
+            `استبدال واستيراد إكسيل (${cfg.label})`,
+            file.name,
+            `${deduplicatedList.length} لوحة فريدة (استبعاد ${duplicatesRemoved} تكرار)`
+          );
+
+          if (isCloudMode()) {
+            await refreshCloudData(false, false);
+          } else {
+            saveLocalState();
+            renderAll();
+          }
+
+          showSystemBanner(
+            `تم استيراد ${deduplicatedList.length} لوحة بدون تكرار (استُبعد ${duplicatesRemoved} سطر مكرر بتفضيل الفعّال): تحديث ${updatedVehicles} وإضافة ${newVehicles}` +
+            (skippedRows ? ` (تجاوز ${skippedRows} صف بدون لوحة أو تاريخ).` : '.'),
+            'success'
+          );
+        } catch (err) {
+          console.error(err);
+          showSystemBanner(`حدث خطأ أثناء قراءة ملف الإكسيل: ${err.message || err}`, 'error');
+        } finally {
+          setLoading(false);
+          inputEl.value = '';
+        }
+      };
+
+      reader.onerror = () => {
+        setLoading(false);
+        showSystemBanner('تعذر قراءة الملف المحدد من الجهاز.', 'error');
+        inputEl.value = '';
+      };
+
+      reader.readAsArrayBuffer(file);
+    }
+
+    function exportCurrentSectionExcel() {
+      if (!window.XLSX) {
+        showSystemBanner('تعذر تحميل مكتبة الإكسيل، تحقق من الاتصال بالإنترنت.', 'error');
+        return;
+      }
+
+      setLoading(true, 'جاري تجهيز وتصدير ملف الإكسيل...');
+      try {
+        const cfg = DOC_SECTION_CONFIG[activeDocSection] || DOC_SECTION_CONFIG.all;
+        const list = getSectionVehiclesList(activeDocSection);
+
+        const rows = list.map(v => {
+          if (activeDocSection === 'all') {
+            const sAuth = evaluateDocDate(v.docs?.authorization);
+            const sReg = evaluateDocDate(v.docs?.registration);
+            const sInsp = evaluateDocDate(v.docs?.periodic_inspection);
+            const sIns = evaluateDocDate(v.docs?.insurance);
+            return {
+              'رقم اللوحة': v.plate_number || '',
+              'السيارة / المركبة': v.vehicle_name || '',
+              'السائق / المفوّض': v.assigned_driver || '',
+              'انتهاء التفويض': v.docs?.authorization || '',
+              'حالة التفويض': sAuth.label,
+              'انتهاء رخصة السير': v.docs?.registration || '',
+              'حالة رخصة السير': sReg.label,
+              'انتهاء الفحص الدوري': v.docs?.periodic_inspection || '',
+              'حالة الفحص الدوري': sInsp.label,
+              'انتهاء التأمين': v.docs?.insurance || '',
+              'حالة التأمين': sIns.label
+            };
+          }
+
+          const exp = v.docs?.[activeDocSection] || '';
+          const st = evaluateDocDate(exp);
+          return {
+            'رقم اللوحة': v.plate_number || '',
+            'السيارة / المركبة': v.vehicle_name || '',
+            'السائق / المفوّض': v.assigned_driver || '',
+            [`تاريخ انتهاء ${cfg.label}`]: exp,
+            [`حالة ${cfg.label}`]: st.label
+          };
+        });
+
+        const ws = XLSX.utils.json_to_sheet(rows);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, cfg.label);
+        XLSX.writeFile(wb, cfg.fileName);
+        showSystemBanner(`تم تصدير ملف إكسيل لقسم (${cfg.label}).`, 'success');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    // التهيئة الأولية
+    formatArabicToday();
+    initSupabaseClient();
+    if (cloudSettings.url) {
+      document.getElementById('cloudUrlInput').value = cloudSettings.url;
+    }
+    if (cloudSettings.anonKey) {
+      document.getElementById('cloudKeyInput').value = cloudSettings.anonKey;
+    }
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      });
+    }
+  </script>
+</body>
+</html>
