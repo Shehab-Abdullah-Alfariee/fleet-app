@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>نظام متابعة وثائق وتفاويض الأسطول</title>
-  <link rel="manifest" href="manifest.json" />
+  <link rel="manifest" href="./manifest.json" />
   <meta name="theme-color" content="#2563eb" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -57,7 +57,7 @@
       </div>
 
       <p class="text-xs text-slate-600 leading-relaxed mb-5 bg-slate-50 p-3 rounded-xl border border-slate-200">
-        سجّل الدخول بالبريد الإلكتروني وكلمة المرور في الوضع السحابي (Supabase)، أو استخدم الوضع المحلي للتجربة السريعة.
+        أدخل البريد الإلكتروني وكلمة المرور للدخول مباشرة إلى النظام السحابي المشترك.
       </p>
 
       <div id="loginErrorBox" class="hidden mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-sm font-semibold"></div>
@@ -520,7 +520,7 @@
 
   <script>
     const DEFAULT_SUPABASE_URL = 'https://bnndrgctlhexavypqvwa.supabase.co';
-    const DEFAULT_SUPABASE_KEY = '';
+    const DEFAULT_SUPABASE_KEY = 'sb_publishable_-MISAr0op3xv3WA9L7iQNw_1ntxvkTG';
     const SETTINGS_STORAGE_KEY = 'fleet_compliance_cloud_settings_v1';
     const LOCAL_STATE_KEY = 'fleet_compliance_local_state_v1';
 
@@ -617,22 +617,35 @@
         const raw = localStorage.getItem(SETTINGS_STORAGE_KEY);
         if (raw) {
           const parsed = JSON.parse(raw);
+          const savedUrl = (parsed.url || '').trim();
+          const savedKey = (parsed.anonKey || '').trim();
           return {
-            url: (parsed.url || DEFAULT_SUPABASE_URL).trim(),
-            anonKey: (parsed.anonKey || DEFAULT_SUPABASE_KEY).trim(),
+            url: savedUrl || DEFAULT_SUPABASE_URL,
+            anonKey: savedKey || DEFAULT_SUPABASE_KEY,
             mode: parsed.mode === 'local' ? 'local' : 'cloud'
           };
         }
       } catch {}
-      return {
+
+      const initial = {
         url: DEFAULT_SUPABASE_URL,
         anonKey: DEFAULT_SUPABASE_KEY,
         mode: 'cloud'
       };
+      try {
+        localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(initial));
+      } catch {}
+      return initial;
     }
 
     function persistCloudSettings() {
-      localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(cloudSettings));
+      try {
+        localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify({
+          url: (cloudSettings.url || DEFAULT_SUPABASE_URL).trim(),
+          anonKey: (cloudSettings.anonKey || '').trim(),
+          mode: cloudSettings.mode === 'local' ? 'local' : 'cloud'
+        }));
+      } catch {}
     }
 
     function isCloudMode() {
@@ -640,17 +653,28 @@
     }
 
     function initSupabaseClient() {
-      if (!window.supabase || !cloudSettings.url || !cloudSettings.anonKey) {
+      const url = (cloudSettings.url || DEFAULT_SUPABASE_URL).trim();
+      const key = (cloudSettings.anonKey || DEFAULT_SUPABASE_KEY).trim();
+      if (!window.supabase || !url || !key) {
         sbClient = null;
         return null;
       }
-      sbClient = window.supabase.createClient(cloudSettings.url, cloudSettings.anonKey);
+      sbClient = window.supabase.createClient(url, key, {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true,
+          storageKey: 'fleet_compliance_auth_session_v1'
+        }
+      });
       return sbClient;
     }
 
     function createEphemeralAuthClient() {
-      if (!window.supabase || !cloudSettings.url || !cloudSettings.anonKey) return null;
-      return window.supabase.createClient(cloudSettings.url, cloudSettings.anonKey, {
+      const url = (cloudSettings.url || DEFAULT_SUPABASE_URL).trim();
+      const key = (cloudSettings.anonKey || DEFAULT_SUPABASE_KEY).trim();
+      if (!window.supabase || !url || !key) return null;
+      return window.supabase.createClient(url, key, {
         auth: {
           persistSession: false,
           autoRefreshToken: false,
@@ -658,6 +682,39 @@
           storageKey: 'fleet_ephemeral_signup_' + Date.now()
         }
       });
+    }
+
+    async function restoreSessionOnLoad() {
+      if (!isCloudMode()) return false;
+      initSupabaseClient();
+      if (!sbClient) return false;
+
+      try {
+        const { data, error } = await sbClient.auth.getSession();
+        const email = data?.session?.user?.email;
+        if (error || !email) return false;
+
+        setLoading(true, 'جاري استعادة جلسة الدخول ومزامنة البيانات...');
+        const { data: profile } = await sbClient
+          .from('app_users')
+          .select('id, full_name, email, role, is_active')
+          .ilike('email', email)
+          .maybeSingle();
+
+        if (!profile || profile.is_active === false) {
+          setLoading(false);
+          return false;
+        }
+
+        currentUser = profile;
+        await refreshCloudData(false, false);
+        enterApp();
+        setLoading(false);
+        return true;
+      } catch {
+        setLoading(false);
+        return false;
+      }
     }
 
     function loadLocalState() {
@@ -1340,7 +1397,7 @@
     // نافذة الربط السحابي
     function openCloudSettingsModal() {
       document.getElementById('cloudUrlInput').value = cloudSettings.url || DEFAULT_SUPABASE_URL;
-      document.getElementById('cloudKeyInput').value = cloudSettings.anonKey || '';
+      document.getElementById('cloudKeyInput').value = cloudSettings.anonKey || DEFAULT_SUPABASE_KEY;
       document.getElementById('storageModeInput').value = cloudSettings.mode || 'cloud';
       document.getElementById('cloudSettingsModal').classList.remove('hidden');
     }
@@ -1354,7 +1411,7 @@
       try {
         cloudSettings = {
           url: document.getElementById('cloudUrlInput').value.trim() || DEFAULT_SUPABASE_URL,
-          anonKey: document.getElementById('cloudKeyInput').value.trim(),
+          anonKey: document.getElementById('cloudKeyInput').value.trim() || DEFAULT_SUPABASE_KEY,
           mode: document.getElementById('storageModeInput').value === 'local' ? 'local' : 'cloud'
         };
         persistCloudSettings();
@@ -2308,7 +2365,7 @@
       }
     }
 
-    // التهيئة الأولية
+    // التهيئة الأولية واستعادة الجلسة تلقائياً
     formatArabicToday();
     initSupabaseClient();
     if (cloudSettings.url) {
@@ -2317,6 +2374,8 @@
     if (cloudSettings.anonKey) {
       document.getElementById('cloudKeyInput').value = cloudSettings.anonKey;
     }
+    restoreSessionOnLoad();
+
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js').catch(() => {});
