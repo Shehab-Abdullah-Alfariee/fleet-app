@@ -1942,35 +1942,56 @@
       return lines.join('\n');
     }
 
-    async function sendNewExpiredWhatsappQuick() {
-      const { newExpiredItems } = collectUrgentDocumentAlerts();
-      if (!newExpiredItems.length) {
-        showSystemBanner('لا توجد وثائق منتهية جديدة لم يتم إشعارك بها مسبقاً (لن تتكرر نفس الوثيقة).', 'info');
-        return;
-      }
+    function pickTargetWhatsappUser() {
+  const selectEl = document.getElementById('whatsappRecipientSelect');
+  const selectedEmail = selectEl && !document.getElementById('alertsCenterModal')?.classList.contains('hidden')
+    ? selectEl.value
+    : '';
 
-      const usersWithPhone = (state.users || []).filter(u => Boolean(normalizeWhatsappPhone(resolveUserPhone(u))));
-      const targetUser = usersWithPhone[0] || currentUser;
-      const phoneDigits = normalizeWhatsappPhone(resolveUserPhone(targetUser));
-      const msg = buildExpiryAlertMessage(targetUser?.full_name || '', false);
-
-      await persistNotifiedExpiredItems(newExpiredItems, 'whatsapp');
-      await recordActionLog(
-        'إرسال واتساب (مرة واحدة)',
-        `${newExpiredItems.length} وثيقة منتهية جديدة`,
-        phoneDigits ? `إلى ${phoneDigits}` : 'فتح واتساب بدون رقم محدد'
-      );
-
-      if (isCloudMode()) await refreshCloudData(false, false);
-      else renderAll();
-
-      const waUrl = phoneDigits
-        ? `https://wa.me/${phoneDigits}?text=${encodeURIComponent(msg)}`
-        : `https://wa.me/?text=${encodeURIComponent(msg)}`;
-      window.open(waUrl, '_blank', 'noopener,noreferrer');
-      showSystemBanner(`تم تجهيز رسالة الواتساب لـ (${newExpiredItems.length}) وثيقة منتهية جديدة ولن تتكرر مرة أخرى.`, 'success');
+  if (selectedEmail) {
+    const selectedUser = (state.users || []).find(
+      u => String(u.email || '').toLowerCase() === String(selectedEmail).toLowerCase()
+    );
+    if (selectedUser && normalizeWhatsappPhone(resolveUserPhone(selectedUser))) {
+      return selectedUser;
     }
+  }
 
+  if (currentUser && normalizeWhatsappPhone(resolveUserPhone(currentUser))) {
+    return currentUser;
+  }
+
+  const usersWithPhone = (state.users || []).filter(u => Boolean(normalizeWhatsappPhone(resolveUserPhone(u))));
+  return usersWithPhone[0] || currentUser;
+}
+
+async function sendNewExpiredWhatsappQuick() {
+  const { newExpiredItems } = collectUrgentDocumentAlerts();
+  if (!newExpiredItems.length) {
+    showSystemBanner('لا توجد وثائق منتهية جديدة لم يتم إشعارك بها مسبقاً (لن تتكرر نفس الوثيقة).', 'info');
+    return;
+  }
+
+  const targetUser = pickTargetWhatsappUser();
+  const phoneDigits = normalizeWhatsappPhone(resolveUserPhone(targetUser));
+  const msg = buildExpiryAlertMessage(targetUser?.full_name || '', false);
+
+  await persistNotifiedExpiredItems(newExpiredItems, 'whatsapp');
+  await recordActionLog(
+    'إرسال واتساب (مرة واحدة)',
+    `${newExpiredItems.length} وثيقة منتهية جديدة`,
+    phoneDigits ? `إلى ${phoneDigits}` : 'فتح واتساب بدون رقم محدد'
+  );
+
+  if (isCloudMode()) await refreshCloudData(false, false);
+  else renderAll();
+
+  const waUrl = phoneDigits
+    ? `https://wa.me/${phoneDigits}?text=${encodeURIComponent(msg)}`
+    : `https://wa.me/?text=${encodeURIComponent(msg)}`;
+  window.open(waUrl, '_blank', 'noopener,noreferrer');
+  showSystemBanner(`تم تجهيز رسالة الواتساب لـ (${newExpiredItems.length}) وثيقة منتهية جديدة ولن تتكرر مرة أخرى.`, 'success');
+}
     async function sendNewExpiredEmailQuick() {
       const { newExpiredItems } = collectUrgentDocumentAlerts();
       if (!newExpiredItems.length) {
@@ -2164,52 +2185,50 @@
       showSystemBanner('تم فتح البريد الإلكتروني وتسجيل الوثائق المنتهية الجديدة لمنع تكرارها.', 'success');
     }
 
-    async function sendSingleVehicleWhatsappAlert(vehicleId) {
-      const v = (state.vehicles || []).find(item => String(item.id) === String(vehicleId));
-      if (!v) return;
+  async function sendSingleVehicleWhatsappAlert(vehicleId) {
+  const v = (state.vehicles || []).find(item => String(item.id) === String(vehicleId));
+  if (!v) return;
 
-      const usersWithPhone = (state.users || []).filter(u => Boolean(normalizeWhatsappPhone(resolveUserPhone(u))));
-      const targetUser = usersWithPhone[0] || currentUser;
-      const phoneRaw = resolveUserPhone(targetUser);
+  const targetUser = pickTargetWhatsappUser();
+  const phoneRaw = resolveUserPhone(targetUser);
 
-      const docLines = [];
-      const expiredToMark = [];
-      for (const docType of ALL_DOC_TYPES) {
-        const exp = v.docs?.[docType];
-        if (!exp) continue;
-        const ev = evaluateDocDate(exp);
-        if (ev.code === 'expired' || ev.code === 'expiring_soon') {
-          docLines.push(`• ${DOC_SECTION_CONFIG[docType]?.label}: ${ev.label}`);
-          if (ev.code === 'expired') {
-            expiredToMark.push({
-              vehicleId: v.id,
-              docType,
-              expiryDate: exp,
-              alertKey: buildExpiredAlertKey(v.id, docType, exp)
-            });
-          }
-        }
-      }
-
-      const msg = [
-        `تنبيه وثيقة مركبة:`,
-        `المركبة: ${v.vehicle_name} (${v.plate_number})`,
-        `السائق: ${v.assigned_driver || 'غير محدد'}`,
-        ...docLines
-      ].join('\n');
-
-      openWhatsappUrlWithMessage(phoneRaw, msg);
-      if (expiredToMark.length) {
-        await persistNotifiedExpiredItems(expiredToMark, 'whatsapp-vehicle');
-      }
-      await recordActionLog('تنبيه واتساب لمركبة', `${v.vehicle_name} (${v.plate_number})`, phoneRaw || 'بدون رقم محدد');
-      if (isCloudMode()) {
-        await refreshCloudData(false, false);
-      } else {
-        renderAll();
+  const docLines = [];
+  const expiredToMark = [];
+  for (const docType of ALL_DOC_TYPES) {
+    const exp = v.docs?.[docType];
+    if (!exp) continue;
+    const ev = evaluateDocDate(exp);
+    if (ev.code === 'expired' || ev.code === 'expiring_soon') {
+      docLines.push(`• ${DOC_SECTION_CONFIG[docType]?.label}: ${ev.label}`);
+      if (ev.code === 'expired') {
+        expiredToMark.push({
+          vehicleId: v.id,
+          docType,
+          expiryDate: exp,
+          alertKey: buildExpiredAlertKey(v.id, docType, exp)
+        });
       }
     }
+  }
 
+  const msg = [
+    `تنبيه وثيقة مركبة:`,
+    `المركبة: ${v.vehicle_name} (${v.plate_number})`,
+    `السائق: ${v.assigned_driver || 'غير محدد'}`,
+    ...docLines
+  ].join('\n');
+
+  openWhatsappUrlWithMessage(phoneRaw, msg);
+  if (expiredToMark.length) {
+    await persistNotifiedExpiredItems(expiredToMark, 'whatsapp-vehicle');
+  }
+  await recordActionLog('تنبيه واتساب لمركبة', `${v.vehicle_name} (${v.plate_number})`, phoneRaw || 'بدون رقم محدد');
+  if (isCloudMode()) {
+    await refreshCloudData(false, false);
+  } else {
+    renderAll();
+  }
+}
     // نافذة الربط السحابي والفحص اليومي
     function openCloudSettingsModal() {
       document.getElementById('cloudUrlInput').value = cloudSettings.url || DEFAULT_SUPABASE_URL;
