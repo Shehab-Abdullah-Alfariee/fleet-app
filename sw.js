@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fleet-compliance-app-v2';
+const CACHE_NAME = 'fleet-compliance-v2';
 const CORE_ASSETS = [
   './',
   './index.html',
@@ -6,12 +6,10 @@ const CORE_ASSETS = [
 ];
 
 self.addEventListener('install', (event) => {
-  self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(CORE_ASSETS).catch(() => {});
-    })
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(CORE_ASSETS))
   );
+  self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
@@ -22,42 +20,33 @@ self.addEventListener('activate', (event) => {
           .filter((key) => key !== CACHE_NAME)
           .map((key) => caches.delete(key))
       )
-    ).then(() => self.clients.claim())
+    )
   );
+  self.clients.claim();
 });
 
 self.addEventListener('fetch', (event) => {
-  const req = event.request;
-  if (req.method !== 'GET') return;
+  if (event.request.method !== 'GET') return;
 
-  const url = new URL(req.url);
+  const url = new URL(event.request.url);
 
-  if (url.hostname.includes('supabase.co')) {
+  // لا نكاش طلبات Supabase أو أي API خارجي
+  if (url.hostname.includes('supabase.co') || url.pathname.includes('/rest/') || url.pathname.includes('/auth/')) {
     return;
   }
 
-  if (req.mode === 'navigate' || url.pathname.endsWith('.html') || url.pathname.endsWith('.json')) {
+  // لملفات الصفحة والتطبيق: شبكة أولاً مع الرجوع للكاش عند انقطاع الاتصال
+  if (event.request.mode === 'navigate' || url.origin === self.location.origin) {
     event.respondWith(
-      fetch(req)
-        .then((networkRes) => {
-          const copy = networkRes.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(req, copy)).catch(() => {});
-          return networkRes;
+      fetch(event.request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const copy = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+          }
+          return networkResponse;
         })
-        .catch(() => caches.match(req).then((cached) => cached || caches.match('./index.html')))
+        .catch(() => caches.match(event.request).then((cached) => cached || caches.match('./index.html')))
     );
-    return;
   }
-
-  event.respondWith(
-    fetch(req)
-      .then((networkRes) => {
-        if (networkRes && networkRes.status === 200 && url.origin === self.location.origin) {
-          const copy = networkRes.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(req, copy)).catch(() => {});
-        }
-        return networkRes;
-      })
-      .catch(() => caches.match(req))
-  );
 });
