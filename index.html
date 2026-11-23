@@ -80,7 +80,6 @@
     .pulse-soft {
       animation: pulseSoft 2s ease-in-out infinite;
     }
-
   </style>
 </head>
 <body class="min-h-screen selection:bg-blue-600 selection:text-white">
@@ -176,7 +175,7 @@
             class="px-3 py-1.5 rounded-full text-xs font-bold bg-indigo-500/20 text-indigo-200 border border-indigo-400/30">
             الفحص اليومي: نشط (06:00 ص)
           </span>
-          <button type="button" onclick="openAlertsCenterModal()"
+          <button type="button" id="openAlertsBtn" onclick="openAlertsCenterModal()"
             class="relative px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 text-xs font-bold border border-amber-400/40 transition flex items-center gap-1.5">
             <span>الإشعارات</span>
             <span id="alertsBadgeCount" class="px-1.5 py-0.5 rounded-full bg-rose-600 text-white text-[10px] font-extrabold">0</span>
@@ -187,7 +186,7 @@
           <span id="userBadge" class="px-3 py-1.5 rounded-full text-xs font-bold bg-slate-800 text-slate-100 border border-slate-700">
             مستخدم
           </span>
-          <button type="button" onclick="openCloudSettingsModal()"
+          <button type="button" id="openSettingsBtn" onclick="openCloudSettingsModal()"
             class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold border border-slate-700 transition">
             الإعدادات
           </button>
@@ -219,13 +218,13 @@
 
         <div class="flex flex-wrap items-center gap-2 no-print">
           <span id="sessionSecurityPill" class="px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-200/80">
-            حماية الجلسة وتأكيد العمليات: نشط
+            حذف السجل يحذف المركبة نفسها · RBAC نشط
           </span>
-          <button type="button" onclick="downloadPrintableFleetReport()" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200 transition">
+          <button type="button" id="printReportBtn" onclick="downloadPrintableFleetReport()" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200 transition">
             تقرير PDF / طباعة
           </button>
           <div id="roleCapabilityBadge" class="px-3 py-1.5 rounded-xl bg-slate-100/90 text-slate-600 text-xs font-bold border border-slate-200/70">
-            صلاحياتك: إدارة كاملة للمركبات والوثائق والحوادث والمستخدمين
+            صلاحياتك: إدارة كاملة
           </div>
         </div>
       </div>
@@ -252,12 +251,12 @@
           </div>
         </div>
         <div class="flex flex-wrap items-center gap-2">
-          <button type="button" onclick="sendNewExpiredWhatsappQuick()"
+          <button type="button" id="quickWaAlertBtn" onclick="sendNewExpiredWhatsappQuick()"
             class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition flex items-center gap-1.5">
             <span>إرسال واتساب</span>
             <span id="bannerNewExpiredWaBadge" class="px-1.5 py-0.5 rounded-full bg-white/20 text-[11px]">0</span>
           </button>
-          <button type="button" onclick="sendNewExpiredEmailQuick()"
+          <button type="button" id="quickMailAlertBtn" onclick="sendNewExpiredEmailQuick()"
             class="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition flex items-center gap-1.5">
             <span>إرسال إيميل</span>
             <span id="bannerNewExpiredMailBadge" class="px-1.5 py-0.5 rounded-full bg-white/20 text-[11px]">0</span>
@@ -279,13 +278,13 @@
         <!-- البطاقات الإحصائية -->
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <div onclick="setStatusFilter('all')" class="cursor-pointer glass-card rounded-2xl p-4 sm:p-5 hover:border-blue-400 hover:-translate-y-0.5 transition">
-            <p id="statTotalTitle" class="text-xs font-bold text-slate-500 mb-1.5">إجمالي المركبات (التفاويض)</p>
+            <p id="statTotalTitle" class="text-xs font-bold text-slate-500 mb-1.5">إجمالي المركبات (عرض الكل)</p>
             <p id="statTotalVehicles" class="text-2xl sm:text-3xl font-extrabold text-slate-900">0</p>
             <p id="statTotalSub" class="text-[11px] text-slate-400 mt-1">عرض جميع سجلات القسم</p>
           </div>
 
           <div onclick="setStatusFilter('expired')" class="cursor-pointer glass-card rounded-2xl p-4 sm:p-5 hover:border-rose-400 hover:-translate-y-0.5 transition">
-            <p id="statExpiredTitle" class="text-xs font-bold text-slate-500 mb-1.5">منتهية (التفاويض)</p>
+            <p id="statExpiredTitle" class="text-xs font-bold text-slate-500 mb-1.5">منتهية (عرض الكل)</p>
             <p id="statExpired" class="text-2xl sm:text-3xl font-extrabold text-rose-600">0</p>
             <p id="statExpiredNewSub" class="text-[11px] text-rose-500 mt-1">منها (0) جديدة لم تُرسل</p>
           </div>
@@ -297,13 +296,13 @@
           </div>
 
           <div onclick="setStatusFilter('valid')" class="cursor-pointer glass-card rounded-2xl p-4 sm:p-5 hover:border-emerald-400 hover:-translate-y-0.5 transition">
-            <p id="statValidTitle" class="text-xs font-bold text-slate-500 mb-1.5">سارية (التفاويض)</p>
+            <p id="statValidTitle" class="text-xs font-bold text-slate-500 mb-1.5">سارية (عرض الكل)</p>
             <p id="statValid" class="text-2xl sm:text-3xl font-extrabold text-emerald-600">0</p>
             <p id="statValidSub" class="text-[11px] text-emerald-600 mt-1">وثائق سارية المفعول</p>
           </div>
         </div>
 
-        <!-- مؤشر الجاهزية والامتثال + ملخص تكاليف الحوادث -->
+        <!-- مؤشر الجاهزية والامتثال + ملخص تكاليف الحوادث + فلتر عاجل -->
         <div class="glass-card rounded-2xl px-4 py-3 flex flex-wrap items-center justify-between gap-3">
           <div class="flex flex-wrap items-center gap-4 text-xs font-extrabold text-slate-700">
             <div class="flex items-center gap-2">
@@ -314,6 +313,10 @@
               <span>إجمالي تكاليف الحوادث المسجلة:</span>
               <span id="totalAccidentsCostBadge" class="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-800 font-mono" dir="ltr">0.00 SAR</span>
             </div>
+            <button type="button" onclick="filterUrgentActionNeeded()"
+              class="px-2.5 py-1 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-xs font-bold transition">
+              المستحق إجراءً الآن
+            </button>
           </div>
           <div class="w-full sm:w-72 h-2.5 rounded-full bg-slate-100 overflow-hidden border border-slate-200/70">
             <div id="complianceRateBar" class="h-full w-0 bg-gradient-to-r from-emerald-500 to-teal-500 transition-all duration-300"></div>
@@ -323,26 +326,26 @@
         <!-- صندوق الأقسام والجدول -->
         <div class="glass-card rounded-2xl p-4 sm:p-5 space-y-4">
 
-          <!-- شريط أقسام الوثائق والحوادث -->
+          <!-- شريط أقسام الوثائق والحوادث: "عرض الكل" أولاً وافتراضياً -->
           <div class="bg-slate-50/90 border border-slate-200/90 rounded-2xl p-4 space-y-3">
             <div class="flex flex-wrap items-center justify-between gap-2">
               <div>
-                <h2 id="sectionHeadingTitle" class="text-sm font-extrabold text-slate-800">قسم التفاويض — جدول واستيراد وتحليل ملفات الإكسيل</h2>
-                <p id="sectionHelperText" class="text-xs text-slate-500">عند رفع ملف إكسيل للقسم يتم استبدال بيانات هذا القسم السابقة بالبيانات الجديدة بدون تكرار للوحات مع تفضيل التفويض الفعّال.</p>
+                <h2 id="sectionHeadingTitle" class="text-sm font-extrabold text-slate-800">قسم عرض الكل — جدول واستيراد وتحليل ملفات الإكسيل</h2>
+                <p id="sectionHelperText" class="text-xs text-slate-500">حذف أي سجل من أي قسم يقوم بحذف المركبة نفسها بالكامل من النظام مع توثيق العملية في سجل التدقيق.</p>
               </div>
               <span id="activeSectionHint" class="px-3 py-1 rounded-lg bg-blue-100 text-blue-800 text-xs font-bold">
-                القسم النشط: التفاويض
+                القسم النشط: عرض الكل
               </span>
             </div>
 
             <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
-              <div class="flex flex-wrap gap-2">
+              <div id="docSectionsBar" class="flex flex-wrap gap-2">
                 <button type="button" data-doc="all" onclick="setActiveDocSection('all')"
-                  class="doc-tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-white text-slate-700 border border-slate-300 hover:bg-slate-100 transition">
+                  class="doc-tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-blue-600 text-white transition">
                   عرض الكل
                 </button>
                 <button type="button" data-doc="authorization" onclick="setActiveDocSection('authorization')"
-                  class="doc-tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-blue-600 text-white transition">
+                  class="doc-tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-white text-slate-700 border border-slate-300 hover:bg-slate-100 transition">
                   التفاويض
                 </button>
                 <button type="button" data-doc="registration" onclick="setActiveDocSection('registration')"
@@ -370,7 +373,7 @@
                 </button>
                 <button type="button" id="exportSectionExcelBtn" onclick="exportCurrentSectionExcel()"
                   class="px-4 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 text-xs sm:text-sm font-bold transition">
-                  تصدير إكسيل: التفاويض
+                  تصدير إكسيل: عرض الكل
                 </button>
                 <input id="sectionExcelFileInput" type="file" accept=".xlsx,.xls,.csv" class="hidden" onchange="importSectionExcelFile(event)" />
               </div>
@@ -386,7 +389,7 @@
               </button>
               <button type="button" id="deleteSelectedBtn" onclick="deleteSelectedVehicles()"
                 class="hidden px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs sm:text-sm font-bold transition">
-                حذف المحدد (<span id="selectedCountLabel">0</span>)
+                حذف المركبات المحددة (<span id="selectedCountLabel">0</span>)
               </button>
               <button type="button" id="refreshDataBtn" onclick="refreshCloudData(true)"
                 class="px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-bold transition">
@@ -435,8 +438,8 @@
         <div class="glass-card rounded-2xl p-5">
           <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
             <div>
-              <h2 class="text-base font-extrabold text-slate-900">المستخدمون والصلاحيات</h2>
-              <p class="text-xs text-slate-500">إدارة حسابات النظام وأرقام الجوال لتنبيهات الواتساب وأدوار الوصول (Admin / Supervisor / Viewer).</p>
+              <h2 class="text-base font-extrabold text-slate-900">المستخدمون والصلاحيات الدقيقة (RBAC)</h2>
+              <p class="text-xs text-slate-500">تحكم كامل على مستوى كل قسم وكل عملية (عرض، إضافة، تعديل، حذف المركبة، استيراد، تصدير) وأرقام الجوال للتنبيهات.</p>
             </div>
             <button type="button" id="addUserBtn" onclick="openUserModal()"
               class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold transition">
@@ -451,7 +454,7 @@
                   <th class="py-3 px-3 font-bold">الاسم الكامل</th>
                   <th class="py-3 px-3 font-bold">البريد الإلكتروني</th>
                   <th class="py-3 px-3 font-bold">رقم الجوال (واتساب)</th>
-                  <th class="py-3 px-3 font-bold">الدور</th>
+                  <th class="py-3 px-3 font-bold">الدور والصلاحيات</th>
                   <th class="py-3 px-3 font-bold">الحالة</th>
                   <th class="py-3 px-3 font-bold">الإجراءات</th>
                 </tr>
@@ -466,8 +469,8 @@
       <section id="tab-logs" class="hidden space-y-4">
         <div class="glass-card rounded-2xl p-5">
           <div class="mb-4">
-            <h2 class="text-base font-extrabold text-slate-900">سجل العمليات</h2>
-            <p class="text-xs text-slate-500">تتبع عمليات الإضافة والتعديل والحذف وتسجيل الحوادث واستيراد ملفات الإكسيل وإرسال التنبيهات.</p>
+            <h2 class="text-base font-extrabold text-slate-900">سجل العمليات والتدقيق</h2>
+            <p class="text-xs text-slate-500">تتبع عمليات الإضافة والتعديل وحذف المركبات من أي قسم وتسجيل الحوادث واستيراد ملفات الإكسيل وإرسال التنبيهات.</p>
           </div>
 
           <div class="overflow-x-auto rounded-2xl border border-slate-200/90">
@@ -491,7 +494,7 @@
     </main>
   </div>
 
-  <!-- نافذة تأكيد أمنية احترافية (بديل آمن لـ confirm) -->
+  <!-- نافذة تأكيد أمنية احترافية -->
   <div id="securityConfirmModal" class="hidden fixed inset-0 z-[80] modal-backdrop flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
     <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-slate-200 p-6 space-y-4">
       <div class="flex items-start gap-3.5">
@@ -606,7 +609,7 @@
     </div>
   </div>
 
-  <!-- نافذة إضافة / تعديل مركبة ووثائقها (مستقلة عن الحوادث) -->
+  <!-- نافذة إضافة / تعديل مركبة ووثائقها -->
   <div id="vehicleModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
     <div class="w-full max-w-xl bg-white rounded-3xl shadow-2xl border border-slate-200 p-6 space-y-4 max-h-[90vh] overflow-y-auto">
       <div class="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -672,7 +675,7 @@
     </div>
   </div>
 
-  <!-- نافذة مستقلة لإضافة / تعديل حادث مع بحث واختيار أو كتابة مركبة -->
+  <!-- نافذة مستقلة لإضافة / تعديل حادث -->
   <div id="accidentModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
     <div class="w-full max-w-xl bg-white rounded-3xl shadow-2xl border border-slate-200 p-6 space-y-4 max-h-[90vh] overflow-y-auto">
       <div class="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -776,55 +779,55 @@
     </div>
   </div>
 
-  <!-- نافذة إضافة / تعديل مستخدم -->
+  <!-- نافذة إضافة / تعديل مستخدم + مصفوفة الصلاحيات الدقيقة -->
   <div id="userModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
-    <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-slate-200 p-6 space-y-4">
+    <div class="w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-slate-200 p-6 space-y-4 max-h-[92vh] overflow-y-auto">
       <div class="flex items-center justify-between border-b border-slate-100 pb-3">
         <h3 id="userModalTitle" class="text-lg font-extrabold text-slate-900">إضافة مستخدم جديد</h3>
         <button type="button" onclick="closeUserModal()" class="w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-500 text-xl font-bold flex items-center justify-center">×</button>
       </div>
 
-      <form id="userForm" onsubmit="saveUserForm(event)" class="space-y-3">
+      <form id="userForm" onsubmit="saveUserForm(event)" class="space-y-4">
         <input type="hidden" id="userEditId" />
         <input type="hidden" id="userOriginalEmail" />
 
-        <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">الاسم الكامل *</label>
-          <input id="uFullName" type="text" required placeholder="مثال: أحمد محمد"
-            class="form-input-pro" />
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">البريد الإلكتروني *</label>
-          <input id="uEmail" type="email" required placeholder="user@example.com"
-            class="form-input-pro" />
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">رقم الجوال (لتنبيهات الواتساب)</label>
-          <input id="uPhone" type="tel" dir="ltr" placeholder="05xxxxxxxx أو 9665xxxxxxxx"
-            class="form-input-pro text-left" />
-          <p class="text-[11px] text-slate-500 mt-1">يُحوّل تلقائياً إلى الصيغة الدولية (مثال: 9665xxxxxxxx) عند إرسال رسالة واتساب.</p>
-        </div>
-
-        <div>
-          <div class="flex items-center justify-between mb-1">
-            <label id="uPasswordLabel" class="block text-xs font-bold text-slate-700">كلمة المرور *</label>
-            <button type="button" onclick="togglePasswordVisibility('uPassword', this)" class="text-[11px] font-bold text-blue-600 hover:underline">
-              إظهار
-            </button>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">الاسم الكامل *</label>
+            <input id="uFullName" type="text" required placeholder="مثال: أحمد محمد"
+              class="form-input-pro" />
           </div>
-          <input id="uPassword" type="password" minlength="6" placeholder="6 أحرف أو أرقام على الأقل"
-            class="form-input-pro" />
-          <p class="text-[11px] text-slate-500 mt-1">
-            تُستخدم لإنشاء حساب الدخول في Supabase Auth (اتركها فارغة عند التعديل إذا لم ترغب بتغييرها).
-          </p>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">البريد الإلكتروني *</label>
+            <input id="uEmail" type="email" required placeholder="user@example.com"
+              class="form-input-pro" />
+          </div>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">الدور *</label>
-            <select id="uRole" class="form-input-pro font-semibold">
+            <label class="block text-xs font-bold text-slate-700 mb-1">رقم الجوال (لتنبيهات الواتساب)</label>
+            <input id="uPhone" type="tel" dir="ltr" placeholder="05xxxxxxxx أو 9665xxxxxxxx"
+              class="form-input-pro text-left" />
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <label id="uPasswordLabel" class="block text-xs font-bold text-slate-700">كلمة المرور *</label>
+              <button type="button" onclick="togglePasswordVisibility('uPassword', this)" class="text-[11px] font-bold text-blue-600 hover:underline">
+                إظهار
+              </button>
+            </div>
+            <input id="uPassword" type="password" minlength="6" placeholder="6 أحرف أو أرقام على الأقل"
+              class="form-input-pro" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">الدور الأساسي *</label>
+            <select id="uRole" onchange="applyRolePresetPermissions(this.value)" class="form-input-pro font-semibold">
               <option value="supervisor">supervisor (مشرف)</option>
               <option value="viewer">viewer (مشاهد)</option>
               <option value="admin">admin (مدير)</option>
@@ -837,6 +840,60 @@
               <option value="true">نشط</option>
               <option value="false">معطّل</option>
             </select>
+          </div>
+        </div>
+
+        <!-- مصفوفة الصلاحيات الدقيقة لكل قسم وكل إجراء -->
+        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h4 class="text-xs font-extrabold text-slate-800">صلاحيات الأقسام والعمليات (حذف السجل يحذف المركبة نفسها)</h4>
+              <p class="text-[11px] text-slate-500">يمكن تخصيص صلاحيات كل قسم وإجراء بشكل مستقل فوق الدور الأساسي.</p>
+            </div>
+            <button type="button" onclick="applyRolePresetPermissions(document.getElementById('uRole').value)"
+              class="text-xs font-bold text-blue-600 hover:underline">
+              استعادة افتراضي الدور
+            </button>
+          </div>
+
+          <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+            <table class="w-full text-right border-collapse text-xs">
+              <thead>
+                <tr class="bg-slate-100 text-slate-700 border-b border-slate-200">
+                  <th class="py-2 px-2.5 font-extrabold">القسم</th>
+                  <th class="py-2 px-2 text-center font-bold">عرض</th>
+                  <th class="py-2 px-2 text-center font-bold">إضافة</th>
+                  <th class="py-2 px-2 text-center font-bold">تعديل</th>
+                  <th class="py-2 px-2 text-center font-bold">حذف مركبة</th>
+                  <th class="py-2 px-2 text-center font-bold">استيراد</th>
+                  <th class="py-2 px-2 text-center font-bold">تصدير</th>
+                </tr>
+              </thead>
+              <tbody id="permissionMatrixBody" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
+
+          <div class="flex flex-wrap gap-4 pt-1 text-xs font-bold text-slate-700">
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="checkbox" id="perm_tab_users" class="w-4 h-4 rounded border-slate-300" />
+              <span>تبويب المستخدمين</span>
+            </label>
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="checkbox" id="perm_tab_logs" class="w-4 h-4 rounded border-slate-300" />
+              <span>سجل العمليات</span>
+            </label>
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="checkbox" id="perm_alerts_send" class="w-4 h-4 rounded border-slate-300" />
+              <span>إرسال الإشعارات</span>
+            </label>
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="checkbox" id="perm_report_print" class="w-4 h-4 rounded border-slate-300" />
+              <span>تقرير PDF / طباعة</span>
+            </label>
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="checkbox" id="perm_settings_edit" class="w-4 h-4 rounded border-slate-300" />
+              <span>إعدادات النظام</span>
+            </label>
           </div>
         </div>
 
@@ -922,10 +979,23 @@
     const SETTINGS_STORAGE_KEY = 'fleet_compliance_cloud_settings_v1';
     const LOCAL_STATE_KEY = 'fleet_compliance_local_state_v1';
     const USER_PHONES_CACHE_KEY = 'fleet_compliance_user_phones_v1';
+    const USER_PERMS_CACHE_KEY = 'fleet_compliance_user_perms_v4';
     const NOTIFIED_CACHE_KEY = 'fleet_compliance_notified_expired_v1';
     const AUTO_DIGEST_KEY = 'fleet_compliance_auto_digest_v1';
 
+    // ترتيب الأقسام بحيث يكون "عرض الكل" في المقدمة وديفلت أول ما يفتح النظام
+    const SECTION_KEYS_ORDER = ['all', 'authorization', 'registration', 'periodic_inspection', 'insurance', 'accidents'];
+    const SECTION_ACTIONS = ['view', 'create', 'edit', 'delete', 'import', 'export'];
+
     const DOC_SECTION_CONFIG = {
+      all: {
+        key: 'all',
+        label: 'عرض الكل',
+        shortLabel: 'الوثائق والحوادث',
+        fileName: 'all-fleet-documents-and-accidents.xlsx',
+        dateHints: ['تاريخ الانتهاء', 'انتهاء الوثيقة', 'الانتهاء', 'expiry_date'],
+        statusHints: []
+      },
       authorization: {
         key: 'authorization',
         label: 'التفاويض',
@@ -965,35 +1035,120 @@
         fileName: 'accidents-section.xlsx',
         dateHints: ['تاريخ الحادث', 'تاريخ الواقعة', 'تاريخ البلاغ', 'تاريخ الانتهاء', 'accident_date', 'date'],
         statusHints: ['حالة الحادث', 'حالة الإصلاح', 'الحالة', 'حالة المطالبة']
-      },
-      all: {
-        key: 'all',
-        label: 'جميع الوثائق والحوادث',
-        shortLabel: 'الوثائق والحوادث',
-        fileName: 'all-fleet-documents-and-accidents.xlsx',
-        dateHints: ['تاريخ الانتهاء', 'انتهاء الوثيقة', 'الانتهاء', 'expiry_date'],
-        statusHints: []
       }
     };
 
     const EXPIRY_DOC_TYPES = ['authorization', 'registration', 'periodic_inspection', 'insurance'];
 
+    function buildDefaultPermissionsForRole(role) {
+      const r = String(role || 'viewer').toLowerCase();
+      const sections = {};
+      for (const sKey of SECTION_KEYS_ORDER) {
+        if (r === 'admin') {
+          sections[sKey] = { view: true, create: true, edit: true, delete: true, import: true, export: true };
+        } else if (r === 'supervisor') {
+          sections[sKey] = { view: true, create: true, edit: true, delete: true, import: true, export: true };
+        } else {
+          sections[sKey] = { view: true, create: false, edit: false, delete: false, import: false, export: true };
+        }
+      }
+      return {
+        sections,
+        tab_users: r === 'admin',
+        tab_logs: r === 'admin' || r === 'supervisor',
+        alerts_send: r === 'admin' || r === 'supervisor',
+        report_print: true,
+        settings_edit: r === 'admin'
+      };
+    }
+
+    function normalizeUserPermissions(rawPerms, role) {
+      const base = buildDefaultPermissionsForRole(role);
+      if (!rawPerms || typeof rawPerms !== 'object') return base;
+      const mergedSections = {};
+      for (const sKey of SECTION_KEYS_ORDER) {
+        const srcSec = rawPerms.sections?.[sKey] || {};
+        mergedSections[sKey] = {
+          view: srcSec.view !== undefined ? Boolean(srcSec.view) : base.sections[sKey].view,
+          create: srcSec.create !== undefined ? Boolean(srcSec.create) : base.sections[sKey].create,
+          edit: srcSec.edit !== undefined ? Boolean(srcSec.edit) : base.sections[sKey].edit,
+          delete: srcSec.delete !== undefined ? Boolean(srcSec.delete) : base.sections[sKey].delete,
+          import: srcSec.import !== undefined ? Boolean(srcSec.import) : base.sections[sKey].import,
+          export: srcSec.export !== undefined ? Boolean(srcSec.export) : base.sections[sKey].export
+        };
+      }
+      return {
+        sections: mergedSections,
+        tab_users: rawPerms.tab_users !== undefined ? Boolean(rawPerms.tab_users) : base.tab_users,
+        tab_logs: rawPerms.tab_logs !== undefined ? Boolean(rawPerms.tab_logs) : base.tab_logs,
+        alerts_send: rawPerms.alerts_send !== undefined ? Boolean(rawPerms.alerts_send) : base.alerts_send,
+        report_print: rawPerms.report_print !== undefined ? Boolean(rawPerms.report_print) : base.report_print,
+        settings_edit: rawPerms.settings_edit !== undefined ? Boolean(rawPerms.settings_edit) : base.settings_edit
+      };
+    }
+
+    function loadPermissionsCache() {
+      try {
+        const raw = localStorage.getItem(USER_PERMS_CACHE_KEY);
+        return raw ? JSON.parse(raw) : {};
+      } catch {
+        return {};
+      }
+    }
+
+    function savePermissionsToCache(email, role, permsObj) {
+      if (!email) return;
+      try {
+        const cache = loadPermissionsCache();
+        cache[String(email).toLowerCase()] = normalizeUserPermissions(permsObj, role);
+        localStorage.setItem(USER_PERMS_CACHE_KEY, JSON.stringify(cache));
+      } catch {}
+    }
+
+    function resolveUserPermissions(userObj) {
+      if (!userObj) return buildDefaultPermissionsForRole('viewer');
+      const cache = loadPermissionsCache();
+      const cached = cache[String(userObj.email || '').toLowerCase()];
+      const embedded = userObj.permissions || userObj.custom_permissions || null;
+      return normalizeUserPermissions(embedded || cached, userObj.role);
+    }
+
+    function canSectionAction(sectionKey, action, userObj = currentUser) {
+      if (!userObj) return false;
+      const perms = resolveUserPermissions(userObj);
+      const sec = perms.sections?.[sectionKey];
+      if (!sec) return false;
+      if (action !== 'view' && !sec.view) return false;
+      return Boolean(sec[action]);
+    }
+
+    function canFeature(featureKey, userObj = currentUser) {
+      if (!userObj) return false;
+      const perms = resolveUserPermissions(userObj);
+      return Boolean(perms[featureKey]);
+    }
+
+    function getAllowedSections(userObj = currentUser) {
+      return SECTION_KEYS_ORDER.filter(key => canSectionAction(key, 'view', userObj));
+    }
+
+    function canEditRecords(sectionKey = activeDocSection) {
+      return canSectionAction(sectionKey, 'create') || canSectionAction(sectionKey, 'edit') || canSectionAction('all', 'edit');
+    }
+
+    function canDeleteRecords(sectionKey = activeDocSection) {
+      return canSectionAction(sectionKey, 'delete') || canSectionAction('all', 'delete');
+    }
+
     let cloudSettings = loadCloudSettings();
     let sbClient = null;
     let currentUser = null;
     let activeMainTab = 'dashboard';
-    let activeDocSection = 'authorization';
+    // "عرض الكل" هو الأول والافتراضي دائماً عند فتح النظام
+    let activeDocSection = 'all';
     let state = loadLocalState();
     let selectedVehicleIds = new Set();
     let notifiedExpiredSet = loadNotifiedExpiredCache();
-
-    function canEditRecords() {
-      return Boolean(currentUser && (currentUser.role === 'admin' || currentUser.role === 'supervisor'));
-    }
-
-    function canDeleteRecords() {
-      return Boolean(currentUser && (currentUser.role === 'admin' || currentUser.role === 'supervisor'));
-    }
 
     function handlePrimaryCreateClick() {
       if (activeDocSection === 'accidents') {
@@ -1037,6 +1192,13 @@
       const statusEl = document.getElementById('statusFilterSelect');
       if (searchEl) searchEl.value = '';
       if (statusEl) statusEl.value = 'all';
+      renderVehiclesTable();
+    }
+
+    function filterUrgentActionNeeded() {
+      const statusEl = document.getElementById('statusFilterSelect');
+      if (!statusEl) return;
+      statusEl.value = statusEl.value === 'expired' ? 'expiring_soon' : 'expired';
       renderVehiclesTable();
     }
 
@@ -1189,6 +1351,10 @@
     }
 
     async function resetNotifiedExpiredHistory() {
+      if (!canFeature('alerts_send')) {
+        showSystemBanner('ليس لديك صلاحية إدارة الإشعارات.', 'error');
+        return;
+      }
       const ok = await openSecurityConfirmModal({
         title: 'إعادة ضبط سجل منع التكرار',
         description: 'سيتم السماح بإعادة إرسال إشعارات الوثائق المنتهية الحالية مرة أخرى عبر واتساب أو الإيميل.',
@@ -1312,6 +1478,17 @@
       });
     }
 
+    function hydrateUserObject(rawUser) {
+      if (!rawUser) return null;
+      const phone = resolveUserPhone(rawUser);
+      const permissions = resolveUserPermissions(rawUser);
+      return {
+        ...rawUser,
+        phone,
+        permissions
+      };
+    }
+
     async function restoreSessionOnLoad() {
       if (!isCloudMode()) return false;
       initSupabaseClient();
@@ -1334,7 +1511,7 @@
           return false;
         }
 
-        currentUser = { ...profile, phone: resolveUserPhone(profile) };
+        currentUser = hydrateUserObject(profile);
         await refreshCloudData(false, false);
         enterApp();
         setLoading(false);
@@ -1356,8 +1533,8 @@
               docs: v.docs || {},
               accidents: v.accidents || null
             })) : [],
-            users: Array.isArray(p.users) && p.users.length ? p.users : [
-              { id: 'u_admin', full_name: 'شهاب الفريعي', email: 'shehab.a.alfariee@gmail.com', phone: '', role: 'admin', is_active: true }
+            users: Array.isArray(p.users) && p.users.length ? p.users.map(u => hydrateUserObject(u)) : [
+              hydrateUserObject({ id: 'u_admin', full_name: 'شهاب الفريعي', email: 'shehab.a.alfariee@gmail.com', phone: '', role: 'admin', is_active: true })
             ],
             logs: Array.isArray(p.logs) ? p.logs : []
           };
@@ -1366,7 +1543,7 @@
       return {
         vehicles: [],
         users: [
-          { id: 'u_admin', full_name: 'شهاب الفريعي', email: 'shehab.a.alfariee@gmail.com', phone: '', role: 'admin', is_active: true }
+          hydrateUserObject({ id: 'u_admin', full_name: 'شهاب الفريعي', email: 'shehab.a.alfariee@gmail.com', phone: '', role: 'admin', is_active: true })
         ],
         logs: []
       };
@@ -1455,7 +1632,7 @@
             return;
           }
 
-          currentUser = { ...profile, phone: resolveUserPhone(profile) };
+          currentUser = hydrateUserObject(profile);
           await refreshCloudData(false, false);
           enterApp();
         } finally {
@@ -1469,7 +1646,7 @@
           showLoginError('المستخدم غير موجود في الوضع المحلي.');
           return;
         }
-        currentUser = { ...found, phone: resolveUserPhone(found) };
+        currentUser = hydrateUserObject(found);
         enterApp();
       }
     }
@@ -1478,14 +1655,14 @@
       clearLoginError();
       cloudSettings.mode = 'local';
       persistCloudSettings();
-      currentUser = {
+      currentUser = hydrateUserObject({
         id: 'u_admin',
         full_name: 'شهاب الفريعي',
         email: 'shehab.a.alfariee@gmail.com',
         phone: resolveUserPhone({ email: 'shehab.a.alfariee@gmail.com' }),
         role: 'admin',
         is_active: true
-      };
+      });
       enterApp();
     }
 
@@ -1494,7 +1671,11 @@
       document.getElementById('appShell').classList.remove('hidden');
       updateHeaderBadges();
       resetIdleSessionTimer();
-      setActiveDocSection(activeDocSection);
+
+      // دائماً نبدأ بـ "عرض الكل" إذا كان مسموحاً للمستخدم، وإلا أول قسم مسموح له
+      const allowedSecs = getAllowedSections(currentUser);
+      const initialSection = allowedSecs.includes('all') ? 'all' : (allowedSecs[0] || 'all');
+      setActiveDocSection(initialSection);
       switchMainTab('dashboard');
       runDailyAutoCheckIfDue().catch(() => {});
       renderAll();
@@ -1547,27 +1728,54 @@
 
       document.getElementById('userBadge').textContent = `${currentUser?.full_name || ''} · ${roleLabel}`;
 
-      const capBadge = document.getElementById('roleCapabilityBadge');
-      const primaryCreateBtn = document.getElementById('primaryCreateBtn');
-      const importBtn = document.getElementById('importSectionExcelBtn');
-      const addUserBtn = document.getElementById('addUserBtn');
+      // إظهار / إخفاء التبويبات والأزرار العامة حسب الصلاحيات الدقيقة
+      const usersTabBtn = document.querySelector('.main-tab-btn[data-main-tab="users"]');
+      const logsTabBtn = document.querySelector('.main-tab-btn[data-main-tab="logs"]');
+      if (usersTabBtn) usersTabBtn.classList.toggle('hidden', !canFeature('tab_users'));
+      if (logsTabBtn) logsTabBtn.classList.toggle('hidden', !canFeature('tab_logs'));
 
-      const canEdit = canEditRecords();
+      const alertsBtn = document.getElementById('openAlertsBtn');
+      const settingsBtn = document.getElementById('openSettingsBtn');
+      const printBtn = document.getElementById('printReportBtn');
+      const quickWaBtn = document.getElementById('quickWaAlertBtn');
+      const quickMailBtn = document.getElementById('quickMailAlertBtn');
+
+      if (alertsBtn) alertsBtn.classList.toggle('hidden', !canFeature('alerts_send'));
+      if (settingsBtn) settingsBtn.classList.toggle('hidden', !canFeature('settings_edit'));
+      if (printBtn) printBtn.classList.toggle('hidden', !canFeature('report_print'));
+      if (quickWaBtn) quickWaBtn.classList.toggle('hidden', !canFeature('alerts_send'));
+      if (quickMailBtn) quickMailBtn.classList.toggle('hidden', !canFeature('alerts_send'));
+
+      // إظهار / إخفاء تبويبات الأقسام حسب صلاحية العرض لكل قسم
+      document.querySelectorAll('.doc-tab-btn').forEach(btn => {
+        const sKey = btn.dataset.doc;
+        btn.classList.toggle('hidden', !canSectionAction(sKey, 'view'));
+      });
+
+      const importTargetSection = activeDocSection === 'all' ? 'authorization' : activeDocSection;
+      const canCreateHere = canSectionAction(activeDocSection, 'create') || (activeDocSection === 'all' && canSectionAction('authorization', 'create'));
+      const canImportHere = canSectionAction(importTargetSection, 'import');
+      const canExportHere = canSectionAction(activeDocSection, 'export');
       const isAdmin = currentUser && currentUser.role === 'admin';
 
+      const primaryCreateBtn = document.getElementById('primaryCreateBtn');
+      const importBtn = document.getElementById('importSectionExcelBtn');
+      const exportBtn = document.getElementById('exportSectionExcelBtn');
+      const addUserBtn = document.getElementById('addUserBtn');
+      const capBadge = document.getElementById('roleCapabilityBadge');
+
       if (primaryCreateBtn) {
-        primaryCreateBtn.classList.toggle('hidden', !canEdit);
+        primaryCreateBtn.classList.toggle('hidden', !canCreateHere);
         primaryCreateBtn.textContent = activeDocSection === 'accidents' ? '+ إضافة حادث' : '+ إضافة مركبة';
       }
-      if (importBtn) importBtn.classList.toggle('hidden', !canEdit);
+      if (importBtn) importBtn.classList.toggle('hidden', !canImportHere);
+      if (exportBtn) exportBtn.classList.toggle('hidden', !canExportHere);
       if (addUserBtn) addUserBtn.classList.toggle('hidden', !isAdmin);
 
-      if (isAdmin) {
-        capBadge.textContent = 'صلاحياتك: إدارة كاملة للمركبات والوثائق والحوادث والمستخدمين';
-      } else if (canEdit) {
-        capBadge.textContent = 'صلاحياتك: إضافة وتعديل وحذف المركبات والوثائق والحوادث واستيراد الإكسيل';
-      } else {
-        capBadge.textContent = 'صلاحياتك: عرض البيانات وتصدير التقارير فقط (بدون تعديل أو حذف)';
+      if (capBadge) {
+        const allowedCount = getAllowedSections(currentUser).length;
+        const canDelCurrent = canDeleteRecords(activeDocSection);
+        capBadge.textContent = `أقسام متاحة: ${allowedCount}/${SECTION_KEYS_ORDER.length} · حذف المركبة: ${canDelCurrent ? 'مسموح' : 'مقيد'}`;
       }
     }
 
@@ -1693,7 +1901,11 @@
           state.users = uRes.data.map(u => {
             const resolvedPhone = resolveUserPhone(u);
             if (u.phone) savePhoneToCache(u.email, u.phone);
-            return { ...u, phone: resolvedPhone };
+            const hydrated = hydrateUserObject({ ...u, phone: resolvedPhone });
+            if (currentUser && String(currentUser.email || '').toLowerCase() === String(u.email || '').toLowerCase()) {
+              currentUser = hydrated;
+            }
+            return hydrated;
           });
         }
 
@@ -1738,6 +1950,15 @@
     }
 
     function switchMainTab(tabName) {
+      if (tabName === 'users' && !canFeature('tab_users')) {
+        showSystemBanner('ليس لديك صلاحية الوصول إلى تبويب المستخدمين والصلاحيات.', 'error');
+        return;
+      }
+      if (tabName === 'logs' && !canFeature('tab_logs')) {
+        showSystemBanner('ليس لديك صلاحية الوصول إلى سجل العمليات.', 'error');
+        return;
+      }
+
       activeMainTab = tabName;
       document.getElementById('tab-dashboard').classList.toggle('hidden', tabName !== 'dashboard');
       document.getElementById('tab-users').classList.toggle('hidden', tabName !== 'users');
@@ -1752,16 +1973,31 @@
     }
 
     function setActiveDocSection(sectionKey) {
-      activeDocSection = DOC_SECTION_CONFIG[sectionKey] ? sectionKey : 'authorization';
-      const cfg = DOC_SECTION_CONFIG[activeDocSection];
+      const requested = DOC_SECTION_CONFIG[sectionKey] ? sectionKey : 'all';
+      if (currentUser && !canSectionAction(requested, 'view')) {
+        const allowed = getAllowedSections(currentUser);
+        if (!allowed.length) {
+          showSystemBanner('لا توجد أقسام مفعّلة لحسابك حالياً.', 'warning');
+          return;
+        }
+        activeDocSection = allowed.includes('all') ? 'all' : allowed[0];
+      } else {
+        activeDocSection = requested;
+      }
+
+      const cfg = DOC_SECTION_CONFIG[activeDocSection] || DOC_SECTION_CONFIG.all;
       const importTarget = activeDocSection === 'all' ? DOC_SECTION_CONFIG.authorization : cfg;
       const isAccidents = activeDocSection === 'accidents';
 
       document.querySelectorAll('.doc-tab-btn').forEach(btn => {
         const active = btn.dataset.doc === activeDocSection;
-        btn.className = active
-          ? 'doc-tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-blue-600 text-white transition'
-          : 'doc-tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-white text-slate-700 border border-slate-300 hover:bg-slate-100 transition';
+        const visible = !currentUser || canSectionAction(btn.dataset.doc, 'view');
+        btn.classList.toggle('hidden', !visible);
+        btn.className = `${!visible ? 'hidden ' : ''}doc-tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition ${
+          active
+            ? 'bg-blue-600 text-white'
+            : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-100'
+        }`;
       });
 
       const createBtn = document.getElementById('primaryCreateBtn');
@@ -1772,8 +2008,8 @@
       document.getElementById('sectionHeadingTitle').textContent =
         `قسم ${cfg.label} — جدول واستيراد وتحليل ملفات الإكسيل`;
       document.getElementById('sectionHelperText').textContent = isAccidents
-        ? 'متابعة حوادث المركبات وسجلات (نجم / المرور) وحالة الإصلاح والتكلفة بالريال السعودي مع استيراد وتصدير Excel بدون تكرار.'
-        : 'عند رفع ملف إكسيل للقسم يتم استبدال بيانات هذا القسم السابقة بالبيانات الجديدة بدون تكرار للوحات مع تفضيل التفويض الفعّال.';
+        ? 'متابعة حوادث المركبات وسجلات (نجم / المرور) وحالة الإصلاح والتكلفة — حذف أي سجل هنا يقوم بحذف المركبة نفسها بالكامل.'
+        : 'حذف أي سجل من هذا القسم أو أي قسم آخر يقوم بحذف المركبة نفسها بالكامل من النظام مع تسجيل العملية في سجل التدقيق.';
       document.getElementById('activeSectionHint').textContent = `القسم النشط: ${cfg.label}`;
       document.getElementById('importSectionExcelBtn').textContent = `استيراد إكسيل: ${importTarget.label}`;
       document.getElementById('exportSectionExcelBtn').textContent = `تصدير إكسيل: ${cfg.label}`;
@@ -2059,7 +2295,7 @@
       const countEl = document.getElementById('selectedCountLabel');
       const selectAllEl = document.getElementById('selectAllVehiclesCheckbox');
 
-      if (!canDeleteRecords()) {
+      if (!canDeleteRecords(activeDocSection)) {
         selectedVehicleIds.clear();
         if (countEl) countEl.textContent = '0';
         if (btn) btn.classList.add('hidden');
@@ -2086,7 +2322,7 @@
     }
 
     function toggleSelectVehicle(vehicleId, checked) {
-      if (!canDeleteRecords()) return;
+      if (!canDeleteRecords(activeDocSection)) return;
       const key = String(vehicleId);
       if (checked) selectedVehicleIds.add(key);
       else selectedVehicleIds.delete(key);
@@ -2094,7 +2330,7 @@
     }
 
     function toggleSelectAllVehicles(checked) {
-      if (!canDeleteRecords()) return;
+      if (!canDeleteRecords(activeDocSection)) return;
       const rowCheckboxes = document.querySelectorAll('.vehicle-row-checkbox');
       rowCheckboxes.forEach(cb => {
         cb.checked = checked;
@@ -2111,9 +2347,10 @@
       const counterEl = document.getElementById('visibleRowsCounter');
       if (!headEl || !tbody) return;
 
-      const cfg = DOC_SECTION_CONFIG[activeDocSection] || DOC_SECTION_CONFIG.authorization;
-      const canEdit = canEditRecords();
-      const canDelete = canDeleteRecords();
+      const cfg = DOC_SECTION_CONFIG[activeDocSection] || DOC_SECTION_CONFIG.all;
+      const canEdit = canSectionAction(activeDocSection, 'edit') || canSectionAction('all', 'edit');
+      const canDelete = canDeleteRecords(activeDocSection);
+      const canSendAlerts = canFeature('alerts_send');
       const isAccidents = activeDocSection === 'accidents';
 
       const checkboxTh = canDelete
@@ -2223,7 +2460,7 @@
           : '';
 
         const rowStatusCode = getVehicleSectionStatus(v, activeDocSection);
-        const waBtn = (!isAccidents && (rowStatusCode === 'expired' || rowStatusCode === 'expiring_soon'))
+        const waBtn = (!isAccidents && canSendAlerts && (rowStatusCode === 'expired' || rowStatusCode === 'expiring_soon'))
           ? `<button type="button" onclick="sendSingleVehicleWhatsappAlert('${escapeHtml(v.id)}')" class="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold transition">واتساب</button>`
           : '';
 
@@ -2235,8 +2472,9 @@
         const editBtn = canEdit
           ? `<button type="button" onclick="${editHandler}" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition">تعديل</button>`
           : '';
+        // حذف السجل من أي قسم يحذف المركبة نفسها
         const delBtn = canDelete
-          ? `<button type="button" onclick="deleteVehicle('${escapeHtml(v.id)}')" class="px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition">حذف</button>`
+          ? `<button type="button" onclick="deleteVehicle('${escapeHtml(v.id)}')" class="px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition">حذف المركبة</button>`
           : '';
 
         const actionsHtml = `
@@ -2315,6 +2553,16 @@
       syncSelectedVehiclesUI();
     }
 
+    function summarizeUserPermissionsLabel(userObj) {
+      const perms = resolveUserPermissions(userObj);
+      const allowedSecs = SECTION_KEYS_ORDER.filter(k => perms.sections?.[k]?.view).map(k => DOC_SECTION_CONFIG[k]?.label || k);
+      const canDelAny = SECTION_KEYS_ORDER.some(k => perms.sections?.[k]?.delete);
+      const roleStr = userObj.role || 'viewer';
+      return `<div class="font-bold text-blue-700">${escapeHtml(roleStr)}</div>
+              <div class="text-[11px] text-slate-500 mt-0.5">أقسام: ${escapeHtml(allowedSecs.join('، ') || 'لا يوجد')}</div>
+              <div class="text-[11px] ${canDelAny ? 'text-rose-600' : 'text-slate-400'}">حذف المركبات: ${canDelAny ? 'مفعّل' : 'غير مفعّل'}</div>`;
+    }
+
     function renderUsersTable() {
       const tbody = document.getElementById('usersTableBody');
       if (!tbody) return;
@@ -2333,7 +2581,7 @@
             <td class="py-3 px-3 font-bold text-slate-900">${escapeHtml(u.full_name)}</td>
             <td class="py-3 px-3 text-slate-700">${escapeHtml(u.email)}</td>
             <td class="py-3 px-3 text-xs font-mono text-slate-700" dir="ltr">${phoneVal ? escapeHtml(phoneVal) : '<span class="text-slate-400 font-sans">غير مسجل</span>'}</td>
-            <td class="py-3 px-3"><span class="px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 text-xs font-bold">${escapeHtml(u.role)}</span></td>
+            <td class="py-3 px-3">${summarizeUserPermissionsLabel(u)}</td>
             <td class="py-3 px-3">
               <span class="px-2.5 py-1 rounded-lg text-xs font-bold ${u.is_active !== false ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}">
                 ${u.is_active !== false ? 'نشط' : 'معطّل'}
@@ -2341,9 +2589,9 @@
             </td>
             <td class="py-3 px-3 whitespace-nowrap space-x-1 space-x-reverse">
               ${isAdmin ? `
-                ${phoneVal ? `<button type="button" onclick="openAlertsCenterModal('${escapeHtml(u.email)}')" class="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-xs font-bold text-emerald-700">واتساب</button>` : ''}
+                ${phoneVal && canFeature('alerts_send') ? `<button type="button" onclick="openAlertsCenterModal('${escapeHtml(u.email)}')" class="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-xs font-bold text-emerald-700">واتساب</button>` : ''}
                 <button type="button" onclick="openUserModal(decodeURIComponent('${identifier}'))" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-xs font-bold text-slate-700">
-                  تعديل
+                  تعديل وصلاحيات
                 </button>
                 <button type="button" onclick="toggleUserActive(decodeURIComponent('${identifier}'))" class="px-2.5 py-1 rounded-lg bg-amber-50 hover:bg-amber-100 text-xs font-bold text-amber-800">
                   ${u.is_active !== false ? 'تعطيل' : 'تفعيل'}
@@ -2450,6 +2698,10 @@
     }
 
     async function sendNewExpiredWhatsappQuick() {
+      if (!canFeature('alerts_send')) {
+        showSystemBanner('ليس لديك صلاحية إرسال الإشعارات.', 'error');
+        return;
+      }
       const { newExpiredItems } = collectUrgentDocumentAlerts();
       if (!newExpiredItems.length) {
         showSystemBanner('لا توجد وثائق منتهية جديدة لم يتم إشعارك بها مسبقاً (لن تتكرر نفس الوثيقة).', 'info');
@@ -2478,6 +2730,10 @@
     }
 
     async function sendNewExpiredEmailQuick() {
+      if (!canFeature('alerts_send')) {
+        showSystemBanner('ليس لديك صلاحية إرسال الإشعارات.', 'error');
+        return;
+      }
       const { newExpiredItems } = collectUrgentDocumentAlerts();
       if (!newExpiredItems.length) {
         showSystemBanner('لا توجد وثائق منتهية جديدة لم يتم إشعارك بها مسبقاً (لن تتكرر نفس الوثيقة).', 'info');
@@ -2504,6 +2760,10 @@
     }
 
     function openAlertsCenterModal(preferredEmail = '') {
+      if (!canFeature('alerts_send')) {
+        showSystemBanner('ليس لديك صلاحية الوصول إلى مركز الإشعارات.', 'error');
+        return;
+      }
       const { expiredItems, newExpiredItems, soonItems } = collectUrgentDocumentAlerts();
       const cardsEl = document.getElementById('alertsSummaryCards');
       const listEl = document.getElementById('alertsItemsList');
@@ -2609,6 +2869,10 @@
     }
 
     async function sendWhatsappReportToSelectedUser() {
+      if (!canFeature('alerts_send')) {
+        showSystemBanner('ليس لديك صلاحية إرسال الإشعارات.', 'error');
+        return;
+      }
       const selectEl = document.getElementById('whatsappRecipientSelect');
       const msgEl = document.getElementById('whatsappMessagePreview');
       const selectedEmail = selectEl?.value || '';
@@ -2639,6 +2903,10 @@
     }
 
     async function sendEmailReportToSelectedUser() {
+      if (!canFeature('alerts_send')) {
+        showSystemBanner('ليس لديك صلاحية إرسال الإشعارات.', 'error');
+        return;
+      }
       const selectEl = document.getElementById('whatsappRecipientSelect');
       const msgEl = document.getElementById('whatsappMessagePreview');
       const selectedEmail = selectEl?.value || '';
@@ -2672,6 +2940,10 @@
     }
 
     async function sendSingleVehicleWhatsappAlert(vehicleId) {
+      if (!canFeature('alerts_send')) {
+        showSystemBanner('ليس لديك صلاحية إرسال الإشعارات.', 'error');
+        return;
+      }
       const v = (state.vehicles || []).find(item => String(item.id) === String(vehicleId));
       if (!v) return;
 
@@ -2717,6 +2989,10 @@
     }
 
     function openCloudSettingsModal() {
+      if (currentUser && !canFeature('settings_edit')) {
+        showSystemBanner('ليس لديك صلاحية تعديل إعدادات النظام.', 'error');
+        return;
+      }
       document.getElementById('cloudUrlInput').value = cloudSettings.url || DEFAULT_SUPABASE_URL;
       document.getElementById('cloudKeyInput').value = cloudSettings.anonKey || DEFAULT_SUPABASE_KEY;
       document.getElementById('storageModeInput').value = cloudSettings.mode || 'cloud';
@@ -2757,7 +3033,8 @@
     }
 
     function openVehicleModal(vehicleId = null) {
-      if (!canEditRecords()) {
+      const requiredAction = vehicleId ? 'edit' : 'create';
+      if (!canSectionAction(activeDocSection, requiredAction) && !canSectionAction('all', requiredAction)) {
         showSystemBanner('ليس لديك صلاحية إضافة أو تعديل المركبات.', 'error');
         return;
       }
@@ -2793,12 +3070,13 @@
 
     async function saveVehicleForm(event) {
       event.preventDefault();
-      if (!canEditRecords()) {
+      const editId = document.getElementById('vehicleEditId').value.trim();
+      const requiredAction = editId ? 'edit' : 'create';
+      if (!canSectionAction(activeDocSection, requiredAction) && !canSectionAction('all', requiredAction)) {
         showSystemBanner('ليس لديك صلاحية حفظ بيانات المركبات.', 'error');
         return;
       }
 
-      const editId = document.getElementById('vehicleEditId').value.trim();
       const plate_number = document.getElementById('vPlateNumber').value.trim();
       const vehicle_name = document.getElementById('vVehicleName').value.trim();
       const assigned_driver = document.getElementById('vAssignedDriver').value.trim();
@@ -2891,7 +3169,7 @@
           await recordActionLog(
             editId ? 'تعديل مركبة' : 'إضافة مركبة',
             `${vehicle_name} (${plate_number})`,
-            assigned_driver
+            `القسم: ${DOC_SECTION_CONFIG[activeDocSection]?.label || 'عرض الكل'} | ${assigned_driver}`
           );
           await refreshCloudData(false, false);
           showSystemBanner(editId ? 'تم تحديث بيانات المركبة والوثائق بنجاح.' : 'تمت إضافة المركبة بنجاح.', 'success');
@@ -2983,7 +3261,8 @@
     }
 
     function openAccidentModal(vehicleId = null) {
-      if (!canEditRecords()) {
+      const requiredAction = vehicleId ? 'edit' : 'create';
+      if (!canSectionAction('accidents', requiredAction)) {
         showSystemBanner('ليس لديك صلاحية إضافة أو تعديل الحوادث.', 'error');
         return;
       }
@@ -3031,12 +3310,13 @@
 
     async function saveAccidentForm(event) {
       event.preventDefault();
-      if (!canEditRecords()) {
+      const explicitId = document.getElementById('accVehicleId').value.trim();
+      const requiredAction = explicitId ? 'edit' : 'create';
+      if (!canSectionAction('accidents', requiredAction)) {
         showSystemBanner('ليس لديك صلاحية حفظ بيانات الحوادث.', 'error');
         return;
       }
 
-      const explicitId = document.getElementById('accVehicleId').value.trim();
       const plate_number = document.getElementById('accPlateNumber').value.trim();
       const vehicle_name = document.getElementById('accVehicleName').value.trim();
       const assigned_driver = document.getElementById('accAssignedDriver').value.trim();
@@ -3152,9 +3432,10 @@
       }
     }
 
+    // حذف سجل من أي قسم = حذف المركبة نفسها بالكامل
     async function deleteVehiclesBatch(idsList) {
-      if (!canDeleteRecords()) {
-        showSystemBanner('ليس لديك صلاحية حذف السجلات؛ هذا الحساب بصلاحية مشاهد (Viewer) فقط.', 'error');
+      if (!canDeleteRecords(activeDocSection)) {
+        showSystemBanner('ليس لديك صلاحية حذف المركبات في هذا القسم.', 'error');
         return;
       }
 
@@ -3162,84 +3443,47 @@
       if (!uniqueIds.length) return;
 
       const cfg = DOC_SECTION_CONFIG[activeDocSection] || DOC_SECTION_CONFIG.all;
-      const isSectionOnly = activeDocSection !== 'all';
+      const deletedVehiclesInfo = (state.vehicles || [])
+        .filter(v => uniqueIds.includes(String(v.id)))
+        .map(v => `${v.vehicle_name || 'مركبة'} [${v.plate_number || ''}]`);
 
-      setLoading(
-        true,
-        isSectionOnly
-          ? `جاري حذف (${uniqueIds.length}) سجل من قسم (${cfg.label})...`
-          : `جاري حذف (${uniqueIds.length}) مركبة...`
-      );
+      setLoading(true, `جاري حذف (${uniqueIds.length}) مركبة بالكامل من النظام...`);
 
       try {
         if (isCloudMode() && sbClient) {
           const CHUNK_SIZE = 100;
           for (let start = 0; start < uniqueIds.length; start += CHUNK_SIZE) {
             const chunkIds = uniqueIds.slice(start, start + CHUNK_SIZE);
-
-            if (isSectionOnly) {
-              const { error: dErr } = await sbClient
-                .from('vehicle_documents')
-                .delete()
-                .in('vehicle_id', chunkIds)
-                .eq('doc_type', activeDocSection);
-
-              if (dErr) {
-                showSystemBanner(`تعذر حذف السجلات من القسم: ${dErr.message}`, 'error');
-                return;
-              }
-
-              if (activeDocSection === 'accidents') {
-                for (const id of chunkIds) {
-                  const vObj = (state.vehicles || []).find(item => String(item.id) === String(id));
-                  const cleanedNotes = stripAccidentPayloadFromNotes(vObj?.notes || '');
-                  await sbClient.from('vehicles').update({ notes: cleanedNotes }).eq('id', id);
-                }
-              }
-            } else {
-              await sbClient.from('vehicle_documents').delete().in('vehicle_id', chunkIds);
-              const { error: vErr } = await sbClient.from('vehicles').delete().in('id', chunkIds);
-              if (vErr) {
-                showSystemBanner(`تعذر حذف المركبات: ${vErr.message}`, 'error');
-                return;
-              }
+            await sbClient.from('vehicle_documents').delete().in('vehicle_id', chunkIds);
+            const { error: vErr } = await sbClient.from('vehicles').delete().in('id', chunkIds);
+            if (vErr) {
+              showSystemBanner(`تعذر حذف المركبات: ${vErr.message}`, 'error');
+              return;
             }
           }
 
           await recordActionLog(
-            isSectionOnly ? `حذف جماعي (${cfg.label})` : 'حذف جماعي للمركبات',
-            `${uniqueIds.length} عنصر`,
-            isSectionOnly ? `إزالة سجل ${cfg.label}` : 'حذف كامل للمركبات'
+            `حذف مركبة من قسم (${cfg.label})`,
+            deletedVehiclesInfo.slice(0, 5).join('، ') || `${uniqueIds.length} مركبة`,
+            `تم حذف المركبة نفسها وجميع وثائقها من قسم: ${cfg.label}`
           );
 
           uniqueIds.forEach(id => selectedVehicleIds.delete(id));
           await refreshCloudData(false, false);
         } else {
-          if (isSectionOnly) {
-            for (const v of state.vehicles || []) {
-              if (uniqueIds.includes(String(v.id))) {
-                if (v.docs) delete v.docs[activeDocSection];
-                if (activeDocSection === 'accidents') v.accidents = null;
-              }
-            }
-          } else {
-            state.vehicles = (state.vehicles || []).filter(v => !uniqueIds.includes(String(v.id)));
-          }
-
+          state.vehicles = (state.vehicles || []).filter(v => !uniqueIds.includes(String(v.id)));
           uniqueIds.forEach(id => selectedVehicleIds.delete(id));
           saveLocalState();
           await recordActionLog(
-            isSectionOnly ? `حذف جماعي (${cfg.label})` : 'حذف جماعي للمركبات',
-            `${uniqueIds.length} عنصر`,
-            isSectionOnly ? `إزالة سجل ${cfg.label}` : 'حذف كامل للمركبات'
+            `حذف مركبة من قسم (${cfg.label})`,
+            deletedVehiclesInfo.slice(0, 5).join('، ') || `${uniqueIds.length} مركبة`,
+            `تم حذف المركبة نفسها وجميع وثائقها من قسم: ${cfg.label}`
           );
           renderAll();
         }
 
         showSystemBanner(
-          isSectionOnly
-            ? `تم حذف (${uniqueIds.length}) سجل من قسم (${cfg.label}) بنجاح.`
-            : `تم حذف (${uniqueIds.length}) مركبة بنجاح.`,
+          `تم حذف (${uniqueIds.length}) مركبة بالكامل من النظام (عبر قسم ${cfg.label}).`,
           'success'
         );
       } finally {
@@ -3248,25 +3492,23 @@
     }
 
     async function deleteVehicle(vehicleId) {
-      if (!canDeleteRecords()) {
-        showSystemBanner('ليس لديك صلاحية حذف السجلات؛ هذا الحساب بصلاحية مشاهد (Viewer) فقط.', 'error');
+      if (!canDeleteRecords(activeDocSection)) {
+        showSystemBanner('ليس لديك صلاحية حذف المركبات.', 'error');
         return;
       }
       const target = (state.vehicles || []).find(v => String(v.id) === String(vehicleId));
       const cfg = DOC_SECTION_CONFIG[activeDocSection] || DOC_SECTION_CONFIG.all;
-      const isSectionOnly = activeDocSection !== 'all';
 
       const ok = await openSecurityConfirmModal({
-        title: isSectionOnly ? `تأكيد حذف سجل (${cfg.label})` : 'تأكيد حذف المركبة نهائياً',
-        description: isSectionOnly
-          ? `سيتم إزالة بيانات (${cfg.label}) لهذه المركبة مع الإبقاء على بقية أقسام المركبة.`
-          : 'سيتم حذف المركبة وجميع وثائقها المرتبطة بها نهائياً ولا يمكن التراجع عن هذا الإجراء.',
+        title: `تأكيد حذف المركبة نهائياً (من قسم ${cfg.label})`,
+        description: `تنبيه: الحذف من قسم (${cfg.label}) سيؤدي إلى حذف المركبة نفسها بالكامل وجميع وثائقها وسجلاتها في جميع الأقسام.`,
         details: target ? [
+          `القسم المصدر: ${cfg.label}`,
           `المركبة: ${target.vehicle_name || 'غير محدد'}`,
           `رقم اللوحة: ${target.plate_number || 'غير محدد'}`,
           `السائق: ${target.assigned_driver || 'غير محدد'}`
-        ] : [`معرّف السجل: ${vehicleId}`],
-        confirmText: 'نعم، احذف السجل',
+        ] : [`القسم المصدر: ${cfg.label}`, `معرّف السجل: ${vehicleId}`],
+        confirmText: 'نعم، احذف المركبة بالكامل',
         variant: 'danger'
       });
       if (!ok) return;
@@ -3274,14 +3516,13 @@
     }
 
     async function deleteSelectedVehicles() {
-      if (!canDeleteRecords()) {
-        showSystemBanner('ليس لديك صلاحية حذف السجلات؛ هذا الحساب بصلاحية مشاهد (Viewer) فقط.', 'error');
+      if (!canDeleteRecords(activeDocSection)) {
+        showSystemBanner('ليس لديك صلاحية حذف المركبات.', 'error');
         return;
       }
       const ids = Array.from(selectedVehicleIds);
       if (!ids.length) return;
       const cfg = DOC_SECTION_CONFIG[activeDocSection] || DOC_SECTION_CONFIG.all;
-      const isSectionOnly = activeDocSection !== 'all';
 
       const sampleNames = (state.vehicles || [])
         .filter(v => ids.includes(String(v.id)))
@@ -3289,20 +3530,80 @@
         .map(v => `${v.vehicle_name} (${v.plate_number})`);
 
       const ok = await openSecurityConfirmModal({
-        title: `تأكيد حذف (${ids.length}) سجل محدد`,
-        description: isSectionOnly
-          ? `سيتم حذف بيانات قسم (${cfg.label}) لعدد (${ids.length}) مركبة محددة.`
-          : `تحذير أمني: سيتم حذف (${ids.length}) مركبة وجميع وثائقها نهائياً.`,
-        details: sampleNames.length ? [...sampleNames, ...(ids.length > 5 ? [`... وعدد (${ids.length - 5}) سجلات أخرى`] : [])] : [],
-        confirmText: `حذف (${ids.length}) سجل`,
+        title: `تأكيد حذف (${ids.length}) مركبة بالكامل`,
+        description: `تحذير أمني: الحذف من قسم (${cfg.label}) سيقوم بحذف (${ids.length}) مركبة نفسها بالكامل وجميع وثائقها من كافة الأقسام.`,
+        details: sampleNames.length ? [...sampleNames, ...(ids.length > 5 ? [`... وعدد (${ids.length - 5}) مركبات أخرى`] : [])] : [],
+        confirmText: `حذف (${ids.length}) مركبة بالكامل`,
         variant: 'danger',
-        requireKeyword: !isSectionOnly && ids.length >= 5 ? 'حذف' : ''
+        requireKeyword: ids.length >= 3 ? 'حذف' : ''
       });
       if (!ok) return;
       await deleteVehiclesBatch(ids);
     }
 
+    // =========================================================================
+    // إدارة المستخدمين ومصفوفة الصلاحيات الدقيقة لكل قسم وإجراء
+    // =========================================================================
+    function renderPermissionMatrix(permsObj) {
+      const tbody = document.getElementById('permissionMatrixBody');
+      if (!tbody) return;
+      const norm = normalizeUserPermissions(permsObj, document.getElementById('uRole')?.value || 'supervisor');
+
+      tbody.innerHTML = SECTION_KEYS_ORDER.map(sKey => {
+        const label = DOC_SECTION_CONFIG[sKey]?.label || sKey;
+        const secPerms = norm.sections[sKey] || {};
+        const cells = SECTION_ACTIONS.map(act => {
+          const checked = Boolean(secPerms[act]);
+          return `
+            <td class="py-2 px-2 text-center">
+              <input type="checkbox" data-perm-section="${sKey}" data-perm-action="${act}" ${checked ? 'checked' : ''}
+                class="perm-matrix-cb w-4 h-4 rounded border-slate-300 cursor-pointer" />
+            </td>`;
+        }).join('');
+
+        return `
+          <tr class="hover:bg-slate-50">
+            <td class="py-2 px-2.5 font-extrabold text-slate-800">${escapeHtml(label)}</td>
+            ${cells}
+          </tr>`;
+      }).join('');
+
+      document.getElementById('perm_tab_users').checked = Boolean(norm.tab_users);
+      document.getElementById('perm_tab_logs').checked = Boolean(norm.tab_logs);
+      document.getElementById('perm_alerts_send').checked = Boolean(norm.alerts_send);
+      document.getElementById('perm_report_print').checked = Boolean(norm.report_print);
+      document.getElementById('perm_settings_edit').checked = Boolean(norm.settings_edit);
+    }
+
+    function applyRolePresetPermissions(roleVal) {
+      renderPermissionMatrix(buildDefaultPermissionsForRole(roleVal));
+    }
+
+    function collectPermissionMatrixFromForm(roleVal) {
+      const sections = {};
+      for (const sKey of SECTION_KEYS_ORDER) {
+        sections[sKey] = {};
+        for (const act of SECTION_ACTIONS) {
+          const cb = document.querySelector(`.perm-matrix-cb[data-perm-section="${sKey}"][data-perm-action="${act}"]`);
+          sections[sKey][act] = Boolean(cb?.checked);
+        }
+      }
+      return normalizeUserPermissions({
+        sections,
+        tab_users: Boolean(document.getElementById('perm_tab_users')?.checked),
+        tab_logs: Boolean(document.getElementById('perm_tab_logs')?.checked),
+        alerts_send: Boolean(document.getElementById('perm_alerts_send')?.checked),
+        report_print: Boolean(document.getElementById('perm_report_print')?.checked),
+        settings_edit: Boolean(document.getElementById('perm_settings_edit')?.checked)
+      }, roleVal);
+    }
+
     function openUserModal(userIdentifier = null) {
+      if (!currentUser || currentUser.role !== 'admin') {
+        showSystemBanner('إدارة المستخدمين والصلاحيات متاحة لمدير النظام (Admin) فقط.', 'error');
+        return;
+      }
+
       const form = document.getElementById('userForm');
       form.reset();
       document.getElementById('userEditId').value = '';
@@ -3318,7 +3619,7 @@
           item => String(item.id) === String(userIdentifier) || String(item.email).toLowerCase() === String(userIdentifier).toLowerCase()
         );
         if (u) {
-          document.getElementById('userModalTitle').textContent = 'تعديل بيانات المستخدم وصلاحياته';
+          document.getElementById('userModalTitle').textContent = 'تعديل بيانات المستخدم وصلاحياته الدقيقة';
           document.getElementById('userEditId').value = u.id || '';
           document.getElementById('userOriginalEmail').value = u.email || '';
           document.getElementById('uFullName').value = u.full_name || '';
@@ -3328,14 +3629,17 @@
           document.getElementById('uActive').value = u.is_active !== false ? 'true' : 'false';
           passInput.required = false;
           passLabel.textContent = 'كلمة المرور الجديدة (اختياري)';
+          renderPermissionMatrix(resolveUserPermissions(u));
           document.getElementById('userModal').classList.remove('hidden');
           return;
         }
       }
 
-      document.getElementById('userModalTitle').textContent = 'إضافة مستخدم جديد';
+      document.getElementById('userModalTitle').textContent = 'إضافة مستخدم جديد وتحديد صلاحياته';
       passInput.required = true;
       passLabel.textContent = 'كلمة المرور *';
+      document.getElementById('uRole').value = 'supervisor';
+      renderPermissionMatrix(buildDefaultPermissionsForRole('supervisor'));
       document.getElementById('userModal').classList.remove('hidden');
     }
 
@@ -3345,6 +3649,11 @@
 
     async function saveUserForm(event) {
       event.preventDefault();
+      if (!currentUser || currentUser.role !== 'admin') {
+        showSystemBanner('ليس لديك صلاحية حفظ بيانات المستخدمين.', 'error');
+        return;
+      }
+
       const editId = document.getElementById('userEditId').value.trim();
       const originalEmail = document.getElementById('userOriginalEmail').value.trim().toLowerCase();
       const full_name = document.getElementById('uFullName').value.trim();
@@ -3353,16 +3662,18 @@
       const password = document.getElementById('uPassword').value;
       const role = document.getElementById('uRole').value;
       const is_active = document.getElementById('uActive').value === 'true';
+      const permissions = collectPermissionMatrixFromForm(role);
 
       if (!editId && (!password || password.length < 6)) {
         showSystemBanner('يرجى إدخال كلمة مرور لا تقل عن 6 أحرف للمستخدم الجديد.', 'warning');
         return;
       }
 
-      setLoading(true, 'جاري حفظ بيانات المستخدم...');
+      setLoading(true, 'جاري حفظ بيانات المستخدم والصلاحيات...');
       try {
         let authNote = '';
         savePhoneToCache(email, phone);
+        savePermissionsToCache(email, role, permissions);
 
         if (isCloudMode() && sbClient) {
           if (password && password.length >= 6) {
@@ -3382,18 +3693,24 @@
           }
 
           const basePayload = { full_name, email, role, is_active };
-          const payloadWithPhone = { ...basePayload, phone };
+          const payloadFull = { ...basePayload, phone, permissions };
           let dbErr = null;
 
           if (editId) {
-            let res = await sbClient.from('app_users').update(payloadWithPhone).eq('id', editId);
-            if (res.error && String(res.error.message || '').toLowerCase().includes('phone')) {
+            let res = await sbClient.from('app_users').update(payloadFull).eq('id', editId);
+            if (res.error) {
+              res = await sbClient.from('app_users').update({ ...basePayload, phone }).eq('id', editId);
+            }
+            if (res.error) {
               res = await sbClient.from('app_users').update(basePayload).eq('id', editId);
             }
             dbErr = res.error;
           } else {
-            let res = await sbClient.from('app_users').upsert([payloadWithPhone], { onConflict: 'email' });
-            if (res.error && String(res.error.message || '').toLowerCase().includes('phone')) {
+            let res = await sbClient.from('app_users').upsert([payloadFull], { onConflict: 'email' });
+            if (res.error) {
+              res = await sbClient.from('app_users').upsert([{ ...basePayload, phone }], { onConflict: 'email' });
+            }
+            if (res.error) {
               res = await sbClient.from('app_users').upsert([basePayload], { onConflict: 'email' });
             }
             dbErr = res.error;
@@ -3404,58 +3721,65 @@
             return;
           }
 
+          if (currentUser && String(currentUser.email || '').toLowerCase() === email) {
+            currentUser = hydrateUserObject({ ...currentUser, full_name, email, phone, role, is_active, permissions });
+          }
+
           await recordActionLog(
-            editId ? 'تعديل مستخدم' : 'إضافة مستخدم',
+            editId ? 'تعديل مستخدم وصلاحيات' : 'إضافة مستخدم وصلاحيات',
             `${full_name} (${email})`,
-            `الدور: ${role} | الجوال: ${phone || 'غير مسجل'}`
+            `الدور: ${role} | صلاحيات دقيقة محدّثة`
           );
           await refreshCloudData(false, false);
         } else {
+          const updatedRecord = hydrateUserObject({
+            id: editId || ('u_' + Date.now()),
+            full_name,
+            email,
+            phone,
+            role,
+            is_active,
+            permissions,
+            ...(password ? { password_hint_set: true } : {})
+          });
+
           if (editId || originalEmail) {
             const idx = (state.users || []).findIndex(
               u => (editId && String(u.id) === String(editId)) ||
                    (originalEmail && String(u.email || '').toLowerCase() === originalEmail)
             );
             if (idx >= 0) {
-              state.users[idx] = {
-                ...state.users[idx],
-                full_name,
-                email,
-                phone,
-                role,
-                is_active,
-                ...(password ? { password_hint_set: true } : {})
-              };
+              state.users[idx] = { ...state.users[idx], ...updatedRecord };
             }
           } else {
-            state.users.push({
-              id: 'u_' + Date.now(),
-              full_name,
-              email,
-              phone,
-              role,
-              is_active,
-              ...(password ? { password_hint_set: true } : {})
-            });
+            state.users.push(updatedRecord);
+          }
+
+          if (currentUser && String(currentUser.email || '').toLowerCase() === email) {
+            currentUser = updatedRecord;
           }
 
           saveLocalState();
           await recordActionLog(
-            editId ? 'تعديل مستخدم' : 'إضافة مستخدم',
+            editId ? 'تعديل مستخدم وصلاحيات' : 'إضافة مستخدم وصلاحيات',
             `${full_name} (${email})`,
-            `الدور: ${role} | الجوال: ${phone || 'غير مسجل'}`
+            `الدور: ${role} | صلاحيات دقيقة محدّثة`
           );
-          renderUsersTable();
+          renderAll();
         }
 
         closeUserModal();
-        showSystemBanner(`تم حفظ بيانات المستخدم (${email}) بنجاح.${authNote}`, 'success');
+        showSystemBanner(`تم حفظ بيانات المستخدم وصلاحياته (${email}) بنجاح.${authNote}`, 'success');
       } finally {
         setLoading(false);
       }
     }
 
     async function toggleUserActive(userIdentifier) {
+      if (!currentUser || currentUser.role !== 'admin') {
+        showSystemBanner('هذا الإجراء متاح لمدير النظام فقط.', 'error');
+        return;
+      }
       const u = (state.users || []).find(
         item => String(item.id) === String(userIdentifier) || String(item.email).toLowerCase() === String(userIdentifier).toLowerCase()
       );
@@ -3464,7 +3788,7 @@
       const ok = await openSecurityConfirmModal({
         title: nextStatus ? 'تأكيد تفعيل حساب المستخدم' : 'تأكيد تعطيل حساب المستخدم',
         description: nextStatus
-          ? 'سيتم السماح للمستخدم بتسجيل الدخول والوصول إلى النظام حسب دوره.'
+          ? 'سيتم السماح للمستخدم بتسجيل الدخول والوصول إلى النظام حسب صلاحياته.'
           : 'سيتم منع هذا المستخدم من الدخول إلى النظام فوراً.',
         details: [`الاسم: ${u.full_name}`, `البريد: ${u.email}`, `الدور: ${u.role}`],
         confirmText: nextStatus ? 'تفعيل الحساب' : 'تعطيل الحساب',
@@ -3496,6 +3820,10 @@
     }
 
     async function deleteUserItem(userIdentifier) {
+      if (!currentUser || currentUser.role !== 'admin') {
+        showSystemBanner('هذا الإجراء متاح لمدير النظام فقط.', 'error');
+        return;
+      }
       const u = (state.users || []).find(
         item => String(item.id) === String(userIdentifier) || String(item.email).toLowerCase() === String(userIdentifier).toLowerCase()
       );
@@ -3538,6 +3866,11 @@
     }
 
     function openSectionFilePicker() {
+      const targetKey = activeDocSection === 'all' ? 'authorization' : activeDocSection;
+      if (!canSectionAction(targetKey, 'import')) {
+        showSystemBanner('ليس لديك صلاحية استيراد ملفات الإكسيل لهذا القسم.', 'error');
+        return;
+      }
       if (activeDocSection === 'all') {
         setActiveDocSection('authorization');
       }
@@ -3718,13 +4051,13 @@
         return;
       }
 
-      if (!canEditRecords()) {
-        showSystemBanner('ليس لديك صلاحية استيراد البيانات.', 'error');
+      const targetDocType = activeDocSection === 'all' ? 'authorization' : activeDocSection;
+      if (!canSectionAction(targetDocType, 'import')) {
+        showSystemBanner('ليس لديك صلاحية استيراد البيانات لهذا القسم.', 'error');
         inputEl.value = '';
         return;
       }
 
-      const targetDocType = activeDocSection === 'all' ? 'authorization' : activeDocSection;
       const cfg = DOC_SECTION_CONFIG[targetDocType];
       const isAccidentsImport = targetDocType === 'accidents';
 
@@ -4060,6 +4393,10 @@
     }
 
     function exportCurrentSectionExcel() {
+      if (!canSectionAction(activeDocSection, 'export')) {
+        showSystemBanner('ليس لديك صلاحية تصدير البيانات لهذا القسم.', 'error');
+        return;
+      }
       if (!window.XLSX) {
         showSystemBanner('تعذر تحميل مكتبة الإكسيل، تحقق من الاتصال بالإنترنت.', 'error');
         return;
@@ -4129,7 +4466,6 @@
         setLoading(false);
       }
     }
-
 
     // =========================================================================
     // منظومة الأمان، رسائل التأكيد الاحترافية، ومزايا التطوير الإضافية
@@ -4321,10 +4657,13 @@
     }
 
     function downloadPrintableFleetReport() {
+      if (currentUser && !canFeature('report_print')) {
+        showSystemBanner('ليس لديك صلاحية طباعة أو تصدير التقارير.', 'error');
+        return;
+      }
       window.print();
     }
 
-    // مستمعات التمرير واختصارات لوحة المفاتيح
     window.addEventListener('scroll', () => {
       const bar = document.getElementById('scrollProgressBar');
       if (!bar) return;
@@ -4351,7 +4690,6 @@
       }
     });
 
-    // التهيئة الأولية + فحص دوري كل 5 دقائق
     formatArabicToday();
     initSupabaseClient();
     if (cloudSettings.url) {
