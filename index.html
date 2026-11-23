@@ -15,28 +15,84 @@
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap');
+    :root {
+      --surface-card: rgba(255, 255, 255, 0.97);
+      --surface-border: rgba(203, 213, 225, 0.85);
+    }
     body {
       font-family: 'Cairo', sans-serif;
-      background-color: #f1f5f9;
+      background:
+        radial-gradient(900px 500px at 95% -5%, rgba(37, 99, 235, 0.09), transparent 60%),
+        radial-gradient(800px 450px at 5% 0%, rgba(16, 185, 129, 0.07), transparent 60%),
+        #f1f5f9;
       color: #0f172a;
     }
+    .glass-card {
+      background: var(--surface-card);
+      border: 1px solid var(--surface-border);
+      box-shadow: 0 4px 20px -4px rgba(15, 23, 42, 0.06), 0 1px 3px 0 rgba(15, 23, 42, 0.04);
+    }
     .modal-backdrop {
-      background-color: rgba(15, 23, 42, 0.55);
-      backdrop-filter: blur(2px);
+      background-color: rgba(15, 23, 42, 0.62);
+      backdrop-filter: blur(4px);
+    }
+    .form-input-pro {
+      width: 100%;
+      padding: 0.625rem 0.875rem;
+      border-radius: 0.75rem;
+      border: 1px solid #cbd5e1;
+      background-color: #f8fafc;
+      font-size: 0.875rem;
+      color: #0f172a;
+      transition: all 0.15s ease;
+    }
+    .form-input-pro:hover {
+      border-color: #94a3b8;
+    }
+    .form-input-pro:focus {
+      outline: none;
+      background-color: #ffffff;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
     }
     @keyframes spinSlow {
       to { transform: rotate(360deg); }
     }
     .loader-spinner {
-      animation: spinSlow 0.85s linear infinite;
+      animation: spinSlow 0.8s linear infinite;
     }
+    @media print {
+      header, nav, #systemBanner, #complianceAlertBanner, #scrollProgressBar, .no-print {
+        display: none !important;
+      }
+      body {
+        background: #ffffff !important;
+      }
+      .glass-card {
+        box-shadow: none !important;
+        border: 1px solid #cbd5e1 !important;
+      }
+    }
+    @keyframes pulseSoft {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.55; }
+    }
+    .pulse-soft {
+      animation: pulseSoft 2s ease-in-out infinite;
+    }
+
   </style>
 </head>
-<body class="min-h-screen">
+<body class="min-h-screen selection:bg-blue-600 selection:text-white">
+
+  <!-- شريط تقدم التمرير العلوي -->
+  <div class="fixed top-0 left-0 right-0 h-1 z-50 bg-transparent pointer-events-none">
+    <div id="scrollProgressBar" class="h-full w-0 bg-gradient-to-l from-blue-600 via-indigo-500 to-emerald-500 transition-[width] duration-150"></div>
+  </div>
 
   <!-- طبقة التحميل -->
-  <div id="loadingOverlay" class="hidden fixed inset-0 z-[70] bg-slate-900/65 backdrop-blur-[2px] flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 px-7 py-6 flex flex-col items-center gap-3 max-w-sm w-full text-center">
+  <div id="loadingOverlay" class="hidden fixed inset-0 z-[70] bg-slate-950/60 backdrop-blur-[2px] flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl shadow-2xl border border-slate-200 px-7 py-6 flex flex-col items-center gap-3 max-w-sm w-full text-center">
       <div class="w-11 h-11 rounded-full border-4 border-blue-100 border-t-blue-600 loader-spinner"></div>
       <p id="loadingMessage" class="text-sm font-extrabold text-slate-800">جاري التحميل ومعالجة البيانات...</p>
       <p class="text-xs text-slate-500">يرجى الانتظار حتى اكتمال العملية</p>
@@ -45,19 +101,19 @@
 
   <!-- شاشة تسجيل الدخول -->
   <div id="loginScreen" class="min-h-screen flex items-center justify-center p-4">
-    <div class="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-200 p-6 sm:p-8">
-      <div class="flex items-center gap-3 mb-4">
-        <div class="w-11 h-11 rounded-xl bg-blue-600 text-white flex items-center justify-center font-extrabold text-lg">
+    <div class="w-full max-w-md glass-card rounded-3xl p-6 sm:p-8">
+      <div class="flex items-center gap-3.5 mb-4">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex items-center justify-center font-extrabold text-lg shadow-lg shadow-blue-600/25">
           FS
         </div>
         <div>
           <h1 class="text-xl font-extrabold text-slate-900">تسجيل الدخول إلى النظام</h1>
-          <p class="text-xs text-slate-500 font-semibold">منصة متابعة وثائق وتفاويض الأسطول</p>
+          <p class="text-xs text-slate-500 font-semibold">منصة متابعة وثائق وتفاويض وحوادث الأسطول</p>
         </div>
       </div>
 
-      <p class="text-xs text-slate-600 leading-relaxed mb-5 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
-        أدخل البريد الإلكتروني وكلمة المرور للدخول مباشرة إلى قاعدة البيانات السحابية المشتركة.
+      <p class="text-xs text-slate-600 leading-relaxed mb-5 bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80">
+        أدخل البريد الإلكتروني وكلمة المرور للدخول مباشرة إلى قاعدة البيانات السحابية المشتركة، أو جرّب الوضع المحلي مباشرة.
       </p>
 
       <div id="loginErrorBox" class="hidden mb-4 p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs sm:text-sm font-bold"></div>
@@ -66,17 +122,22 @@
         <div>
           <label class="block text-xs font-extrabold text-slate-700 mb-1.5">البريد الإلكتروني</label>
           <input id="loginEmail" type="email" required autocomplete="email" placeholder="name@example.com"
-            class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm transition" />
+            class="form-input-pro" />
         </div>
 
         <div>
-          <label class="block text-xs font-extrabold text-slate-700 mb-1.5">كلمة المرور</label>
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="block text-xs font-extrabold text-slate-700">كلمة المرور</label>
+            <button type="button" onclick="togglePasswordVisibility('loginPassword', this)" class="text-[11px] font-bold text-blue-600 hover:underline">
+              إظهار
+            </button>
+          </div>
           <input id="loginPassword" type="password" required autocomplete="current-password" placeholder="••••••••••••"
-            class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm transition" />
+            class="form-input-pro" />
         </div>
 
         <button type="submit" id="loginSubmitBtn"
-          class="w-full py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-extrabold text-sm shadow-md shadow-blue-600/20 transition">
+          class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-[0.99] text-white font-extrabold text-sm shadow-md shadow-blue-600/20 transition">
           تسجيل الدخول
         </button>
       </form>
@@ -98,14 +159,14 @@
   <div id="appShell" class="hidden min-h-screen flex flex-col">
 
     <!-- الشريط العلوي -->
-    <header class="bg-slate-900 text-white shadow-lg sticky top-0 z-30">
-      <div class="max-w-7xl mx-auto px-4 py-3.5 flex flex-wrap items-center justify-between gap-3">
+    <header class="bg-slate-900/95 backdrop-blur-md text-white shadow-md sticky top-0 z-30 border-b border-slate-800">
+      <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center font-extrabold text-base shadow">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center font-extrabold text-base shadow-md shadow-blue-600/30">
             FS
           </div>
           <div>
-            <h1 class="text-base sm:text-lg font-extrabold tracking-tight">نظام متابعة وثائق وتفاويض الأسطول</h1>
+            <h1 class="text-base sm:text-lg font-extrabold tracking-tight">نظام متابعة وثائق وتفاويض وحوادث الأسطول</h1>
             <p id="todayDateLabel" class="text-[11px] text-slate-300"></p>
           </div>
         </div>
@@ -139,11 +200,11 @@
     </header>
 
     <!-- شريط التنقل الرئيسي -->
-    <nav class="bg-white border-b border-slate-200">
-      <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+    <nav class="bg-white/90 backdrop-blur border-b border-slate-200/90">
+      <div class="max-w-7xl mx-auto px-4 py-2.5 flex flex-wrap items-center justify-between gap-3">
         <div class="flex flex-wrap items-center gap-2">
           <button type="button" data-main-tab="dashboard" onclick="switchMainTab('dashboard')"
-            class="main-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-blue-600 text-white transition">
+            class="main-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-blue-600 text-white shadow-sm shadow-blue-600/20 transition">
             لوحة المتابعة
           </button>
           <button type="button" data-main-tab="users" onclick="switchMainTab('users')"
@@ -156,8 +217,16 @@
           </button>
         </div>
 
-        <div id="roleCapabilityBadge" class="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-600 text-xs font-bold">
-          صلاحياتك: إدارة كاملة للمركبات والوثائق والمستخدمين
+        <div class="flex flex-wrap items-center gap-2 no-print">
+          <span id="sessionSecurityPill" class="px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-200/80">
+            حماية الجلسة وتأكيد العمليات: نشط
+          </span>
+          <button type="button" onclick="downloadPrintableFleetReport()" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200 transition">
+            تقرير PDF / طباعة
+          </button>
+          <div id="roleCapabilityBadge" class="px-3 py-1.5 rounded-xl bg-slate-100/90 text-slate-600 text-xs font-bold border border-slate-200/70">
+            صلاحياتك: إدارة كاملة للمركبات والوثائق والحوادث والمستخدمين
+          </div>
         </div>
       </div>
     </nav>
@@ -171,8 +240,8 @@
         <button type="button" onclick="hideSystemBanner()" class="text-xs px-2.5 py-1 rounded-lg bg-white/90 hover:bg-white text-slate-800 shrink-0">إغفاء</button>
       </div>
 
-      <!-- شريط التنبيهات الفورية للوثائق المنتهية والقريبة + أزرار الواتساب والإيميل (إرسال مرة واحدة فقط) -->
-      <div id="complianceAlertBanner" class="hidden rounded-2xl p-4 bg-white border border-amber-300 shadow-sm flex flex-wrap items-center justify-between gap-3">
+      <!-- شريط التنبيهات الفورية -->
+      <div id="complianceAlertBanner" class="hidden rounded-2xl p-4 glass-card border-amber-300/90 flex flex-wrap items-center justify-between gap-3">
         <div class="flex items-start sm:items-center gap-3">
           <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-extrabold text-base shrink-0">
             !
@@ -209,40 +278,57 @@
 
         <!-- البطاقات الإحصائية -->
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          <div onclick="setStatusFilter('all')" class="cursor-pointer bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm hover:border-blue-400 transition">
+          <div onclick="setStatusFilter('all')" class="cursor-pointer glass-card rounded-2xl p-4 sm:p-5 hover:border-blue-400 hover:-translate-y-0.5 transition">
             <p id="statTotalTitle" class="text-xs font-bold text-slate-500 mb-1.5">إجمالي المركبات (التفاويض)</p>
             <p id="statTotalVehicles" class="text-2xl sm:text-3xl font-extrabold text-slate-900">0</p>
-            <p class="text-[11px] text-slate-400 mt-1">عرض جميع سجلات القسم</p>
+            <p id="statTotalSub" class="text-[11px] text-slate-400 mt-1">عرض جميع سجلات القسم</p>
           </div>
 
-          <div onclick="setStatusFilter('expired')" class="cursor-pointer bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm hover:border-rose-400 transition">
+          <div onclick="setStatusFilter('expired')" class="cursor-pointer glass-card rounded-2xl p-4 sm:p-5 hover:border-rose-400 hover:-translate-y-0.5 transition">
             <p id="statExpiredTitle" class="text-xs font-bold text-slate-500 mb-1.5">منتهية (التفاويض)</p>
             <p id="statExpired" class="text-2xl sm:text-3xl font-extrabold text-rose-600">0</p>
             <p id="statExpiredNewSub" class="text-[11px] text-rose-500 mt-1">منها (0) جديدة لم تُرسل</p>
           </div>
 
-          <div onclick="setStatusFilter('expiring_soon')" class="cursor-pointer bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm hover:border-amber-400 transition">
+          <div onclick="setStatusFilter('expiring_soon')" class="cursor-pointer glass-card rounded-2xl p-4 sm:p-5 hover:border-amber-400 hover:-translate-y-0.5 transition">
             <p id="statSoonTitle" class="text-xs font-bold text-slate-500 mb-1.5">قريبة الانتهاء (≤ 15 يوم)</p>
             <p id="statExpiringSoon" class="text-2xl sm:text-3xl font-extrabold text-amber-500">0</p>
-            <p class="text-[11px] text-amber-600 mt-1">تحتاج متابعة قريبة</p>
+            <p id="statSoonSub" class="text-[11px] text-amber-600 mt-1">تحتاج متابعة قريبة</p>
           </div>
 
-          <div onclick="setStatusFilter('valid')" class="cursor-pointer bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm hover:border-emerald-400 transition">
+          <div onclick="setStatusFilter('valid')" class="cursor-pointer glass-card rounded-2xl p-4 sm:p-5 hover:border-emerald-400 hover:-translate-y-0.5 transition">
             <p id="statValidTitle" class="text-xs font-bold text-slate-500 mb-1.5">سارية (التفاويض)</p>
             <p id="statValid" class="text-2xl sm:text-3xl font-extrabold text-emerald-600">0</p>
-            <p class="text-[11px] text-emerald-600 mt-1">وثائق سارية المفعول</p>
+            <p id="statValidSub" class="text-[11px] text-emerald-600 mt-1">وثائق سارية المفعول</p>
+          </div>
+        </div>
+
+        <!-- مؤشر الجاهزية والامتثال + ملخص تكاليف الحوادث -->
+        <div class="glass-card rounded-2xl px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+          <div class="flex flex-wrap items-center gap-4 text-xs font-extrabold text-slate-700">
+            <div class="flex items-center gap-2">
+              <span id="complianceRateLabel">نسبة الامتثال في القسم الحالي:</span>
+              <span id="complianceRateBadge" class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-mono">0%</span>
+            </div>
+            <div class="hidden sm:flex items-center gap-1.5 text-slate-500 border-r border-slate-200 pr-4">
+              <span>إجمالي تكاليف الحوادث المسجلة:</span>
+              <span id="totalAccidentsCostBadge" class="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-800 font-mono" dir="ltr">0.00 SAR</span>
+            </div>
+          </div>
+          <div class="w-full sm:w-72 h-2.5 rounded-full bg-slate-100 overflow-hidden border border-slate-200/70">
+            <div id="complianceRateBar" class="h-full w-0 bg-gradient-to-r from-emerald-500 to-teal-500 transition-all duration-300"></div>
           </div>
         </div>
 
         <!-- صندوق الأقسام والجدول -->
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5 space-y-4">
+        <div class="glass-card rounded-2xl p-4 sm:p-5 space-y-4">
 
-          <!-- شريط أقسام الوثائق -->
-          <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
+          <!-- شريط أقسام الوثائق والحوادث -->
+          <div class="bg-slate-50/90 border border-slate-200/90 rounded-2xl p-4 space-y-3">
             <div class="flex flex-wrap items-center justify-between gap-2">
               <div>
                 <h2 id="sectionHeadingTitle" class="text-sm font-extrabold text-slate-800">قسم التفاويض — جدول واستيراد وتحليل ملفات الإكسيل</h2>
-                <p class="text-xs text-slate-500">عند رفع ملف إكسيل للقسم يتم استبدال بيانات هذا القسم السابقة بالبيانات الجديدة بدون تكرار للوحات مع تفضيل التفويض الفعّال.</p>
+                <p id="sectionHelperText" class="text-xs text-slate-500">عند رفع ملف إكسيل للقسم يتم استبدال بيانات هذا القسم السابقة بالبيانات الجديدة بدون تكرار للوحات مع تفضيل التفويض الفعّال.</p>
               </div>
               <span id="activeSectionHint" class="px-3 py-1 rounded-lg bg-blue-100 text-blue-800 text-xs font-bold">
                 القسم النشط: التفاويض
@@ -267,6 +353,10 @@
                   class="doc-tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-white text-slate-700 border border-slate-300 hover:bg-slate-100 transition">
                   التأمين
                 </button>
+                <button type="button" data-doc="accidents" onclick="setActiveDocSection('accidents')"
+                  class="doc-tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-white text-slate-700 border border-slate-300 hover:bg-slate-100 transition">
+                  الحوادث
+                </button>
                 <button type="button" data-doc="all" onclick="setActiveDocSection('all')"
                   class="doc-tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-white text-slate-700 border border-slate-300 hover:bg-slate-100 transition">
                   عرض الكل
@@ -275,7 +365,7 @@
 
               <div class="flex flex-wrap items-center gap-2">
                 <button type="button" id="importSectionExcelBtn" onclick="openSectionFilePicker()"
-                  class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold transition">
+                  class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold shadow-sm shadow-emerald-600/20 transition">
                   استيراد إكسيل: التفاويض
                 </button>
                 <button type="button" id="exportSectionExcelBtn" onclick="exportCurrentSectionExcel()"
@@ -290,8 +380,8 @@
           <!-- شريط الإجراءات والبحث والفلترة -->
           <div class="flex flex-wrap items-center justify-between gap-3">
             <div class="flex flex-wrap items-center gap-2">
-              <button type="button" id="addVehicleBtn" onclick="openVehicleModal()"
-                class="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-bold transition">
+              <button type="button" id="primaryCreateBtn" onclick="handlePrimaryCreateClick()"
+                class="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-bold shadow-sm shadow-blue-600/20 transition">
                 + إضافة مركبة
               </button>
               <button type="button" id="deleteSelectedBtn" onclick="deleteSelectedVehicles()"
@@ -306,8 +396,8 @@
 
             <div class="flex flex-wrap items-center gap-2 flex-1 sm:flex-initial justify-end">
               <input id="searchInput" type="text" oninput="renderVehiclesTable()"
-                placeholder="بحث برقم اللوحة، المركبة، أو السائق..."
-                class="w-full sm:w-64 px-3.5 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                placeholder="بحث برقم اللوحة، المركبة، السائق، أو رقم البلاغ... (/)"
+                class="w-full sm:w-72 px-3.5 py-2 rounded-xl border border-slate-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
 
               <select id="statusFilterSelect" onchange="renderVehiclesTable()"
                 class="px-3.5 py-2 rounded-xl border border-slate-300 bg-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -316,20 +406,25 @@
                 <option value="expiring_soon">قريبة الانتهاء (≤ 15 يوم)</option>
                 <option value="valid">سارية</option>
               </select>
+
+              <button type="button" onclick="resetTableFilters()" title="إعادة ضبط البحث والفلتر"
+                class="px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600 text-xs font-bold transition">
+                إعادة ضبط
+              </button>
             </div>
           </div>
 
           <!-- ملخص النتائج الظاهرة -->
-          <div class="flex items-center justify-between text-xs text-slate-500 px-1">
+          <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500 px-1">
             <span id="visibleRowsCounter">عدد النتائج المعروضة: 0</span>
-            <span>الفرز التلقائي: المنتهية أولاً ثم قريبة الانتهاء</span>
+            <span id="sortOrderHint">الفرز التلقائي: المنتهية أولاً ثم قريبة الانتهاء</span>
           </div>
 
-          <!-- جدول المركبات -->
-          <div class="overflow-x-auto rounded-xl border border-slate-200">
+          <!-- جدول المركبات والوثائق والحوادث -->
+          <div class="overflow-x-auto rounded-2xl border border-slate-200/90">
             <table class="w-full text-right border-collapse">
               <thead id="vehiclesTableHead"></thead>
-              <tbody id="vehiclesTableBody" class="divide-y divide-slate-100 text-sm"></tbody>
+              <tbody id="vehiclesTableBody" class="divide-y divide-slate-100 text-sm bg-white"></tbody>
             </table>
           </div>
         </div>
@@ -337,7 +432,7 @@
 
       <!-- تبويب المستخدمون والصلاحيات -->
       <section id="tab-users" class="hidden space-y-4">
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+        <div class="glass-card rounded-2xl p-5">
           <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
             <div>
               <h2 class="text-base font-extrabold text-slate-900">المستخدمون والصلاحيات</h2>
@@ -349,7 +444,7 @@
             </button>
           </div>
 
-          <div class="overflow-x-auto rounded-xl border border-slate-200">
+          <div class="overflow-x-auto rounded-2xl border border-slate-200/90">
             <table class="w-full text-right border-collapse">
               <thead>
                 <tr class="border-b border-slate-200 text-slate-500 text-xs sm:text-sm bg-slate-50">
@@ -361,7 +456,7 @@
                   <th class="py-3 px-3 font-bold">الإجراءات</th>
                 </tr>
               </thead>
-              <tbody id="usersTableBody" class="divide-y divide-slate-100 text-sm"></tbody>
+              <tbody id="usersTableBody" class="divide-y divide-slate-100 text-sm bg-white"></tbody>
             </table>
           </div>
         </div>
@@ -369,13 +464,13 @@
 
       <!-- تبويب سجل العمليات -->
       <section id="tab-logs" class="hidden space-y-4">
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+        <div class="glass-card rounded-2xl p-5">
           <div class="mb-4">
             <h2 class="text-base font-extrabold text-slate-900">سجل العمليات</h2>
-            <p class="text-xs text-slate-500">تتبع عمليات الإضافة والتعديل والحذف واستيراد ملفات الإكسيل وإرسال التنبيهات.</p>
+            <p class="text-xs text-slate-500">تتبع عمليات الإضافة والتعديل والحذف وتسجيل الحوادث واستيراد ملفات الإكسيل وإرسال التنبيهات.</p>
           </div>
 
-          <div class="overflow-x-auto rounded-xl border border-slate-200">
+          <div class="overflow-x-auto rounded-2xl border border-slate-200/90">
             <table class="w-full text-right border-collapse">
               <thead>
                 <tr class="border-b border-slate-200 text-slate-500 text-xs sm:text-sm bg-slate-50">
@@ -387,7 +482,7 @@
                   <th class="py-3 px-3 font-bold">التفاصيل</th>
                 </tr>
               </thead>
-              <tbody id="logsTableBody" class="divide-y divide-slate-100 text-sm"></tbody>
+              <tbody id="logsTableBody" class="divide-y divide-slate-100 text-sm bg-white"></tbody>
             </table>
           </div>
         </div>
@@ -396,30 +491,83 @@
     </main>
   </div>
 
+  <!-- نافذة تأكيد أمنية احترافية (بديل آمن لـ confirm) -->
+  <div id="securityConfirmModal" class="hidden fixed inset-0 z-[80] modal-backdrop flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+    <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-slate-200 p-6 space-y-4">
+      <div class="flex items-start gap-3.5">
+        <div id="confirmIconBox" class="w-11 h-11 rounded-2xl bg-rose-100 text-rose-700 flex items-center justify-center font-extrabold text-xl shrink-0">
+          !
+        </div>
+        <div class="space-y-1">
+          <h3 id="confirmTitle" class="text-base sm:text-lg font-extrabold text-slate-900">تأكيد العملية</h3>
+          <p id="confirmDescription" class="text-xs sm:text-sm text-slate-600 leading-relaxed"></p>
+        </div>
+      </div>
+
+      <div id="confirmDetailsBox" class="hidden rounded-2xl bg-slate-50 border border-slate-200/90 p-3 text-xs text-slate-700 space-y-1 max-h-36 overflow-y-auto"></div>
+
+      <div id="confirmKeywordBox" class="hidden space-y-1.5">
+        <label id="confirmKeywordLabel" class="block text-xs font-extrabold text-rose-800"></label>
+        <input id="confirmKeywordInput" type="text" autocomplete="off" class="form-input-pro border-rose-300 focus:border-rose-600" />
+      </div>
+
+      <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+        <button type="button" id="confirmCancelBtn" class="px-4 py-2 rounded-xl border border-slate-300 text-xs sm:text-sm font-bold text-slate-700 hover:bg-slate-50 transition">
+          إلغاء
+        </button>
+        <button type="button" id="confirmProceedBtn" class="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-xs sm:text-sm font-bold text-white shadow-sm transition">
+          تأكيد المتابعة
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- نافذة معاينة سريعة لتفاصيل المركبة والوثائق والحوادث -->
+  <div id="vehicleDetailsModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4" role="dialog" aria-modal="true">
+    <div class="w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-slate-200 p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div>
+          <h3 id="detailsModalTitle" class="text-lg font-extrabold text-slate-900">ملف المركبة الشامل</h3>
+          <p id="detailsModalSubtitle" class="text-xs text-slate-500 font-semibold"></p>
+        </div>
+        <button type="button" onclick="closeVehicleDetailsModal()" class="w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-500 text-xl font-bold flex items-center justify-center">×</button>
+      </div>
+      <div id="detailsModalBody" class="space-y-4"></div>
+      <div class="flex justify-between items-center pt-3 border-t border-slate-100">
+        <button type="button" onclick="downloadPrintableFleetReport()" class="px-4 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700">
+          طباعة / حفظ PDF
+        </button>
+        <button type="button" onclick="closeVehicleDetailsModal()" class="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-xs font-bold text-white">
+          إغلاق
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- نافذة إعدادات الربط السحابي والفحص اليومي -->
   <div id="cloudSettingsModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
-    <div class="w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 space-y-4 max-h-[90vh] overflow-y-auto">
-      <div class="flex items-center justify-between">
+    <div class="w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-slate-200 p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
         <h3 class="text-lg font-extrabold text-slate-900">إعدادات الربط السحابي والتنبيه اليومي</h3>
-        <button type="button" onclick="closeCloudSettingsModal()" class="text-slate-400 hover:text-slate-700 text-xl font-bold">×</button>
+        <button type="button" onclick="closeCloudSettingsModal()" class="w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-500 text-xl font-bold flex items-center justify-center">×</button>
       </div>
 
       <div class="space-y-3">
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">Project URL</label>
           <input id="cloudUrlInput" type="text" placeholder="https://bnndrgctlhexavypqvwa.supabase.co"
-            class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm" />
+            class="form-input-pro" />
         </div>
 
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">Publishable / Anon Public Key</label>
           <input id="cloudKeyInput" type="text" placeholder="sb_publishable_..."
-            class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm" />
+            class="form-input-pro" />
         </div>
 
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">وضع التخزين</label>
-          <select id="storageModeInput" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 bg-white text-sm font-semibold">
+          <select id="storageModeInput" class="form-input-pro font-semibold">
             <option value="cloud">سحابي مشترك (Supabase)</option>
             <option value="local">محلي على هذا الجهاز</option>
           </select>
@@ -431,12 +579,12 @@
             <div>
               <label class="block text-xs font-bold text-slate-700 mb-1">وقت الفحص اليومي (توقيت السعودية)</label>
               <input id="dailyDigestTimeInput" type="time" value="06:00"
-                class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" />
+                class="form-input-pro" />
             </div>
             <div>
               <label class="block text-xs font-bold text-slate-700 mb-1">بريد إشعارات النظام الافتراضي</label>
               <input id="defaultAlertEmailInput" type="email" placeholder="alerts@company.com"
-                class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" />
+                class="form-input-pro" />
             </div>
           </div>
 
@@ -447,23 +595,23 @@
         </div>
       </div>
 
-      <div class="flex justify-end gap-2 pt-2">
-        <button type="button" onclick="closeCloudSettingsModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-sm font-bold text-slate-700">
+      <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+        <button type="button" onclick="closeCloudSettingsModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-sm font-bold text-slate-700 hover:bg-slate-50">
           إلغاء
         </button>
-        <button type="button" onclick="saveCloudSettings()" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-sm font-bold text-white">
+        <button type="button" onclick="saveCloudSettings()" class="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-sm font-bold text-white shadow-sm">
           حفظ الإعدادات
         </button>
       </div>
     </div>
   </div>
 
-  <!-- نافذة إضافة / تعديل مركبة -->
+  <!-- نافذة إضافة / تعديل مركبة ووثائقها (مستقلة عن الحوادث) -->
   <div id="vehicleModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
-    <div class="w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 space-y-4 max-h-[90vh] overflow-y-auto">
-      <div class="flex items-center justify-between">
+    <div class="w-full max-w-xl bg-white rounded-3xl shadow-2xl border border-slate-200 p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
         <h3 id="vehicleModalTitle" class="text-lg font-extrabold text-slate-900">إضافة مركبة جديدة</h3>
-        <button type="button" onclick="closeVehicleModal()" class="text-slate-400 hover:text-slate-700 text-xl font-bold">×</button>
+        <button type="button" onclick="closeVehicleModal()" class="w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-500 text-xl font-bold flex items-center justify-center">×</button>
       </div>
 
       <form id="vehicleForm" onsubmit="saveVehicleForm(event)" class="space-y-4">
@@ -473,51 +621,155 @@
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">رقم اللوحة *</label>
             <input id="vPlateNumber" type="text" required placeholder="أ ب ج 1234"
-              class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" />
+              class="form-input-pro" />
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">اسم / نوع المركبة *</label>
             <input id="vVehicleName" type="text" required placeholder="تويوتا هايلوكس 2025"
-              class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" />
+              class="form-input-pro" />
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">السائق / المفوّض *</label>
             <input id="vAssignedDriver" type="text" required placeholder="اسم السائق"
-              class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" />
+              class="form-input-pro" />
           </div>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">انتهاء التفويض</label>
-            <input id="vDocAuth" type="date" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" />
+            <input id="vDocAuth" type="date" lang="en-CA" class="form-input-pro font-mono" dir="ltr" />
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">انتهاء رخصة السير</label>
-            <input id="vDocReg" type="date" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" />
+            <input id="vDocReg" type="date" lang="en-CA" class="form-input-pro font-mono" dir="ltr" />
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">انتهاء الفحص الدوري</label>
-            <input id="vDocInsp" type="date" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" />
+            <input id="vDocInsp" type="date" lang="en-CA" class="form-input-pro font-mono" dir="ltr" />
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">انتهاء التأمين</label>
-            <input id="vDocIns" type="date" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" />
+            <input id="vDocIns" type="date" lang="en-CA" class="form-input-pro font-mono" dir="ltr" />
           </div>
         </div>
 
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">ملاحظات</label>
-          <input id="vNotes" type="text" placeholder="ملاحظات إضافية..."
-            class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" />
+          <textarea id="vNotes" rows="2" placeholder="ملاحظات تشغيلية أو إدارية حول المركبة..."
+            class="form-input-pro"></textarea>
         </div>
 
-        <div class="flex justify-end gap-2 pt-2">
-          <button type="button" onclick="closeVehicleModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-sm font-bold text-slate-700">
+        <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+          <button type="button" onclick="closeVehicleModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-sm font-bold text-slate-700 hover:bg-slate-50">
             إلغاء
           </button>
-          <button type="submit" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-sm font-bold text-white">
+          <button type="submit" class="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-sm font-bold text-white shadow-sm">
             حفظ المركبة
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- نافذة مستقلة لإضافة / تعديل حادث مع بحث واختيار أو كتابة مركبة -->
+  <div id="accidentModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
+    <div class="w-full max-w-xl bg-white rounded-3xl shadow-2xl border border-slate-200 p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div>
+          <h3 id="accidentModalTitle" class="text-lg font-extrabold text-slate-900">إضافة حادث جديد</h3>
+          <p class="text-xs text-slate-500">ابحث واختر مركبة مسجلة أو اكتب بيانات مركبة جديدة مباشرة.</p>
+        </div>
+        <button type="button" onclick="closeAccidentModal()" class="w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-500 text-xl font-bold flex items-center justify-center">×</button>
+      </div>
+
+      <form id="accidentForm" onsubmit="saveAccidentForm(event)" class="space-y-4">
+        <input type="hidden" id="accVehicleId" />
+
+        <div id="accVehiclePickerBox" class="bg-blue-50/75 border border-blue-200/90 rounded-2xl p-3.5 space-y-1.5">
+          <div class="flex items-center justify-between gap-2">
+            <label for="accVehicleSearchInput" class="block text-xs font-extrabold text-blue-950">السيارة / المركبة (بحث أو اختيار أو كتابة جديدة)</label>
+            <button type="button" onclick="clearAccidentVehicleSelection()" class="text-[11px] font-bold text-blue-700 hover:underline">
+              تفريغ للاختيار/الكتابة
+            </button>
+          </div>
+          <input id="accVehicleSearchInput" list="accVehiclesDatalist" type="text" autocomplete="off"
+            oninput="handleAccidentVehicleLookup(this.value)"
+            onchange="handleAccidentVehicleLookup(this.value)"
+            placeholder="اكتب رقم اللوحة أو اسم السيارة للبحث، أو اكتب سيارة جديدة..."
+            class="form-input-pro bg-white" />
+          <datalist id="accVehiclesDatalist"></datalist>
+          <p id="accMatchedHint" class="text-[11px] text-blue-800/80 font-semibold">
+            يمكنك اختيار مركبة من القائمة المنسدلة أو كتابة بيانات مركبة جديدة يدوياً في الحقول أدناه.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">رقم اللوحة *</label>
+            <input id="accPlateNumber" type="text" required placeholder="أ ب ج 1234"
+              class="form-input-pro" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">اسم / نوع المركبة *</label>
+            <input id="accVehicleName" type="text" required placeholder="تويوتا هايلوكس 2025"
+              class="form-input-pro" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">السائق / المفوّض *</label>
+            <input id="accAssignedDriver" type="text" required placeholder="اسم السائق"
+              class="form-input-pro" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">تاريخ الحادث *</label>
+            <input id="accDate" type="date" required lang="en-CA"
+              class="form-input-pro font-mono" dir="ltr" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">رقم التقرير (نجم / المرور)</label>
+            <input id="accReportNumber" type="text" placeholder="مثال: NJ-904812"
+              class="form-input-pro" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">حالة الحادث / الإصلاح *</label>
+            <select id="accStatus" required
+              class="form-input-pro font-semibold">
+              <option value="تحت المعالجة">تحت المعالجة</option>
+              <option value="قيد الإصلاح بالورشة">قيد الإصلاح بالورشة</option>
+              <option value="مطالبة تأمينية">مطالبة تأمينية</option>
+              <option value="مغلق">مغلق</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">نسبة المسؤولية (%)</label>
+            <input id="accFaultPercent" type="text" placeholder="مثال: 0% أو 50% أو 100%"
+              class="form-input-pro" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">التكلفة التقديرية / الفعلية (ر.س)</label>
+            <input id="accCost" type="number" step="0.01" min="0" placeholder="0.00"
+              class="form-input-pro font-mono" dir="ltr" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">وصف الحادث / ملاحظات</label>
+          <textarea id="accNotes" rows="2" placeholder="تفاصيل موقع الحادث، الأضرار، الورشة، أو حالة المطالبة..."
+            class="form-input-pro"></textarea>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+          <button type="button" onclick="closeAccidentModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-sm font-bold text-slate-700 hover:bg-slate-50">
+            إلغاء
+          </button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-sm font-bold text-white shadow-sm">
+            حفظ الحادث
           </button>
         </div>
       </form>
@@ -526,10 +778,10 @@
 
   <!-- نافذة إضافة / تعديل مستخدم -->
   <div id="userModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
-    <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 space-y-4">
-      <div class="flex items-center justify-between">
+    <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-slate-200 p-6 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
         <h3 id="userModalTitle" class="text-lg font-extrabold text-slate-900">إضافة مستخدم جديد</h3>
-        <button type="button" onclick="closeUserModal()" class="text-slate-400 hover:text-slate-700 text-xl font-bold">×</button>
+        <button type="button" onclick="closeUserModal()" class="w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-500 text-xl font-bold flex items-center justify-center">×</button>
       </div>
 
       <form id="userForm" onsubmit="saveUserForm(event)" class="space-y-3">
@@ -539,26 +791,31 @@
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">الاسم الكامل *</label>
           <input id="uFullName" type="text" required placeholder="مثال: أحمد محمد"
-            class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" />
+            class="form-input-pro" />
         </div>
 
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">البريد الإلكتروني *</label>
           <input id="uEmail" type="email" required placeholder="user@example.com"
-            class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" />
+            class="form-input-pro" />
         </div>
 
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">رقم الجوال (لتنبيهات الواتساب)</label>
           <input id="uPhone" type="tel" dir="ltr" placeholder="05xxxxxxxx أو 9665xxxxxxxx"
-            class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm text-left" />
+            class="form-input-pro text-left" />
           <p class="text-[11px] text-slate-500 mt-1">يُحوّل تلقائياً إلى الصيغة الدولية (مثال: 9665xxxxxxxx) عند إرسال رسالة واتساب.</p>
         </div>
 
         <div>
-          <label id="uPasswordLabel" class="block text-xs font-bold text-slate-700 mb-1">كلمة المرور *</label>
+          <div class="flex items-center justify-between mb-1">
+            <label id="uPasswordLabel" class="block text-xs font-bold text-slate-700">كلمة المرور *</label>
+            <button type="button" onclick="togglePasswordVisibility('uPassword', this)" class="text-[11px] font-bold text-blue-600 hover:underline">
+              إظهار
+            </button>
+          </div>
           <input id="uPassword" type="password" minlength="6" placeholder="6 أحرف أو أرقام على الأقل"
-            class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" />
+            class="form-input-pro" />
           <p class="text-[11px] text-slate-500 mt-1">
             تُستخدم لإنشاء حساب الدخول في Supabase Auth (اتركها فارغة عند التعديل إذا لم ترغب بتغييرها).
           </p>
@@ -567,7 +824,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">الدور *</label>
-            <select id="uRole" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-sm font-semibold">
+            <select id="uRole" class="form-input-pro font-semibold">
               <option value="supervisor">supervisor (مشرف)</option>
               <option value="viewer">viewer (مشاهد)</option>
               <option value="admin">admin (مدير)</option>
@@ -576,18 +833,18 @@
 
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">الحالة *</label>
-            <select id="uActive" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-sm font-semibold">
+            <select id="uActive" class="form-input-pro font-semibold">
               <option value="true">نشط</option>
               <option value="false">معطّل</option>
             </select>
           </div>
         </div>
 
-        <div class="flex justify-end gap-2 pt-2">
-          <button type="button" onclick="closeUserModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-sm font-bold text-slate-700">
+        <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+          <button type="button" onclick="closeUserModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-sm font-bold text-slate-700 hover:bg-slate-50">
             إلغاء
           </button>
-          <button type="submit" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-sm font-bold text-white">
+          <button type="submit" class="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-sm font-bold text-white shadow-sm">
             حفظ المستخدم
           </button>
         </div>
@@ -597,13 +854,13 @@
 
   <!-- نافذة مركز الإشعارات وتنبيهات الواتساب والإيميل -->
   <div id="alertsCenterModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
-    <div class="w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 space-y-4 max-h-[90vh] overflow-y-auto">
-      <div class="flex items-center justify-between">
+    <div class="w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-slate-200 p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
         <div>
           <h3 class="text-lg font-extrabold text-slate-900">مركز الإشعارات (واتساب + إيميل)</h3>
           <p class="text-xs text-slate-500">إرسال للوثائق المنتهية الجديدة مرة واحدة فقط لكل دورة صلاحية (مع إمكانية إعادة الضبط عند الحاجة).</p>
         </div>
-        <button type="button" onclick="closeAlertsCenterModal()" class="text-slate-400 hover:text-slate-700 text-xl font-bold">×</button>
+        <button type="button" onclick="closeAlertsCenterModal()" class="w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-500 text-xl font-bold flex items-center justify-center">×</button>
       </div>
 
       <div id="alertsSummaryCards" class="grid grid-cols-1 sm:grid-cols-3 gap-3"></div>
@@ -623,12 +880,17 @@
           </div>
         </div>
         <select id="whatsappRecipientSelect" onchange="updateWhatsappPreview()"
-          class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-sm font-semibold"></select>
+          class="form-input-pro bg-white font-semibold"></select>
+
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input id="includeSoonInAlertCheckbox" type="checkbox" onchange="updateWhatsappPreview()" class="w-4 h-4 rounded border-slate-300" />
+          <span class="text-xs font-bold text-slate-700">تضمين الوثائق قريبة الانتهاء (≤ 15 يوم) في نص الرسالة</span>
+        </label>
 
         <div>
           <label class="block text-xs font-extrabold text-slate-700 mb-1">نص رسالة التنبيه:</label>
           <textarea id="whatsappMessagePreview" rows="6"
-            class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs leading-relaxed"></textarea>
+            class="form-input-pro bg-white text-xs leading-relaxed"></textarea>
         </div>
 
         <div class="flex flex-wrap justify-end gap-2">
@@ -696,17 +958,25 @@
         dateHints: ['تاريخ انتهاء التأمين', 'انتهاء التأمين', 'التأمين', 'تاريخ الانتهاء', 'انتهاء الوثيقة', 'الانتهاء', 'expiry_date', 'expiry'],
         statusHints: ['حالة التأمين', 'الحالة']
       },
+      accidents: {
+        key: 'accidents',
+        label: 'الحوادث',
+        shortLabel: 'الحادث',
+        fileName: 'accidents-section.xlsx',
+        dateHints: ['تاريخ الحادث', 'تاريخ الواقعة', 'تاريخ البلاغ', 'تاريخ الانتهاء', 'accident_date', 'date'],
+        statusHints: ['حالة الحادث', 'حالة الإصلاح', 'الحالة', 'حالة المطالبة']
+      },
       all: {
         key: 'all',
-        label: 'جميع الوثائق',
-        shortLabel: 'جميع الوثائق',
-        fileName: 'all-fleet-documents.xlsx',
+        label: 'جميع الوثائق والحوادث',
+        shortLabel: 'الوثائق والحوادث',
+        fileName: 'all-fleet-documents-and-accidents.xlsx',
         dateHints: ['تاريخ الانتهاء', 'انتهاء الوثيقة', 'الانتهاء', 'expiry_date'],
         statusHints: []
       }
     };
 
-    const ALL_DOC_TYPES = ['authorization', 'registration', 'periodic_inspection', 'insurance'];
+    const EXPIRY_DOC_TYPES = ['authorization', 'registration', 'periodic_inspection', 'insurance'];
 
     let cloudSettings = loadCloudSettings();
     let sbClient = null;
@@ -723,6 +993,14 @@
 
     function canDeleteRecords() {
       return Boolean(currentUser && (currentUser.role === 'admin' || currentUser.role === 'supervisor'));
+    }
+
+    function handlePrimaryCreateClick() {
+      if (activeDocSection === 'accidents') {
+        openAccidentModal();
+      } else {
+        openVehicleModal();
+      }
     }
 
     function setLoading(isLoading, message = 'جاري التحميل ومعالجة البيانات...') {
@@ -752,6 +1030,14 @@
 
     function hideSystemBanner() {
       document.getElementById('systemBanner')?.classList.add('hidden');
+    }
+
+    function resetTableFilters() {
+      const searchEl = document.getElementById('searchInput');
+      const statusEl = document.getElementById('statusFilterSelect');
+      if (searchEl) searchEl.value = '';
+      if (statusEl) statusEl.value = 'all';
+      renderVehiclesTable();
     }
 
     function loadPhoneCache() {
@@ -840,7 +1126,6 @@
       return cloudSettings.mode === 'cloud';
     }
 
-    // منطق منع التكرار (إرسال مرة واحدة فقط لكل دورة انتهاء وثيقة)
     function buildExpiredAlertKey(vehicleId, docType, expiryDate) {
       return `${String(vehicleId || '').trim()}__${String(docType || '').trim()}__${String(expiryDate || '').trim().slice(0, 10)}`;
     }
@@ -904,6 +1189,13 @@
     }
 
     async function resetNotifiedExpiredHistory() {
+      const ok = await openSecurityConfirmModal({
+        title: 'إعادة ضبط سجل منع التكرار',
+        description: 'سيتم السماح بإعادة إرسال إشعارات الوثائق المنتهية الحالية مرة أخرى عبر واتساب أو الإيميل.',
+        confirmText: 'إعادة الضبط',
+        variant: 'warning'
+      });
+      if (!ok) return;
       notifiedExpiredSet.clear();
       saveNotifiedExpiredCache();
 
@@ -922,7 +1214,6 @@
       showSystemBanner('تمت إعادة ضبط سجل منع التكرار؛ ستظهر الوثائق المنتهية الحالية كجديدة مرة واحدة.', 'success');
     }
 
-    // فحص يومي تلقائي (توقيت السعودية Asia/Riyadh) للوثائق المنتهية الجديدة فقط
     function getKsaNowParts() {
       const parts = new Intl.DateTimeFormat('en-CA', {
         timeZone: 'Asia/Riyadh',
@@ -1060,7 +1351,11 @@
         if (raw) {
           const p = JSON.parse(raw);
           return {
-            vehicles: Array.isArray(p.vehicles) ? p.vehicles : [],
+            vehicles: Array.isArray(p.vehicles) ? p.vehicles.map(v => ({
+              ...v,
+              docs: v.docs || {},
+              accidents: v.accidents || null
+            })) : [],
             users: Array.isArray(p.users) && p.users.length ? p.users : [
               { id: 'u_admin', full_name: 'شهاب الفريعي', email: 'shehab.a.alfariee@gmail.com', phone: '', role: 'admin', is_active: true }
             ],
@@ -1198,6 +1493,7 @@
       document.getElementById('loginScreen').classList.add('hidden');
       document.getElementById('appShell').classList.remove('hidden');
       updateHeaderBadges();
+      resetIdleSessionTimer();
       setActiveDocSection(activeDocSection);
       switchMainTab('dashboard');
       runDailyAutoCheckIfDue().catch(() => {});
@@ -1252,21 +1548,24 @@
       document.getElementById('userBadge').textContent = `${currentUser?.full_name || ''} · ${roleLabel}`;
 
       const capBadge = document.getElementById('roleCapabilityBadge');
-      const addVehicleBtn = document.getElementById('addVehicleBtn');
+      const primaryCreateBtn = document.getElementById('primaryCreateBtn');
       const importBtn = document.getElementById('importSectionExcelBtn');
       const addUserBtn = document.getElementById('addUserBtn');
 
       const canEdit = canEditRecords();
       const isAdmin = currentUser && currentUser.role === 'admin';
 
-      if (addVehicleBtn) addVehicleBtn.classList.toggle('hidden', !canEdit);
+      if (primaryCreateBtn) {
+        primaryCreateBtn.classList.toggle('hidden', !canEdit);
+        primaryCreateBtn.textContent = activeDocSection === 'accidents' ? '+ إضافة حادث' : '+ إضافة مركبة';
+      }
       if (importBtn) importBtn.classList.toggle('hidden', !canEdit);
       if (addUserBtn) addUserBtn.classList.toggle('hidden', !isAdmin);
 
       if (isAdmin) {
-        capBadge.textContent = 'صلاحياتك: إدارة كاملة للمركبات والوثائق والمستخدمين';
+        capBadge.textContent = 'صلاحياتك: إدارة كاملة للمركبات والوثائق والحوادث والمستخدمين';
       } else if (canEdit) {
-        capBadge.textContent = 'صلاحياتك: إضافة وتعديل وحذف المركبات والوثائق واستيراد الإكسيل';
+        capBadge.textContent = 'صلاحياتك: إضافة وتعديل وحذف المركبات والوثائق والحوادث واستيراد الإكسيل';
       } else {
         capBadge.textContent = 'صلاحياتك: عرض البيانات وتصدير التقارير فقط (بدون تعديل أو حذف)';
       }
@@ -1295,13 +1594,37 @@
       return { data: allRows, error: null };
     }
 
+    function parseAccidentNotesPayload(rawNotes) {
+      const str = String(rawNotes || '');
+      const match = str.match(/\[ACCIDENT_JSON:(.*?)\]/);
+      if (!match) return null;
+      try {
+        return JSON.parse(match[1]);
+      } catch {
+        return null;
+      }
+    }
+
+    function stripAccidentPayloadFromNotes(rawNotes) {
+      return String(rawNotes || '').replace(/\s*\[ACCIDENT_JSON:.*?\]\s*/g, '').trim();
+    }
+
+    function composeNotesWithAccident(baseNotes, accidentObj) {
+      const cleanBase = stripAccidentPayloadFromNotes(baseNotes);
+      if (!accidentObj || (!accidentObj.date && !accidentObj.reportNumber && !accidentObj.status && !accidentObj.cost)) {
+        return cleanBase;
+      }
+      const tag = `[ACCIDENT_JSON:${JSON.stringify(accidentObj)}]`;
+      return cleanBase ? `${cleanBase} ${tag}` : tag;
+    }
+
     async function refreshCloudData(showBanner = false, useLoader = true) {
       const btn = document.getElementById('refreshDataBtn');
       if (btn) {
         btn.disabled = true;
         btn.textContent = 'جاري التحديث...';
       }
-      if (useLoader) setLoading(true, 'جاري تحميل جميع سجلات المركبات والوثائق...');
+      if (useLoader) setLoading(true, 'جاري تحميل جميع سجلات المركبات والوثائق والحوادث...');
 
       try {
         if (!isCloudMode()) {
@@ -1330,12 +1653,8 @@
           return;
         }
 
-        if (dRes.error) {
-          if (showBanner) showSystemBanner(`خطأ في قراءة الوثائق: ${dRes.error.message}`, 'error');
-        }
-
         const docsByVehicle = {};
-        if (Array.isArray(dRes.data)) {
+        if (!dRes.error && Array.isArray(dRes.data)) {
           for (const doc of dRes.data) {
             const vId = String(doc.vehicle_id || '').trim();
             const dType = String(doc.doc_type || '').trim();
@@ -1346,14 +1665,28 @@
         }
 
         if (Array.isArray(vRes.data)) {
-          state.vehicles = vRes.data.map(v => ({
-            id: v.id,
-            plate_number: v.plate_number,
-            vehicle_name: v.vehicle_name,
-            assigned_driver: v.assigned_driver,
-            notes: v.notes || '',
-            docs: docsByVehicle[String(v.id)] || {}
-          }));
+          state.vehicles = vRes.data.map(v => {
+            const vDocs = docsByVehicle[String(v.id)] || {};
+            const parsedAcc = parseAccidentNotesPayload(v.notes || '');
+            const cleanNotes = stripAccidentPayloadFromNotes(v.notes || '');
+            const accidentData = parsedAcc || (vDocs.accidents ? {
+              date: vDocs.accidents,
+              reportNumber: '',
+              status: 'تحت المعالجة',
+              faultPercent: '',
+              cost: 0
+            } : null);
+
+            return {
+              id: v.id,
+              plate_number: v.plate_number,
+              vehicle_name: v.vehicle_name,
+              assigned_driver: v.assigned_driver,
+              notes: cleanNotes,
+              docs: vDocs,
+              accidents: accidentData
+            };
+          });
         }
 
         if (!uRes.error && Array.isArray(uRes.data)) {
@@ -1394,12 +1727,14 @@
         created_at: new Date().toISOString()
       };
 
-      if (isCloudMode() && sbClient) {
-        await sbClient.from('audit_logs').insert([entry]);
-      } else {
-        state.logs.unshift({ id: 'log_' + Date.now(), ...entry });
-        saveLocalState();
-      }
+      try {
+        if (isCloudMode() && sbClient) {
+          await sbClient.from('audit_logs').insert([entry]);
+        } else {
+          state.logs.unshift({ id: 'log_' + Date.now(), ...entry });
+          saveLocalState();
+        }
+      } catch {}
     }
 
     function switchMainTab(tabName) {
@@ -1411,7 +1746,7 @@
       document.querySelectorAll('.main-tab-btn').forEach(btn => {
         const selected = btn.dataset.mainTab === tabName;
         btn.className = selected
-          ? 'main-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-blue-600 text-white transition'
+          ? 'main-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-blue-600 text-white shadow-sm shadow-blue-600/20 transition'
           : 'main-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition';
       });
     }
@@ -1420,6 +1755,7 @@
       activeDocSection = DOC_SECTION_CONFIG[sectionKey] ? sectionKey : 'authorization';
       const cfg = DOC_SECTION_CONFIG[activeDocSection];
       const importTarget = activeDocSection === 'all' ? DOC_SECTION_CONFIG.authorization : cfg;
+      const isAccidents = activeDocSection === 'accidents';
 
       document.querySelectorAll('.doc-tab-btn').forEach(btn => {
         const active = btn.dataset.doc === activeDocSection;
@@ -1428,16 +1764,60 @@
           : 'doc-tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-white text-slate-700 border border-slate-300 hover:bg-slate-100 transition';
       });
 
+      const createBtn = document.getElementById('primaryCreateBtn');
+      if (createBtn) {
+        createBtn.textContent = isAccidents ? '+ إضافة حادث' : '+ إضافة مركبة';
+      }
+
       document.getElementById('sectionHeadingTitle').textContent =
         `قسم ${cfg.label} — جدول واستيراد وتحليل ملفات الإكسيل`;
+      document.getElementById('sectionHelperText').textContent = isAccidents
+        ? 'متابعة حوادث المركبات وسجلات (نجم / المرور) وحالة الإصلاح والتكلفة بالريال السعودي مع استيراد وتصدير Excel بدون تكرار.'
+        : 'عند رفع ملف إكسيل للقسم يتم استبدال بيانات هذا القسم السابقة بالبيانات الجديدة بدون تكرار للوحات مع تفضيل التفويض الفعّال.';
       document.getElementById('activeSectionHint').textContent = `القسم النشط: ${cfg.label}`;
       document.getElementById('importSectionExcelBtn').textContent = `استيراد إكسيل: ${importTarget.label}`;
       document.getElementById('exportSectionExcelBtn').textContent = `تصدير إكسيل: ${cfg.label}`;
 
-      document.getElementById('statTotalTitle').textContent = `إجمالي المركبات (${cfg.label})`;
-      document.getElementById('statExpiredTitle').textContent = `منتهية (${cfg.label})`;
-      document.getElementById('statSoonTitle').textContent = `قريبة الانتهاء (≤ 15 يوم)`;
-      document.getElementById('statValidTitle').textContent = `سارية (${cfg.label})`;
+      const statusSelect = document.getElementById('statusFilterSelect');
+      if (isAccidents) {
+        document.getElementById('statTotalTitle').textContent = 'إجمالي الحوادث المسجلة';
+        document.getElementById('statExpiredTitle').textContent = 'حوادث تحت المعالجة / الإصلاح';
+        document.getElementById('statSoonTitle').textContent = 'مطالبات تأمينية مفتوحة';
+        document.getElementById('statValidTitle').textContent = 'حوادث مغلقة / مكتملة';
+
+        document.getElementById('statTotalSub').textContent = 'سجلات الحوادث النشطة';
+        document.getElementById('statExpiredNewSub').textContent = 'تحتاج متابعة إصلاح أو تقدير';
+        document.getElementById('statSoonSub').textContent = 'قيد المتابعة مع التأمين';
+        document.getElementById('statValidSub').textContent = 'تم إنهاء إجراءاتها';
+
+        document.getElementById('complianceRateLabel').textContent = 'نسبة إغلاق الحوادث المسجلة:';
+        document.getElementById('sortOrderHint').textContent = 'الفرز التلقائي: الحوادث المفتوحة أولاً ثم الأحدث تاريخاً';
+
+        statusSelect.innerHTML = `
+          <option value="all">كل حالات الحوادث</option>
+          <option value="expired">تحت المعالجة / الإصلاح</option>
+          <option value="expiring_soon">مطالبة تأمينية</option>
+          <option value="valid">مغلقة / مكتملة</option>`;
+      } else {
+        document.getElementById('statTotalTitle').textContent = `إجمالي المركبات (${cfg.label})`;
+        document.getElementById('statExpiredTitle').textContent = `منتهية (${cfg.label})`;
+        document.getElementById('statSoonTitle').textContent = 'قريبة الانتهاء (≤ 15 يوم)';
+        document.getElementById('statValidTitle').textContent = `سارية (${cfg.label})`;
+
+        document.getElementById('statTotalSub').textContent = 'عرض جميع سجلات القسم';
+        document.getElementById('statExpiredNewSub').textContent = 'منها (0) جديدة لم تُرسل';
+        document.getElementById('statSoonSub').textContent = 'تحتاج متابعة قريبة';
+        document.getElementById('statValidSub').textContent = 'وثائق سارية المفعول';
+
+        document.getElementById('complianceRateLabel').textContent = 'نسبة الامتثال في القسم الحالي:';
+        document.getElementById('sortOrderHint').textContent = 'الفرز التلقائي: المنتهية أولاً ثم قريبة الانتهاء';
+
+        statusSelect.innerHTML = `
+          <option value="all">كل الحالات</option>
+          <option value="expired">منتهية</option>
+          <option value="expiring_soon">قريبة الانتهاء (≤ 15 يوم)</option>
+          <option value="valid">سارية</option>`;
+      }
 
       renderAll();
     }
@@ -1473,9 +1853,28 @@
       return { code: 'valid', priority: 2, diffDays, label: `ساري (${dateStr})`, badgeClass: 'bg-emerald-100 text-emerald-700' };
     }
 
+    function evaluateAccidentStatus(vehicle) {
+      const acc = vehicle?.accidents;
+      const dateStr = vehicle?.docs?.accidents || acc?.date || '';
+      if (!acc && !dateStr) {
+        return { code: 'missing', priority: 3, label: 'لا يوجد حادث', badgeClass: 'bg-slate-100 text-slate-500' };
+      }
+      const st = String(acc?.status || '').trim();
+      if (st.includes('مغلق') || st.includes('مكتمل') || st.includes('منته')) {
+        return { code: 'valid', priority: 2, label: st || 'مغلق', badgeClass: 'bg-emerald-100 text-emerald-700' };
+      }
+      if (st.includes('تأمين') || st.includes('مطالبة')) {
+        return { code: 'expiring_soon', priority: 1, label: st, badgeClass: 'bg-amber-100 text-amber-800' };
+      }
+      return { code: 'expired', priority: 0, label: st || 'تحت المعالجة', badgeClass: 'bg-rose-100 text-rose-700' };
+    }
+
     function getVehicleSectionStatus(vehicle, sectionKey = activeDocSection) {
+      if (sectionKey === 'accidents') {
+        return evaluateAccidentStatus(vehicle).code;
+      }
       if (sectionKey === 'all') {
-        const statuses = ALL_DOC_TYPES
+        const statuses = EXPIRY_DOC_TYPES
           .map(k => vehicle.docs?.[k])
           .filter(Boolean)
           .map(dt => evaluateDocDate(dt));
@@ -1499,6 +1898,9 @@
     function getSectionVehiclesList(sectionKey = activeDocSection) {
       const vehicles = state.vehicles || [];
       if (sectionKey === 'all') return vehicles;
+      if (sectionKey === 'accidents') {
+        return vehicles.filter(v => Boolean(v.accidents || (v.docs && v.docs.accidents)));
+      }
       return vehicles.filter(v => Boolean(v.docs && v.docs[sectionKey]));
     }
 
@@ -1509,7 +1911,7 @@
 
       for (const v of state.vehicles || []) {
         const docs = v.docs || {};
-        for (const docType of ALL_DOC_TYPES) {
+        for (const docType of EXPIRY_DOC_TYPES) {
           const expDate = docs[docType];
           if (!expDate) continue;
           const ev = evaluateDocDate(expDate);
@@ -1595,7 +1997,7 @@
         const code = getVehicleSectionStatus(v, activeDocSection);
         if (code === 'expired') {
           expired++;
-          if (activeDocSection !== 'all') {
+          if (activeDocSection !== 'all' && activeDocSection !== 'accidents') {
             const dt = v.docs?.[activeDocSection];
             if (dt && !notifiedExpiredSet.has(buildExpiredAlertKey(v.id, activeDocSection, dt))) {
               newExpired++;
@@ -1612,9 +2014,26 @@
       document.getElementById('statTotalVehicles').textContent = sectionList.length;
       document.getElementById('statExpired').textContent = expired;
       const newSub = document.getElementById('statExpiredNewSub');
-      if (newSub) newSub.textContent = `منها (${newExpired}) جديدة لم تُرسل`;
+      if (newSub && activeDocSection !== 'accidents') {
+        newSub.textContent = `منها (${newExpired}) جديدة لم تُرسل`;
+      }
       document.getElementById('statExpiringSoon').textContent = expiringSoon;
       document.getElementById('statValid').textContent = valid;
+
+      const rateBadge = document.getElementById('complianceRateBadge');
+      const rateBar = document.getElementById('complianceRateBar');
+      const pct = sectionList.length > 0 ? Math.round((valid / sectionList.length) * 100) : 0;
+      if (rateBadge) rateBadge.textContent = `${pct}%`;
+      if (rateBar) rateBar.style.width = `${pct}%`;
+
+      const costBadge = document.getElementById('totalAccidentsCostBadge');
+      if (costBadge) {
+        const totalCost = (state.vehicles || []).reduce((accSum, v) => {
+          const hasAcc = Boolean(v.accidents || v.docs?.accidents);
+          return accSum + (hasAcc ? Number(v.accidents?.cost || 0) : 0);
+        }, 0);
+        costBadge.textContent = `${totalCost.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} SAR`;
+      }
     }
 
     function renderDocCell(dateStr) {
@@ -1623,6 +2042,16 @@
         ? st.label.replace(dateStr, `<span dir="ltr" class="inline-block font-mono">${escapeHtml(dateStr)}</span>`)
         : escapeHtml(st.label);
       return `<span class="inline-block px-2.5 py-1 rounded-lg text-xs font-bold ${st.badgeClass}">${formattedLabel}</span>`;
+    }
+
+    function renderAccidentSummaryCell(vehicle) {
+      const acc = vehicle?.accidents;
+      const dateStr = vehicle?.docs?.accidents || acc?.date || '';
+      if (!acc && !dateStr) {
+        return `<span class="inline-block px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-400">لا يوجد</span>`;
+      }
+      const ev = evaluateAccidentStatus(vehicle);
+      return `<span class="inline-block px-2.5 py-1 rounded-lg text-xs font-bold ${ev.badgeClass}">${escapeHtml(ev.label)} ${dateStr ? `<span dir="ltr" class="font-mono">(${escapeHtml(dateStr)})</span>` : ''}</span>`;
     }
 
     function syncSelectedVehiclesUI() {
@@ -1685,6 +2114,7 @@
       const cfg = DOC_SECTION_CONFIG[activeDocSection] || DOC_SECTION_CONFIG.authorization;
       const canEdit = canEditRecords();
       const canDelete = canDeleteRecords();
+      const isAccidents = activeDocSection === 'accidents';
 
       const checkboxTh = canDelete
         ? `<th class="py-3 px-3 w-10"><input id="selectAllVehiclesCheckbox" type="checkbox" onchange="toggleSelectAllVehicles(this.checked)" class="w-4 h-4 rounded border-slate-300 cursor-pointer" /></th>`
@@ -1700,6 +2130,18 @@
             <th class="py-3 px-3 font-bold">رخصة السير</th>
             <th class="py-3 px-3 font-bold">الفحص الدوري</th>
             <th class="py-3 px-3 font-bold">التأمين</th>
+            <th class="py-3 px-3 font-bold">الحوادث</th>
+            <th class="py-3 px-3 font-bold">الإجراءات</th>
+          </tr>`;
+      } else if (isAccidents) {
+        headEl.innerHTML = `
+          <tr class="border-b border-slate-200 text-slate-600 text-xs sm:text-sm bg-slate-50">
+            ${checkboxTh}
+            <th class="py-3 px-3 font-bold">المركبة واللوحة</th>
+            <th class="py-3 px-3 font-bold">السائق / المفوّض</th>
+            <th class="py-3 px-3 font-bold">تاريخ الحادث ورقم التقرير</th>
+            <th class="py-3 px-3 font-bold">المسؤولية والتكلفة</th>
+            <th class="py-3 px-3 font-bold">حالة الحادث</th>
             <th class="py-3 px-3 font-bold">الإجراءات</th>
           </tr>`;
       } else {
@@ -1721,10 +2163,12 @@
 
       const filtered = baseList
         .filter(v => {
+          const accReport = String(v.accidents?.reportNumber || '').toLowerCase();
           const matchQuery = !query ||
             String(v.plate_number || '').toLowerCase().includes(query) ||
             String(v.vehicle_name || '').toLowerCase().includes(query) ||
-            String(v.assigned_driver || '').toLowerCase().includes(query);
+            String(v.assigned_driver || '').toLowerCase().includes(query) ||
+            accReport.includes(query);
 
           const stCode = getVehicleSectionStatus(v, activeDocSection);
           const matchStatus = statusFilter === 'all' || stCode === statusFilter;
@@ -1734,6 +2178,9 @@
           const pa = getStatusPriority(getVehicleSectionStatus(a, activeDocSection));
           const pb = getStatusPriority(getVehicleSectionStatus(b, activeDocSection));
           if (pa !== pb) return pa - pb;
+          if (isAccidents) {
+            return compareDateStringsAsc(b.accidents?.date || b.docs?.accidents || '', a.accidents?.date || a.docs?.accidents || '');
+          }
           if (activeDocSection !== 'all') {
             return compareDateStringsAsc(a.docs?.[activeDocSection] || '', b.docs?.[activeDocSection] || '');
           }
@@ -1744,17 +2191,20 @@
         counterEl.textContent = `عدد النتائج المعروضة: ${filtered.length} من أصل ${baseList.length}`;
       }
 
-      const baseCols = activeDocSection === 'all' ? 7 : 5;
+      const baseCols = activeDocSection === 'all' ? 8 : (isAccidents ? 6 : 5);
       const colCount = baseCols + (canDelete ? 1 : 0);
 
       if (!filtered.length) {
         const emptyMsg = activeDocSection === 'all'
           ? 'لا توجد مركبات مطابقة للبحث أو الفلتر المحدد.'
-          : `لا توجد بيانات مرفوعة في قسم (${cfg.label}) بعد. اضغط «استيراد إكسيل: ${cfg.label}» لرفع ملف القسم.`;
+          : isAccidents
+            ? 'لا توجد حوادث مسجلة حالياً. اضغط «+ إضافة حادث» لتسجيل حادث جديد أو استيراد ملف إكسيل للحوادث.'
+            : `لا توجد بيانات مرفوعة في قسم (${cfg.label}) بعد. اضغط «استيراد إكسيل: ${cfg.label}» لرفع ملف القسم.`;
         tbody.innerHTML = `
           <tr>
-            <td colspan="${colCount}" class="py-10 text-center text-slate-400 font-semibold">
-              ${escapeHtml(emptyMsg)}
+            <td colspan="${colCount}" class="py-10 text-center text-slate-400 font-semibold space-y-2">
+              <div>${escapeHtml(emptyMsg)}</div>
+              ${(query || statusFilter !== 'all') ? `<button type="button" onclick="resetTableFilters()" class="mt-2 px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold">إعادة ضبط البحث والفلتر</button>` : ''}
             </td>
           </tr>`;
         syncSelectedVehiclesUI();
@@ -1773,12 +2223,17 @@
           : '';
 
         const rowStatusCode = getVehicleSectionStatus(v, activeDocSection);
-        const waBtn = (rowStatusCode === 'expired' || rowStatusCode === 'expiring_soon')
+        const waBtn = (!isAccidents && (rowStatusCode === 'expired' || rowStatusCode === 'expiring_soon'))
           ? `<button type="button" onclick="sendSingleVehicleWhatsappAlert('${escapeHtml(v.id)}')" class="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold transition">واتساب</button>`
           : '';
 
+        const editHandler = isAccidents
+          ? `openAccidentModal('${escapeHtml(v.id)}')`
+          : `openVehicleModal('${escapeHtml(v.id)}')`;
+
+        const detailsBtn = `<button type="button" onclick="openVehicleDetailsModal('${escapeHtml(v.id)}')" class="px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold transition">تفاصيل</button>`;
         const editBtn = canEdit
-          ? `<button type="button" onclick="openVehicleModal('${escapeHtml(v.id)}')" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition">تعديل</button>`
+          ? `<button type="button" onclick="${editHandler}" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition">تعديل</button>`
           : '';
         const delBtn = canDelete
           ? `<button type="button" onclick="deleteVehicle('${escapeHtml(v.id)}')" class="px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition">حذف</button>`
@@ -1786,7 +2241,7 @@
 
         const actionsHtml = `
           <td class="py-3 px-3 whitespace-nowrap space-x-1 space-x-reverse">
-            ${(waBtn || editBtn || delBtn) ? `${waBtn}${editBtn}${delBtn}` : '<span class="text-xs text-slate-400">عرض فقط</span>'}
+            ${detailsBtn}${waBtn}${editBtn}${delBtn}
           </td>`;
 
         const vehicleCell = `
@@ -1807,6 +2262,36 @@
               <td class="py-3 px-3">${renderDocCell(docs.registration)}</td>
               <td class="py-3 px-3">${renderDocCell(docs.periodic_inspection)}</td>
               <td class="py-3 px-3">${renderDocCell(docs.insurance)}</td>
+              <td class="py-3 px-3">${renderAccidentSummaryCell(v)}</td>
+              ${actionsHtml}
+            </tr>`;
+        }
+
+        if (isAccidents) {
+          const acc = v.accidents || {};
+          const accDate = acc.date || docs.accidents || '';
+          const reportNo = acc.reportNumber || 'بدون رقم';
+          const faultText = acc.faultPercent ? `مسؤولية: ${acc.faultPercent}` : 'مسؤولية: غير محدد';
+          const costNum = Number(acc.cost || 0);
+          const costText = costNum > 0 ? `${costNum.toLocaleString('en-US')} ر.س` : '0 ر.س';
+          const accEv = evaluateAccidentStatus(v);
+
+          return `
+            <tr class="hover:bg-slate-50/90 transition">
+              ${checkboxTd}
+              ${vehicleCell}
+              ${driverCell}
+              <td class="py-3 px-3">
+                <div class="font-mono font-bold text-slate-800" dir="ltr">${escapeHtml(accDate || '—')}</div>
+                <div class="text-xs text-slate-500 font-semibold" dir="ltr">تقرير: ${escapeHtml(reportNo)}</div>
+              </td>
+              <td class="py-3 px-3">
+                <div class="text-xs font-bold text-slate-700">${escapeHtml(faultText)}</div>
+                <div class="text-xs font-mono font-bold text-slate-900 mt-0.5" dir="ltr">${escapeHtml(costText)}</div>
+              </td>
+              <td class="py-3 px-3">
+                <span class="inline-block px-2.5 py-1 rounded-lg text-xs font-bold ${accEv.badgeClass}">${escapeHtml(accEv.label)}</span>
+              </td>
               ${actionsHtml}
             </tr>`;
         }
@@ -1911,7 +2396,6 @@
         .replace(/"/g, '&quot;');
     }
 
-    // مركز الإشعارات والواتساب والإيميل (مرة واحدة فقط للوثائق المنتهية الجديدة)
     function buildExpiryAlertMessage(recipientName = '', includeSoon = false) {
       const { newExpiredItems, soonItems } = collectUrgentDocumentAlerts();
       const greeting = recipientName ? `مرحباً ${recipientName}،\n` : 'مرحباً،\n';
@@ -1921,11 +2405,11 @@
         : [...newExpiredItems];
 
       if (!targetItems.length) {
-        return `${greeting}متابعة وثائق الأسطول: لا توجد وثائق منتهية جديدة لم يتم إشعارك بها مسبقاً.`;
+        return `${greeting}متابعة وثائق الأسطول: لا توجد وثائق مطابقة للإرسال حالياً.`;
       }
 
       const lines = [
-        `${greeting}تنبيه وثائق الأسطول (إشعار لمرة واحدة — ${newExpiredItems.length} منتهية جديدة):`,
+        `${greeting}تنبيه وثائق الأسطول (${newExpiredItems.length} منتهية جديدة${includeSoon ? ` + ${soonItems.length} قريبة` : ''}):`,
         ''
       ];
 
@@ -1943,55 +2427,56 @@
     }
 
     function pickTargetWhatsappUser() {
-  const selectEl = document.getElementById('whatsappRecipientSelect');
-  const selectedEmail = selectEl && !document.getElementById('alertsCenterModal')?.classList.contains('hidden')
-    ? selectEl.value
-    : '';
+      const selectEl = document.getElementById('whatsappRecipientSelect');
+      const selectedEmail = selectEl && !document.getElementById('alertsCenterModal')?.classList.contains('hidden')
+        ? selectEl.value
+        : '';
 
-  if (selectedEmail) {
-    const selectedUser = (state.users || []).find(
-      u => String(u.email || '').toLowerCase() === String(selectedEmail).toLowerCase()
-    );
-    if (selectedUser && normalizeWhatsappPhone(resolveUserPhone(selectedUser))) {
-      return selectedUser;
+      if (selectedEmail) {
+        const selectedUser = (state.users || []).find(
+          u => String(u.email || '').toLowerCase() === String(selectedEmail).toLowerCase()
+        );
+        if (selectedUser && normalizeWhatsappPhone(resolveUserPhone(selectedUser))) {
+          return selectedUser;
+        }
+      }
+
+      if (currentUser && normalizeWhatsappPhone(resolveUserPhone(currentUser))) {
+        return currentUser;
+      }
+
+      const usersWithPhone = (state.users || []).filter(u => Boolean(normalizeWhatsappPhone(resolveUserPhone(u))));
+      return usersWithPhone[0] || currentUser;
     }
-  }
 
-  if (currentUser && normalizeWhatsappPhone(resolveUserPhone(currentUser))) {
-    return currentUser;
-  }
+    async function sendNewExpiredWhatsappQuick() {
+      const { newExpiredItems } = collectUrgentDocumentAlerts();
+      if (!newExpiredItems.length) {
+        showSystemBanner('لا توجد وثائق منتهية جديدة لم يتم إشعارك بها مسبقاً (لن تتكرر نفس الوثيقة).', 'info');
+        return;
+      }
 
-  const usersWithPhone = (state.users || []).filter(u => Boolean(normalizeWhatsappPhone(resolveUserPhone(u))));
-  return usersWithPhone[0] || currentUser;
-}
+      const targetUser = pickTargetWhatsappUser();
+      const phoneDigits = normalizeWhatsappPhone(resolveUserPhone(targetUser));
+      const msg = buildExpiryAlertMessage(targetUser?.full_name || '', false);
 
-async function sendNewExpiredWhatsappQuick() {
-  const { newExpiredItems } = collectUrgentDocumentAlerts();
-  if (!newExpiredItems.length) {
-    showSystemBanner('لا توجد وثائق منتهية جديدة لم يتم إشعارك بها مسبقاً (لن تتكرر نفس الوثيقة).', 'info');
-    return;
-  }
+      await persistNotifiedExpiredItems(newExpiredItems, 'whatsapp');
+      await recordActionLog(
+        'إرسال واتساب (مرة واحدة)',
+        `${newExpiredItems.length} وثيقة منتهية جديدة`,
+        phoneDigits ? `إلى ${phoneDigits}` : 'فتح واتساب بدون رقم محدد'
+      );
 
-  const targetUser = pickTargetWhatsappUser();
-  const phoneDigits = normalizeWhatsappPhone(resolveUserPhone(targetUser));
-  const msg = buildExpiryAlertMessage(targetUser?.full_name || '', false);
+      if (isCloudMode()) await refreshCloudData(false, false);
+      else renderAll();
 
-  await persistNotifiedExpiredItems(newExpiredItems, 'whatsapp');
-  await recordActionLog(
-    'إرسال واتساب (مرة واحدة)',
-    `${newExpiredItems.length} وثيقة منتهية جديدة`,
-    phoneDigits ? `إلى ${phoneDigits}` : 'فتح واتساب بدون رقم محدد'
-  );
+      const waUrl = phoneDigits
+        ? `https://wa.me/${phoneDigits}?text=${encodeURIComponent(msg)}`
+        : `https://wa.me/?text=${encodeURIComponent(msg)}`;
+      window.open(waUrl, '_blank', 'noopener,noreferrer');
+      showSystemBanner(`تم تجهيز رسالة الواتساب لـ (${newExpiredItems.length}) وثيقة منتهية جديدة ولن تتكرر مرة أخرى.`, 'success');
+    }
 
-  if (isCloudMode()) await refreshCloudData(false, false);
-  else renderAll();
-
-  const waUrl = phoneDigits
-    ? `https://wa.me/${phoneDigits}?text=${encodeURIComponent(msg)}`
-    : `https://wa.me/?text=${encodeURIComponent(msg)}`;
-  window.open(waUrl, '_blank', 'noopener,noreferrer');
-  showSystemBanner(`تم تجهيز رسالة الواتساب لـ (${newExpiredItems.length}) وثيقة منتهية جديدة ولن تتكرر مرة أخرى.`, 'success');
-}
     async function sendNewExpiredEmailQuick() {
       const { newExpiredItems } = collectUrgentDocumentAlerts();
       if (!newExpiredItems.length) {
@@ -2096,11 +2581,12 @@ async function sendNewExpiredWhatsappQuick() {
     function updateWhatsappPreview() {
       const selectEl = document.getElementById('whatsappRecipientSelect');
       const msgEl = document.getElementById('whatsappMessagePreview');
+      const includeSoon = Boolean(document.getElementById('includeSoonInAlertCheckbox')?.checked);
       if (!msgEl) return;
 
       const selectedEmail = selectEl?.value || '';
       const userObj = (state.users || []).find(u => String(u.email).toLowerCase() === String(selectedEmail).toLowerCase());
-      msgEl.value = buildExpiryAlertMessage(userObj?.full_name || '', false);
+      msgEl.value = buildExpiryAlertMessage(userObj?.full_name || '', includeSoon);
     }
 
     function copyWhatsappMessageText() {
@@ -2185,51 +2671,51 @@ async function sendNewExpiredWhatsappQuick() {
       showSystemBanner('تم فتح البريد الإلكتروني وتسجيل الوثائق المنتهية الجديدة لمنع تكرارها.', 'success');
     }
 
-  async function sendSingleVehicleWhatsappAlert(vehicleId) {
-  const v = (state.vehicles || []).find(item => String(item.id) === String(vehicleId));
-  if (!v) return;
+    async function sendSingleVehicleWhatsappAlert(vehicleId) {
+      const v = (state.vehicles || []).find(item => String(item.id) === String(vehicleId));
+      if (!v) return;
 
-  const targetUser = pickTargetWhatsappUser();
-  const phoneRaw = resolveUserPhone(targetUser);
+      const targetUser = pickTargetWhatsappUser();
+      const phoneRaw = resolveUserPhone(targetUser);
 
-  const docLines = [];
-  const expiredToMark = [];
-  for (const docType of ALL_DOC_TYPES) {
-    const exp = v.docs?.[docType];
-    if (!exp) continue;
-    const ev = evaluateDocDate(exp);
-    if (ev.code === 'expired' || ev.code === 'expiring_soon') {
-      docLines.push(`• ${DOC_SECTION_CONFIG[docType]?.label}: ${ev.label}`);
-      if (ev.code === 'expired') {
-        expiredToMark.push({
-          vehicleId: v.id,
-          docType,
-          expiryDate: exp,
-          alertKey: buildExpiredAlertKey(v.id, docType, exp)
-        });
+      const docLines = [];
+      const expiredToMark = [];
+      for (const docType of EXPIRY_DOC_TYPES) {
+        const exp = v.docs?.[docType];
+        if (!exp) continue;
+        const ev = evaluateDocDate(exp);
+        if (ev.code === 'expired' || ev.code === 'expiring_soon') {
+          docLines.push(`• ${DOC_SECTION_CONFIG[docType]?.label}: ${ev.label}`);
+          if (ev.code === 'expired') {
+            expiredToMark.push({
+              vehicleId: v.id,
+              docType,
+              expiryDate: exp,
+              alertKey: buildExpiredAlertKey(v.id, docType, exp)
+            });
+          }
+        }
+      }
+
+      const msg = [
+        `تنبيه مركبة:`,
+        `المركبة: ${v.vehicle_name} (${v.plate_number})`,
+        `السائق: ${v.assigned_driver || 'غير محدد'}`,
+        ...docLines
+      ].join('\n');
+
+      openWhatsappUrlWithMessage(phoneRaw, msg);
+      if (expiredToMark.length) {
+        await persistNotifiedExpiredItems(expiredToMark, 'whatsapp-vehicle');
+      }
+      await recordActionLog('تنبيه واتساب لمركبة', `${v.vehicle_name} (${v.plate_number})`, phoneRaw || 'بدون رقم محدد');
+      if (isCloudMode()) {
+        await refreshCloudData(false, false);
+      } else {
+        renderAll();
       }
     }
-  }
 
-  const msg = [
-    `تنبيه وثيقة مركبة:`,
-    `المركبة: ${v.vehicle_name} (${v.plate_number})`,
-    `السائق: ${v.assigned_driver || 'غير محدد'}`,
-    ...docLines
-  ].join('\n');
-
-  openWhatsappUrlWithMessage(phoneRaw, msg);
-  if (expiredToMark.length) {
-    await persistNotifiedExpiredItems(expiredToMark, 'whatsapp-vehicle');
-  }
-  await recordActionLog('تنبيه واتساب لمركبة', `${v.vehicle_name} (${v.plate_number})`, phoneRaw || 'بدون رقم محدد');
-  if (isCloudMode()) {
-    await refreshCloudData(false, false);
-  } else {
-    renderAll();
-  }
-}
-    // نافذة الربط السحابي والفحص اليومي
     function openCloudSettingsModal() {
       document.getElementById('cloudUrlInput').value = cloudSettings.url || DEFAULT_SUPABASE_URL;
       document.getElementById('cloudKeyInput').value = cloudSettings.anonKey || DEFAULT_SUPABASE_KEY;
@@ -2270,7 +2756,6 @@ async function sendNewExpiredWhatsappQuick() {
       }
     }
 
-    // نافذة المركبات
     function openVehicleModal(vehicleId = null) {
       if (!canEditRecords()) {
         showSystemBanner('ليس لديك صلاحية إضافة أو تعديل المركبات.', 'error');
@@ -2293,7 +2778,7 @@ async function sendNewExpiredWhatsappQuick() {
           document.getElementById('vDocReg').value = v.docs?.registration || '';
           document.getElementById('vDocInsp').value = v.docs?.periodic_inspection || '';
           document.getElementById('vDocIns').value = v.docs?.insurance || '';
-          document.getElementById('vNotes').value = v.notes || '';
+          document.getElementById('vNotes').value = stripAccidentPayloadFromNotes(v.notes || '');
         }
       } else {
         document.getElementById('vehicleModalTitle').textContent = 'إضافة مركبة جديدة';
@@ -2317,7 +2802,13 @@ async function sendNewExpiredWhatsappQuick() {
       const plate_number = document.getElementById('vPlateNumber').value.trim();
       const vehicle_name = document.getElementById('vVehicleName').value.trim();
       const assigned_driver = document.getElementById('vAssignedDriver').value.trim();
-      const notes = document.getElementById('vNotes').value.trim();
+      const baseNotes = stripAccidentPayloadFromNotes(document.getElementById('vNotes').value.trim());
+
+      const existingVehicle = editId
+        ? (state.vehicles || []).find(v => String(v.id) === String(editId))
+        : null;
+      const preservedAccident = existingVehicle?.accidents || null;
+      const notes = composeNotesWithAccident(baseNotes, preservedAccident);
 
       const docs = {
         authorization: document.getElementById('vDocAuth').value || '',
@@ -2325,6 +2816,21 @@ async function sendNewExpiredWhatsappQuick() {
         periodic_inspection: document.getElementById('vDocInsp').value || '',
         insurance: document.getElementById('vDocIns').value || ''
       };
+
+      const confirmedSave = await openSecurityConfirmModal({
+        title: editId ? 'تأكيد تعديل بيانات المركبة' : 'تأكيد إضافة مركبة جديدة',
+        description: editId
+          ? 'سيتم تحديث بيانات المركبة وتواريخ الوثائق المحددة في النظام.'
+          : 'سيتم تسجيل المركبة الجديدة ووثائقها في قاعدة البيانات.',
+        details: [
+          `المركبة: ${vehicle_name}`,
+          `رقم اللوحة: ${plate_number}`,
+          `السائق / المفوّض: ${assigned_driver}`
+        ],
+        confirmText: editId ? 'حفظ التعديلات' : 'إضافة المركبة',
+        variant: 'info'
+      });
+      if (!confirmedSave) return;
 
       setLoading(true, editId ? 'جاري حفظ تعديلات المركبة...' : 'جاري إضافة المركبة...');
       try {
@@ -2358,14 +2864,11 @@ async function sendNewExpiredWhatsappQuick() {
             .map(([docType]) => docType);
 
           if (emptyDocTypes.length > 0) {
-            const { error: delDocErr } = await sbClient
+            await sbClient
               .from('vehicle_documents')
               .delete()
               .eq('vehicle_id', targetId)
               .in('doc_type', emptyDocTypes);
-            if (delDocErr) {
-              showSystemBanner(`تنبيه في حذف التواريخ الفارغة: ${delDocErr.message}`, 'warning');
-            }
           }
 
           if (filledEntries.length > 0) {
@@ -2385,17 +2888,40 @@ async function sendNewExpiredWhatsappQuick() {
             }
           }
 
-          await recordActionLog(editId ? 'تعديل مركبة' : 'إضافة مركبة', `${vehicle_name} (${plate_number})`, assigned_driver);
+          await recordActionLog(
+            editId ? 'تعديل مركبة' : 'إضافة مركبة',
+            `${vehicle_name} (${plate_number})`,
+            assigned_driver
+          );
           await refreshCloudData(false, false);
           showSystemBanner(editId ? 'تم تحديث بيانات المركبة والوثائق بنجاح.' : 'تمت إضافة المركبة بنجاح.', 'success');
         } else {
+          const cleanDocs = Object.fromEntries(Object.entries(docs).filter(([, val]) => Boolean(val)));
           if (editId) {
             const idx = state.vehicles.findIndex(v => String(v.id) === String(editId));
             if (idx >= 0) {
-              state.vehicles[idx] = { ...state.vehicles[idx], plate_number, vehicle_name, assigned_driver, notes, docs };
+              state.vehicles[idx] = {
+                ...state.vehicles[idx],
+                plate_number,
+                vehicle_name,
+                assigned_driver,
+                notes: baseNotes,
+                docs: { ...(state.vehicles[idx].docs || {}), ...cleanDocs }
+              };
+              for (const k of Object.keys(docs)) {
+                if (!docs[k]) delete state.vehicles[idx].docs[k];
+              }
             }
           } else {
-            state.vehicles.unshift({ id: 'v_' + Date.now(), plate_number, vehicle_name, assigned_driver, notes, docs });
+            state.vehicles.unshift({
+              id: 'v_' + Date.now(),
+              plate_number,
+              vehicle_name,
+              assigned_driver,
+              notes: baseNotes,
+              docs: cleanDocs,
+              accidents: null
+            });
           }
           saveLocalState();
           await recordActionLog(editId ? 'تعديل مركبة' : 'إضافة مركبة', `${vehicle_name} (${plate_number})`, assigned_driver);
@@ -2404,6 +2930,223 @@ async function sendNewExpiredWhatsappQuick() {
         }
 
         closeVehicleModal();
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    function buildVehicleLookupLabel(v) {
+      return `${v.vehicle_name || 'مركبة'} — ${v.plate_number || ''} (${v.assigned_driver || 'بدون سائق'})`;
+    }
+
+    function populateAccidentVehiclesDatalist() {
+      const listEl = document.getElementById('accVehiclesDatalist');
+      if (!listEl) return;
+      const options = (state.vehicles || [])
+        .map(v => `<option value="${escapeHtml(buildVehicleLookupLabel(v))}"></option>`)
+        .join('');
+      listEl.innerHTML = options;
+    }
+
+    function clearAccidentVehicleSelection() {
+      document.getElementById('accVehicleSearchInput').value = '';
+      document.getElementById('accPlateNumber').value = '';
+      document.getElementById('accVehicleName').value = '';
+      document.getElementById('accAssignedDriver').value = '';
+      document.getElementById('accMatchedHint').textContent = 'اكتب للبحث عن مركبة مسجلة أو أدخل بيانات مركبة جديدة يدوياً.';
+    }
+
+    function handleAccidentVehicleLookup(rawVal) {
+      const query = String(rawVal || '').trim().toLowerCase();
+      const hintEl = document.getElementById('accMatchedHint');
+      if (!query) {
+        if (hintEl) hintEl.textContent = 'اكتب للبحث عن مركبة مسجلة أو أدخل بيانات مركبة جديدة يدوياً.';
+        return;
+      }
+
+      const vehicles = state.vehicles || [];
+      const exactLabelMatch = vehicles.find(v => buildVehicleLookupLabel(v).toLowerCase() === query);
+      const plateKey = normalizePlateKey(rawVal);
+      const plateMatch = plateKey ? vehicles.find(v => normalizePlateKey(v.plate_number) === plateKey) : null;
+      const matched = exactLabelMatch || plateMatch;
+
+      if (matched) {
+        document.getElementById('accPlateNumber').value = matched.plate_number || '';
+        document.getElementById('accVehicleName').value = matched.vehicle_name || '';
+        document.getElementById('accAssignedDriver').value = matched.assigned_driver || '';
+        if (hintEl) {
+          hintEl.textContent = `تم تعبئة بيانات المركبة: ${matched.vehicle_name} (${matched.plate_number}).`;
+        }
+      } else if (hintEl) {
+        hintEl.textContent = 'مركبة جديدة: سيتم حفظها وإضافة الحادث لها مباشرة.';
+      }
+    }
+
+    function openAccidentModal(vehicleId = null) {
+      if (!canEditRecords()) {
+        showSystemBanner('ليس لديك صلاحية إضافة أو تعديل الحوادث.', 'error');
+        return;
+      }
+
+      const form = document.getElementById('accidentForm');
+      form.reset();
+      document.getElementById('accVehicleId').value = '';
+      document.getElementById('accDate').value = new Date().toISOString().slice(0, 10);
+      document.getElementById('accStatus').value = 'تحت المعالجة';
+
+      const pickerBox = document.getElementById('accVehiclePickerBox');
+
+      if (vehicleId) {
+        const v = (state.vehicles || []).find(item => String(item.id) === String(vehicleId));
+        if (v) {
+          document.getElementById('accidentModalTitle').textContent = 'تعديل بيانات الحادث';
+          pickerBox.classList.add('hidden');
+          document.getElementById('accVehicleId').value = v.id;
+          document.getElementById('accPlateNumber').value = v.plate_number || '';
+          document.getElementById('accVehicleName').value = v.vehicle_name || '';
+          document.getElementById('accAssignedDriver').value = v.assigned_driver || '';
+
+          const acc = v.accidents || {};
+          document.getElementById('accDate').value = acc.date || v.docs?.accidents || new Date().toISOString().slice(0, 10);
+          document.getElementById('accReportNumber').value = acc.reportNumber || '';
+          document.getElementById('accStatus').value = acc.status || 'تحت المعالجة';
+          document.getElementById('accFaultPercent').value = acc.faultPercent || '';
+          document.getElementById('accCost').value = acc.cost ? String(acc.cost) : '';
+          document.getElementById('accNotes').value = stripAccidentPayloadFromNotes(v.notes || '');
+          document.getElementById('accidentModal').classList.remove('hidden');
+          return;
+        }
+      }
+
+      document.getElementById('accidentModalTitle').textContent = 'إضافة حادث جديد';
+      pickerBox.classList.remove('hidden');
+      populateAccidentVehiclesDatalist();
+      document.getElementById('accMatchedHint').textContent = 'ابحث باللوحة أو اسم السيارة من القائمة، أو اكتب بيانات مركبة جديدة مباشرة.';
+      document.getElementById('accidentModal').classList.remove('hidden');
+    }
+
+    function closeAccidentModal() {
+      document.getElementById('accidentModal').classList.add('hidden');
+    }
+
+    async function saveAccidentForm(event) {
+      event.preventDefault();
+      if (!canEditRecords()) {
+        showSystemBanner('ليس لديك صلاحية حفظ بيانات الحوادث.', 'error');
+        return;
+      }
+
+      const explicitId = document.getElementById('accVehicleId').value.trim();
+      const plate_number = document.getElementById('accPlateNumber').value.trim();
+      const vehicle_name = document.getElementById('accVehicleName').value.trim();
+      const assigned_driver = document.getElementById('accAssignedDriver').value.trim();
+      const baseNotes = stripAccidentPayloadFromNotes(document.getElementById('accNotes').value.trim());
+
+      const accDate = document.getElementById('accDate').value || new Date().toISOString().slice(0, 10);
+      const accReport = document.getElementById('accReportNumber').value.trim();
+      const accStatus = document.getElementById('accStatus').value.trim() || 'تحت المعالجة';
+      const accFault = document.getElementById('accFaultPercent').value.trim();
+      const accCost = parseFloat(toWesternDigits(document.getElementById('accCost').value || '0')) || 0;
+
+      const accidentObj = {
+        date: accDate,
+        reportNumber: accReport,
+        status: accStatus,
+        faultPercent: accFault,
+        cost: accCost
+      };
+      const notes = composeNotesWithAccident(baseNotes, accidentObj);
+
+      const plateKey = normalizePlateKey(plate_number);
+      const matchedVehicle = (state.vehicles || []).find(
+        v => (explicitId && String(v.id) === explicitId) ||
+             (plateKey && normalizePlateKey(v.plate_number) === plateKey)
+      );
+
+      const confirmedAcc = await openSecurityConfirmModal({
+        title: matchedVehicle ? 'تأكيد تحديث سجل الحادث' : 'تأكيد تسجيل حادث جديد',
+        description: 'يرجى مراجعة بيانات الحادث والتكلفة قبل الاعتماد.',
+        details: [
+          `المركبة واللوحة: ${vehicle_name} (${plate_number})`,
+          `تاريخ الحادث: ${accDate} | الحالة: ${accStatus}`,
+          `رقم التقرير: ${accReport || 'بدون رقم'} | التكلفة: ${accCost.toLocaleString('en-US')} ر.س`
+        ],
+        confirmText: 'حفظ الحادث',
+        variant: 'warning'
+      });
+      if (!confirmedAcc) return;
+
+      setLoading(true, 'جاري حفظ بيانات الحادث...');
+      try {
+        if (isCloudMode() && sbClient) {
+          let targetId = matchedVehicle?.id || '';
+
+          if (targetId) {
+            const { error } = await sbClient
+              .from('vehicles')
+              .update({ plate_number, vehicle_name, assigned_driver, notes })
+              .eq('id', targetId);
+            if (error) {
+              showSystemBanner(`تعذر تحديث سجل الحادث: ${error.message}`, 'error');
+              return;
+            }
+          } else {
+            const { data: inserted, error } = await sbClient
+              .from('vehicles')
+              .insert([{ plate_number, vehicle_name, assigned_driver, notes }])
+              .select()
+              .single();
+            if (error || !inserted) {
+              showSystemBanner(`تعذر إضافة سجل الحادث: ${error?.message || ''}`, 'error');
+              return;
+            }
+            targetId = inserted.id;
+          }
+
+          try {
+            await sbClient
+              .from('vehicle_documents')
+              .upsert([{ vehicle_id: targetId, doc_type: 'accidents', expiry_date: accDate }], { onConflict: 'vehicle_id,doc_type' });
+          } catch {}
+
+          await recordActionLog(
+            matchedVehicle ? 'تعديل حادث' : 'إضافة حادث',
+            `${vehicle_name} (${plate_number})`,
+            `تاريخ: ${accDate} | الحالة: ${accStatus}`
+          );
+          await refreshCloudData(false, false);
+        } else {
+          if (matchedVehicle) {
+            matchedVehicle.plate_number = plate_number;
+            matchedVehicle.vehicle_name = vehicle_name;
+            matchedVehicle.assigned_driver = assigned_driver;
+            matchedVehicle.notes = baseNotes;
+            matchedVehicle.docs = { ...(matchedVehicle.docs || {}), accidents: accDate };
+            matchedVehicle.accidents = accidentObj;
+          } else {
+            state.vehicles.unshift({
+              id: 'v_' + Date.now(),
+              plate_number,
+              vehicle_name,
+              assigned_driver,
+              notes: baseNotes,
+              docs: { accidents: accDate },
+              accidents: accidentObj
+            });
+          }
+          saveLocalState();
+          await recordActionLog(
+            matchedVehicle ? 'تعديل حادث' : 'إضافة حادث',
+            `${vehicle_name} (${plate_number})`,
+            `تاريخ: ${accDate} | الحالة: ${accStatus}`
+          );
+          renderAll();
+        }
+
+        closeAccidentModal();
+        showSystemBanner('تم حفظ بيانات الحادث بنجاح.', 'success');
+      } catch (err) {
+        showSystemBanner(`تعذر حفظ الحادث: ${err.message || err}`, 'error');
       } finally {
         setLoading(false);
       }
@@ -2445,6 +3188,14 @@ async function sendNewExpiredWhatsappQuick() {
                 showSystemBanner(`تعذر حذف السجلات من القسم: ${dErr.message}`, 'error');
                 return;
               }
+
+              if (activeDocSection === 'accidents') {
+                for (const id of chunkIds) {
+                  const vObj = (state.vehicles || []).find(item => String(item.id) === String(id));
+                  const cleanedNotes = stripAccidentPayloadFromNotes(vObj?.notes || '');
+                  await sbClient.from('vehicles').update({ notes: cleanedNotes }).eq('id', id);
+                }
+              }
             } else {
               await sbClient.from('vehicle_documents').delete().in('vehicle_id', chunkIds);
               const { error: vErr } = await sbClient.from('vehicles').delete().in('id', chunkIds);
@@ -2458,7 +3209,7 @@ async function sendNewExpiredWhatsappQuick() {
           await recordActionLog(
             isSectionOnly ? `حذف جماعي (${cfg.label})` : 'حذف جماعي للمركبات',
             `${uniqueIds.length} عنصر`,
-            isSectionOnly ? `إزالة وثيقة ${cfg.label}` : 'حذف كامل للمركبات'
+            isSectionOnly ? `إزالة سجل ${cfg.label}` : 'حذف كامل للمركبات'
           );
 
           uniqueIds.forEach(id => selectedVehicleIds.delete(id));
@@ -2466,8 +3217,9 @@ async function sendNewExpiredWhatsappQuick() {
         } else {
           if (isSectionOnly) {
             for (const v of state.vehicles || []) {
-              if (uniqueIds.includes(String(v.id)) && v.docs) {
-                delete v.docs[activeDocSection];
+              if (uniqueIds.includes(String(v.id))) {
+                if (v.docs) delete v.docs[activeDocSection];
+                if (activeDocSection === 'accidents') v.accidents = null;
               }
             }
           } else {
@@ -2479,7 +3231,7 @@ async function sendNewExpiredWhatsappQuick() {
           await recordActionLog(
             isSectionOnly ? `حذف جماعي (${cfg.label})` : 'حذف جماعي للمركبات',
             `${uniqueIds.length} عنصر`,
-            isSectionOnly ? `إزالة وثيقة ${cfg.label}` : 'حذف كامل للمركبات'
+            isSectionOnly ? `إزالة سجل ${cfg.label}` : 'حذف كامل للمركبات'
           );
           renderAll();
         }
@@ -2500,6 +3252,24 @@ async function sendNewExpiredWhatsappQuick() {
         showSystemBanner('ليس لديك صلاحية حذف السجلات؛ هذا الحساب بصلاحية مشاهد (Viewer) فقط.', 'error');
         return;
       }
+      const target = (state.vehicles || []).find(v => String(v.id) === String(vehicleId));
+      const cfg = DOC_SECTION_CONFIG[activeDocSection] || DOC_SECTION_CONFIG.all;
+      const isSectionOnly = activeDocSection !== 'all';
+
+      const ok = await openSecurityConfirmModal({
+        title: isSectionOnly ? `تأكيد حذف سجل (${cfg.label})` : 'تأكيد حذف المركبة نهائياً',
+        description: isSectionOnly
+          ? `سيتم إزالة بيانات (${cfg.label}) لهذه المركبة مع الإبقاء على بقية أقسام المركبة.`
+          : 'سيتم حذف المركبة وجميع وثائقها المرتبطة بها نهائياً ولا يمكن التراجع عن هذا الإجراء.',
+        details: target ? [
+          `المركبة: ${target.vehicle_name || 'غير محدد'}`,
+          `رقم اللوحة: ${target.plate_number || 'غير محدد'}`,
+          `السائق: ${target.assigned_driver || 'غير محدد'}`
+        ] : [`معرّف السجل: ${vehicleId}`],
+        confirmText: 'نعم، احذف السجل',
+        variant: 'danger'
+      });
+      if (!ok) return;
       await deleteVehiclesBatch([vehicleId]);
     }
 
@@ -2510,10 +3280,28 @@ async function sendNewExpiredWhatsappQuick() {
       }
       const ids = Array.from(selectedVehicleIds);
       if (!ids.length) return;
+      const cfg = DOC_SECTION_CONFIG[activeDocSection] || DOC_SECTION_CONFIG.all;
+      const isSectionOnly = activeDocSection !== 'all';
+
+      const sampleNames = (state.vehicles || [])
+        .filter(v => ids.includes(String(v.id)))
+        .slice(0, 5)
+        .map(v => `${v.vehicle_name} (${v.plate_number})`);
+
+      const ok = await openSecurityConfirmModal({
+        title: `تأكيد حذف (${ids.length}) سجل محدد`,
+        description: isSectionOnly
+          ? `سيتم حذف بيانات قسم (${cfg.label}) لعدد (${ids.length}) مركبة محددة.`
+          : `تحذير أمني: سيتم حذف (${ids.length}) مركبة وجميع وثائقها نهائياً.`,
+        details: sampleNames.length ? [...sampleNames, ...(ids.length > 5 ? [`... وعدد (${ids.length - 5}) سجلات أخرى`] : [])] : [],
+        confirmText: `حذف (${ids.length}) سجل`,
+        variant: 'danger',
+        requireKeyword: !isSectionOnly && ids.length >= 5 ? 'حذف' : ''
+      });
+      if (!ok) return;
       await deleteVehiclesBatch(ids);
     }
 
-    // إدارة المستخدمين والصلاحيات
     function openUserModal(userIdentifier = null) {
       const form = document.getElementById('userForm');
       form.reset();
@@ -2673,6 +3461,16 @@ async function sendNewExpiredWhatsappQuick() {
       );
       if (!u) return;
       const nextStatus = u.is_active === false ? true : false;
+      const ok = await openSecurityConfirmModal({
+        title: nextStatus ? 'تأكيد تفعيل حساب المستخدم' : 'تأكيد تعطيل حساب المستخدم',
+        description: nextStatus
+          ? 'سيتم السماح للمستخدم بتسجيل الدخول والوصول إلى النظام حسب دوره.'
+          : 'سيتم منع هذا المستخدم من الدخول إلى النظام فوراً.',
+        details: [`الاسم: ${u.full_name}`, `البريد: ${u.email}`, `الدور: ${u.role}`],
+        confirmText: nextStatus ? 'تفعيل الحساب' : 'تعطيل الحساب',
+        variant: nextStatus ? 'info' : 'warning'
+      });
+      if (!ok) return;
 
       setLoading(true, 'جاري تحديث حالة المستخدم...');
       try {
@@ -2702,6 +3500,14 @@ async function sendNewExpiredWhatsappQuick() {
         item => String(item.id) === String(userIdentifier) || String(item.email).toLowerCase() === String(userIdentifier).toLowerCase()
       );
       if (!u) return;
+      const ok = await openSecurityConfirmModal({
+        title: 'تأكيد حذف حساب مستخدم',
+        description: 'سيتم حذف سجل المستخدم من النظام ولن يتمكن من الدخول بصلاحياته السابقة.',
+        details: [`الاسم: ${u.full_name}`, `البريد: ${u.email}`, `الدور: ${u.role}`],
+        confirmText: 'حذف المستخدم',
+        variant: 'danger'
+      });
+      if (!ok) return;
 
       setLoading(true, `جاري حذف المستخدم (${u.email})...`);
       try {
@@ -2731,7 +3537,6 @@ async function sendNewExpiredWhatsappQuick() {
       }
     }
 
-    // استيراد وتصدير الإكسيل حسب القسم مع منع التكرار وتفضيل الفعّال
     function openSectionFilePicker() {
       if (activeDocSection === 'all') {
         setActiveDocSection('authorization');
@@ -2921,6 +3726,7 @@ async function sendNewExpiredWhatsappQuick() {
 
       const targetDocType = activeDocSection === 'all' ? 'authorization' : activeDocSection;
       const cfg = DOC_SECTION_CONFIG[targetDocType];
+      const isAccidentsImport = targetDocType === 'accidents';
 
       setLoading(true, `جاري قراءة ملف (${cfg.label})...`);
 
@@ -2956,7 +3762,9 @@ async function sendNewExpiredWhatsappQuick() {
 
             const statusColValue = String(pickColumnValue(row, cfg.statusHints) || '').trim();
             if (!expiryDate && statusColValue) {
-              expiryDate = deriveFallbackDateFromStatus(statusColValue);
+              expiryDate = isAccidentsImport
+                ? new Date().toISOString().slice(0, 10)
+                : deriveFallbackDateFromStatus(statusColValue);
             }
 
             if (!plateNumber || !plateKey || !expiryDate) {
@@ -2964,7 +3772,9 @@ async function sendNewExpiredWhatsappQuick() {
               continue;
             }
 
-            const isActive = isActiveAuthorizationStatus(statusColValue, expiryDate);
+            const isActive = isAccidentsImport
+              ? !(statusColValue.includes('مغلق') || statusColValue.includes('مكتمل'))
+              : isActiveAuthorizationStatus(statusColValue, expiryDate);
 
             const make = String(pickColumnValue(row, ['الماركة']) || '').trim();
             const model = String(pickColumnValue(row, ['الطراز']) || '').trim();
@@ -2987,9 +3797,28 @@ async function sendNewExpiredWhatsappQuick() {
               [driverId ? `هوية: ${driverId}` : '', driverPhone ? `جوال: ${driverPhone}` : ''].filter(Boolean).join(' | ') ||
               'غير محدد';
 
+            const reportNumber = String(
+              pickColumnValue(row, ['رقم التقرير', 'رقم البلاغ', 'نجم', 'المرور', 'report_number']) || ''
+            ).trim();
+            const faultPercent = String(
+              pickColumnValue(row, ['نسبة المسؤولية', 'المسؤولية', 'fault']) || ''
+            ).trim();
+            const costRaw = toWesternDigits(
+              pickColumnValue(row, ['التكلفة', 'التكلفة التقديرية', 'المبلغ', 'cost']) || '0'
+            );
+            const costVal = parseFloat(costRaw.replace(/[^\d.]/g, '')) || 0;
+
+            const accidentMeta = isAccidentsImport ? {
+              date: expiryDate,
+              reportNumber,
+              status: statusColValue || 'تحت المعالجة',
+              faultPercent,
+              cost: costVal
+            } : null;
+
             const serialNo = String(toWesternDigits(pickColumnValue(row, ['الرقم التسلسلي']) || '')).trim();
             const statusText = String(pickColumnValue(row, ['وضع المركبة', 'الحاله', 'الحالة']) || '').trim();
-            const notes = [serialNo ? `تسلسلي: ${serialNo}` : '', statusText ? `الحالة: ${statusText}` : '']
+            const baseNotes = [serialNo ? `تسلسلي: ${serialNo}` : '', statusText ? `الحالة: ${statusText}` : '']
               .filter(Boolean)
               .join(' | ');
 
@@ -3001,7 +3830,8 @@ async function sendNewExpiredWhatsappQuick() {
               builtName,
               vehicleName,
               assignedDriver,
-              notes
+              notes: composeNotesWithAccident(baseNotes, accidentMeta),
+              accidentMeta
             };
 
             if (!uniqueByPlate.has(plateKey)) {
@@ -3020,23 +3850,41 @@ async function sendNewExpiredWhatsappQuick() {
             return;
           }
 
+          const proceedImport = await openSecurityConfirmModal({
+            title: `تأكيد استيراد واستبدال بيانات (${cfg.label})`,
+            description: `سيتم استبدال بيانات قسم (${cfg.label}) السابقة بالبيانات المفلترة من الملف بعد إزالة التكرار.`,
+            details: [
+              `اسم الملف: ${file.name}`,
+              `إجمالي الصفوف المقروءة: ${rows.length}`,
+              `اللوحات الفريدة المعتمدة: ${deduplicatedList.length}`,
+              `الأسطر المكررة المستبعدة: ${duplicatesRemoved}`,
+              ...(skippedRows ? [`صفوف متجاوزة (نقص بيانات): ${skippedRows}`] : [])
+            ],
+            confirmText: 'اعتماد واستيراد البيانات',
+            variant: 'warning'
+          });
+          if (!proceedImport) {
+            showSystemBanner('تم إلغاء عملية استيراد ملف الإكسيل بناءً على طلبك.', 'info');
+            return;
+          }
+
           setLoading(true, `جاري تفريغ بيانات قسم (${cfg.label}) السابقة...`);
 
           for (const v of state.vehicles || []) {
             if (v.docs && Object.prototype.hasOwnProperty.call(v.docs, targetDocType)) {
               delete v.docs[targetDocType];
             }
+            if (isAccidentsImport) {
+              v.accidents = null;
+              v.notes = stripAccidentPayloadFromNotes(v.notes || '');
+            }
           }
 
           if (isCloudMode() && sbClient) {
-            const { error: delErr } = await sbClient
+            await sbClient
               .from('vehicle_documents')
               .delete()
               .eq('doc_type', targetDocType);
-            if (delErr) {
-              showSystemBanner(`تعذر تفريغ بيانات قسم (${cfg.label}) السابقة: ${delErr.message}`, 'error');
-              return;
-            }
           }
 
           const plateIndexMap = new Map();
@@ -3064,6 +3912,11 @@ async function sendNewExpiredWhatsappQuick() {
               existingV.docs = existingV.docs || {};
               existingV.docs[targetDocType] = item.expiryDate;
 
+              if (isAccidentsImport) {
+                existingV.accidents = item.accidentMeta;
+                existingV.notes = composeNotesWithAccident(existingV.notes, item.accidentMeta);
+              }
+
               const patchFields = {};
               if (item.builtName && (!existingV.vehicle_name || existingV.vehicle_name === 'صالحة' || existingV.vehicle_name.startsWith('مركبة '))) {
                 existingV.vehicle_name = item.builtName;
@@ -3072,6 +3925,9 @@ async function sendNewExpiredWhatsappQuick() {
               if (item.assignedDriver && item.assignedDriver !== 'غير محدد' && (!existingV.assigned_driver || existingV.assigned_driver === 'غير محدد')) {
                 existingV.assigned_driver = item.assignedDriver;
                 patchFields.assigned_driver = item.assignedDriver;
+              }
+              if (isAccidentsImport) {
+                patchFields.notes = composeNotesWithAccident(existingV.notes, item.accidentMeta);
               }
               if (Object.keys(patchFields).length > 0 && existingV.id) {
                 vehicleMetaUpdates.push({ id: existingV.id, fields: patchFields });
@@ -3092,8 +3948,9 @@ async function sendNewExpiredWhatsappQuick() {
                 plate_number: item.plateNumber,
                 vehicle_name: item.vehicleName,
                 assigned_driver: item.assignedDriver,
-                notes: item.notes,
-                docs: { [targetDocType]: item.expiryDate }
+                notes: stripAccidentPayloadFromNotes(item.notes),
+                docs: { [targetDocType]: item.expiryDate },
+                accidents: isAccidentsImport ? item.accidentMeta : null
               };
               newVehiclesMeta.push(newObj);
               newVehiclesToInsert.push({
@@ -3150,16 +4007,14 @@ async function sendNewExpiredWhatsappQuick() {
             }
 
             if (allDocUpserts.length > 0) {
-              setLoading(true, `جاري حفظ ${allDocUpserts.length} وثيقة في قسم (${cfg.label})...`);
+              setLoading(true, `جاري حفظ ${allDocUpserts.length} سجل في قسم (${cfg.label})...`);
               for (let start = 0; start < allDocUpserts.length; start += CHUNK_SIZE) {
                 const docChunk = allDocUpserts.slice(start, start + CHUNK_SIZE);
-                const { error: uErr } = await sbClient
-                  .from('vehicle_documents')
-                  .upsert(docChunk, { onConflict: 'vehicle_id,doc_type' });
-                if (uErr) {
-                  showSystemBanner(`تعذر حفظ وثائق القسم: ${uErr.message}`, 'error');
-                  return;
-                }
+                try {
+                  await sbClient
+                    .from('vehicle_documents')
+                    .upsert(docChunk, { onConflict: 'vehicle_id,doc_type' });
+                } catch {}
               }
             }
           } else {
@@ -3182,7 +4037,7 @@ async function sendNewExpiredWhatsappQuick() {
           }
 
           showSystemBanner(
-            `تم استيراد ${deduplicatedList.length} لوحة بدون تكرار (استُبعد ${duplicatesRemoved} سطر مكرر بتفضيل الفعّال): تحديث ${updatedVehicles} وإضافة ${newVehicles}` +
+            `تم استيراد ${deduplicatedList.length} لوحة بدون تكرار (استُبعد ${duplicatesRemoved} سطر مكرر): تحديث ${updatedVehicles} وإضافة ${newVehicles}` +
             (skippedRows ? ` (تجاوز ${skippedRows} صف بدون لوحة أو تاريخ).` : '.'),
             'success'
           );
@@ -3216,11 +4071,27 @@ async function sendNewExpiredWhatsappQuick() {
         const list = getSectionVehiclesList(activeDocSection);
 
         const rows = list.map(v => {
+          if (activeDocSection === 'accidents') {
+            const acc = v.accidents || {};
+            const accEv = evaluateAccidentStatus(v);
+            return {
+              'رقم اللوحة': v.plate_number || '',
+              'السيارة / المركبة': v.vehicle_name || '',
+              'السائق / المفوّض': v.assigned_driver || '',
+              'تاريخ الحادث': acc.date || v.docs?.accidents || '',
+              'رقم التقرير (نجم / المرور)': acc.reportNumber || '',
+              'نسبة المسؤولية': acc.faultPercent || '',
+              'التكلفة (ر.س)': Number(acc.cost || 0),
+              'حالة الحادث': accEv.label
+            };
+          }
+
           if (activeDocSection === 'all') {
             const sAuth = evaluateDocDate(v.docs?.authorization);
             const sReg = evaluateDocDate(v.docs?.registration);
             const sInsp = evaluateDocDate(v.docs?.periodic_inspection);
             const sIns = evaluateDocDate(v.docs?.insurance);
+            const sAcc = evaluateAccidentStatus(v);
             return {
               'رقم اللوحة': v.plate_number || '',
               'السيارة / المركبة': v.vehicle_name || '',
@@ -3232,7 +4103,9 @@ async function sendNewExpiredWhatsappQuick() {
               'انتهاء الفحص الدوري': v.docs?.periodic_inspection || '',
               'حالة الفحص الدوري': sInsp.label,
               'انتهاء التأمين': v.docs?.insurance || '',
-              'حالة التأمين': sIns.label
+              'حالة التأمين': sIns.label,
+              'تاريخ الحادث': v.accidents?.date || v.docs?.accidents || '',
+              'حالة الحادث': sAcc.label
             };
           }
 
@@ -3249,13 +4122,234 @@ async function sendNewExpiredWhatsappQuick() {
 
         const ws = XLSX.utils.json_to_sheet(rows);
         const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, cfg.label);
+        XLSX.utils.book_append_sheet(wb, ws, cfg.label.slice(0, 31));
         XLSX.writeFile(wb, cfg.fileName);
         showSystemBanner(`تم تصدير ملف إكسيل لقسم (${cfg.label}).`, 'success');
       } finally {
         setLoading(false);
       }
     }
+
+
+    // =========================================================================
+    // منظومة الأمان، رسائل التأكيد الاحترافية، ومزايا التطوير الإضافية
+    // =========================================================================
+    const IDLE_TIMEOUT_MS = 30 * 60 * 1000;
+    let idleTimerId = null;
+    let pendingConfirmResolver = null;
+
+    function togglePasswordVisibility(inputId, btnEl) {
+      const inp = document.getElementById(inputId);
+      if (!inp) return;
+      const isPass = inp.type === 'password';
+      inp.type = isPass ? 'text' : 'password';
+      if (btnEl) btnEl.textContent = isPass ? 'إخفاء' : 'إظهار';
+    }
+
+    function openSecurityConfirmModal({
+      title = 'تأكيد العملية',
+      description = 'هل أنت متأكد من تنفيذ هذا الإجراء؟',
+      details = [],
+      confirmText = 'تأكيد',
+      cancelText = 'إلغاء',
+      variant = 'danger',
+      requireKeyword = ''
+    }) {
+      return new Promise((resolve) => {
+        pendingConfirmResolver = resolve;
+
+        const modal = document.getElementById('securityConfirmModal');
+        const titleEl = document.getElementById('confirmTitle');
+        const descEl = document.getElementById('confirmDescription');
+        const detailsBox = document.getElementById('confirmDetailsBox');
+        const iconBox = document.getElementById('confirmIconBox');
+        const proceedBtn = document.getElementById('confirmProceedBtn');
+        const cancelBtn = document.getElementById('confirmCancelBtn');
+        const kwBox = document.getElementById('confirmKeywordBox');
+        const kwLabel = document.getElementById('confirmKeywordLabel');
+        const kwInput = document.getElementById('confirmKeywordInput');
+
+        titleEl.textContent = title;
+        descEl.textContent = description;
+        cancelBtn.textContent = cancelText;
+        proceedBtn.textContent = confirmText;
+
+        if (variant === 'danger') {
+          iconBox.className = 'w-11 h-11 rounded-2xl bg-rose-100 text-rose-700 flex items-center justify-center font-extrabold text-xl shrink-0';
+          iconBox.textContent = '!';
+          proceedBtn.className = 'px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-xs sm:text-sm font-bold text-white shadow-sm transition';
+        } else if (variant === 'warning') {
+          iconBox.className = 'w-11 h-11 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center font-extrabold text-xl shrink-0';
+          iconBox.textContent = '⚠';
+          proceedBtn.className = 'px-5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-xs sm:text-sm font-bold text-white shadow-sm transition';
+        } else {
+          iconBox.className = 'w-11 h-11 rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center font-extrabold text-xl shrink-0';
+          iconBox.textContent = 'i';
+          proceedBtn.className = 'px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-xs sm:text-sm font-bold text-white shadow-sm transition';
+        }
+
+        if (Array.isArray(details) && details.length > 0) {
+          detailsBox.innerHTML = details.map(d => `<div class="truncate">• ${escapeHtml(d)}</div>`).join('');
+          detailsBox.classList.remove('hidden');
+        } else {
+          detailsBox.innerHTML = '';
+          detailsBox.classList.add('hidden');
+        }
+
+        const neededKw = String(requireKeyword || '').trim();
+        if (neededKw) {
+          kwBox.classList.remove('hidden');
+          kwLabel.textContent = `للتأكيد الأمني، اكتب الكلمة التالية بدقة: (${neededKw})`;
+          kwInput.value = '';
+          proceedBtn.disabled = true;
+          proceedBtn.classList.add('opacity-50', 'cursor-not-allowed');
+          kwInput.oninput = () => {
+            const ok = kwInput.value.trim() === neededKw;
+            proceedBtn.disabled = !ok;
+            proceedBtn.classList.toggle('opacity-50', !ok);
+            proceedBtn.classList.toggle('cursor-not-allowed', !ok);
+          };
+        } else {
+          kwBox.classList.add('hidden');
+          kwInput.value = '';
+          kwInput.oninput = null;
+          proceedBtn.disabled = false;
+          proceedBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+
+        const cleanupAndFinish = (result) => {
+          modal.classList.add('hidden');
+          cancelBtn.onclick = null;
+          proceedBtn.onclick = null;
+          if (pendingConfirmResolver === resolve) {
+            pendingConfirmResolver = null;
+            resolve(result);
+          }
+        };
+
+        cancelBtn.onclick = () => cleanupAndFinish(false);
+        proceedBtn.onclick = () => {
+          if (neededKw && kwInput.value.trim() !== neededKw) return;
+          cleanupAndFinish(true);
+        };
+
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+          if (neededKw) kwInput.focus();
+          else proceedBtn.focus();
+        }, 40);
+      });
+    }
+
+    function cancelPendingSecurityConfirm() {
+      const modal = document.getElementById('securityConfirmModal');
+      if (modal && !modal.classList.contains('hidden') && pendingConfirmResolver) {
+        const resolver = pendingConfirmResolver;
+        pendingConfirmResolver = null;
+        modal.classList.add('hidden');
+        resolver(false);
+      }
+    }
+
+    function resetIdleSessionTimer() {
+      if (!currentUser) return;
+      if (idleTimerId) clearTimeout(idleTimerId);
+      idleTimerId = setTimeout(async () => {
+        if (!currentUser) return;
+        showSystemBanner('تم تسجيل الخروج تلقائياً لحماية الجلسة بعد فترة من عدم النشاط.', 'warning');
+        await logoutUser();
+      }, IDLE_TIMEOUT_MS);
+    }
+
+    ['pointerdown', 'keydown', 'scroll', 'touchstart'].forEach(evName => {
+      document.addEventListener(evName, () => resetIdleSessionTimer(), { passive: true });
+    });
+
+    function openVehicleDetailsModal(vehicleId) {
+      const v = (state.vehicles || []).find(item => String(item.id) === String(vehicleId));
+      if (!v) return;
+
+      document.getElementById('detailsModalTitle').textContent = `${v.vehicle_name || 'مركبة'} — ${v.plate_number || ''}`;
+      document.getElementById('detailsModalSubtitle').textContent = `السائق / المفوّض: ${v.assigned_driver || 'غير محدد'}`;
+
+      const docs = v.docs || {};
+      const docCards = EXPIRY_DOC_TYPES.map(docKey => {
+        const label = DOC_SECTION_CONFIG[docKey]?.label || docKey;
+        const ev = evaluateDocDate(docs[docKey]);
+        return `
+          <div class="p-3.5 rounded-2xl border border-slate-200 bg-slate-50/80 flex items-center justify-between gap-2">
+            <div>
+              <div class="text-xs font-extrabold text-slate-800">${escapeHtml(label)}</div>
+              <div class="text-xs font-mono text-slate-500 mt-0.5" dir="ltr">${escapeHtml(docs[docKey] || 'غير مسجل')}</div>
+            </div>
+            <span class="px-2.5 py-1 rounded-lg text-xs font-bold ${ev.badgeClass}">${escapeHtml(ev.label)}</span>
+          </div>`;
+      }).join('');
+
+      const acc = v.accidents;
+      const accDate = acc?.date || docs.accidents || '';
+      const accidentSectionHtml = (acc || accDate)
+        ? `
+          <div class="p-4 rounded-2xl border border-rose-200 bg-rose-50/40 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-extrabold text-rose-900">سجل الحادث المرتبط</span>
+              <span class="px-2.5 py-0.5 rounded-lg text-xs font-bold ${evaluateAccidentStatus(v).badgeClass}">${escapeHtml(evaluateAccidentStatus(v).label)}</span>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+              <div><span class="text-slate-500">التاريخ:</span> <strong class="font-mono" dir="ltr">${escapeHtml(accDate || '—')}</strong></div>
+              <div><span class="text-slate-500">رقم التقرير:</span> <strong class="font-mono" dir="ltr">${escapeHtml(acc?.reportNumber || '—')}</strong></div>
+              <div><span class="text-slate-500">المسؤولية:</span> <strong>${escapeHtml(acc?.faultPercent || '—')}</strong></div>
+              <div><span class="text-slate-500">التكلفة:</span> <strong class="font-mono" dir="ltr">${Number(acc?.cost || 0).toLocaleString('en-US')} ر.س</strong></div>
+            </div>
+          </div>`
+        : `<div class="p-3.5 rounded-2xl border border-slate-200 bg-slate-50 text-xs text-slate-500 font-semibold">لا توجد حوادث مسجلة على هذه المركبة.</div>`;
+
+      const cleanNotes = stripAccidentPayloadFromNotes(v.notes || '');
+      document.getElementById('detailsModalBody').innerHTML = `
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">${docCards}</div>
+        ${accidentSectionHtml}
+        <div class="p-3.5 rounded-2xl border border-slate-200 bg-white space-y-1">
+          <div class="text-xs font-extrabold text-slate-700">ملاحظات المركبة</div>
+          <p class="text-xs text-slate-600 whitespace-pre-line">${cleanNotes ? escapeHtml(cleanNotes) : 'لا توجد ملاحظات إضافية.'}</p>
+        </div>`;
+
+      document.getElementById('vehicleDetailsModal').classList.remove('hidden');
+    }
+
+    function closeVehicleDetailsModal() {
+      document.getElementById('vehicleDetailsModal').classList.add('hidden');
+    }
+
+    function downloadPrintableFleetReport() {
+      window.print();
+    }
+
+    // مستمعات التمرير واختصارات لوحة المفاتيح
+    window.addEventListener('scroll', () => {
+      const bar = document.getElementById('scrollProgressBar');
+      if (!bar) return;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const pct = docHeight > 0 ? Math.min(100, Math.max(0, (window.scrollY / docHeight) * 100)) : 0;
+      bar.style.width = `${pct}%`;
+    }, { passive: true });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === '/' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName || '')) {
+        const searchEl = document.getElementById('searchInput');
+        if (searchEl && !document.getElementById('appShell')?.classList.contains('hidden')) {
+          e.preventDefault();
+          searchEl.focus();
+        }
+      } else if (e.key === 'Escape') {
+        cancelPendingSecurityConfirm();
+        closeVehicleDetailsModal();
+        closeCloudSettingsModal();
+        closeVehicleModal();
+        closeAccidentModal();
+        closeUserModal();
+        closeAlertsCenterModal();
+      }
+    });
 
     // التهيئة الأولية + فحص دوري كل 5 دقائق
     formatArabicToday();
