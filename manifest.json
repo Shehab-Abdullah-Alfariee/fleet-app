@@ -1,21 +1,27 @@
 {
-    "name": "نظام متابعة وثائق وتفاويض الأسطول",
-    "short_name": "تفاويض الأسطول",
-    "description": "نظام متابعة وثائق وتفاويض المركبات والأسطول",
-    "start_url": "./index.html",
-    "scope": "./",
-    "display": "standalone",
-    "orientation": "portrait",
-    "background_color": "#0f172a",
-    "theme_color": "#2563eb",
-    "dir": "rtl",
-    "lang": "ar",
-    "icons": [
-        {
-            "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='112' fill='%232563eb'/%3E%3Ctext x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial, sans-serif' font-weight='bold' font-size='210' fill='white'%3EFS%3C/text%3E%3C/svg%3E",
-            "sizes": "512x512",
-            "type": "image/svg+xml",
-            "purpose": "any maskable"
-        }
-    ]
+  "name": "نظام متابعة وثائق وتفاويض الأسطول",
+  "short_name": "تفاويض الأسطول",
+  "description": "منصة متابعة التفاويض، رخص السير، الفحص الدوري، والتأمين للمركبات مع إشعارات فورية.",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f1f5f9",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='42' fill='%232563eb'/%3E%3Ctext x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial, sans-serif' font-weight='bold' font-size='78' fill='white'%3EFS%3C/text%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='112' fill='%232563eb'/%3E%3Ctext x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial, sans-serif' font-weight='bold' font-size='210' fill='white'%3EFS%3C/text%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
 }
