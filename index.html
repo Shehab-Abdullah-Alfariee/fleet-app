@@ -2,10 +2,11 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>نظام متابعة وثائق وتفاويض الأسطول</title>
   <link rel="manifest" href="./manifest.json" />
-  <meta name="theme-color" content="#2563eb" />
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="تفاويض الأسطول" />
@@ -19,6 +20,7 @@
       font-family: 'Cairo', sans-serif;
       background-color: #f1f5f9;
       color: #0f172a;
+      -webkit-tap-highlight-color: transparent;
     }
     .modal-backdrop {
       background-color: rgba(15, 23, 42, 0.55);
@@ -32,9 +34,9 @@
     }
   </style>
 </head>
-<body class="min-h-screen">
+<body class="min-h-screen select-none sm:select-auto">
 
-  <!-- طبقة التحميل أثناء العمليات والمزامنة -->
+  <!-- طبقة التحميل -->
   <div id="loadingOverlay" class="hidden fixed inset-0 z-[70] bg-slate-900/65 backdrop-blur-[2px] flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 px-7 py-6 flex flex-col items-center gap-3 max-w-sm w-full text-center">
       <div class="w-11 h-11 rounded-full border-4 border-blue-100 border-t-blue-600 loader-spinner"></div>
@@ -52,97 +54,115 @@
         </div>
         <div>
           <h1 class="text-xl font-extrabold text-slate-900">تسجيل الدخول إلى النظام</h1>
-          <p class="text-xs text-slate-500">نظام متابعة وثائق وتفاويض الأسطول</p>
+          <p class="text-xs text-slate-500 font-semibold">منصة متابعة وثائق وتفاويض الأسطول</p>
         </div>
       </div>
 
-      <p class="text-xs text-slate-600 leading-relaxed mb-5 bg-slate-50 p-3 rounded-xl border border-slate-200">
-        أدخل البريد الإلكتروني وكلمة المرور للدخول مباشرة إلى النظام السحابي المشترك.
+      <p class="text-xs text-slate-600 leading-relaxed mb-5 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
+        أدخل البريد الإلكتروني وكلمة المرور للدخول مباشرة إلى قاعدة البيانات السحابية المشتركة.
       </p>
 
-      <div id="loginErrorBox" class="hidden mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-sm font-semibold"></div>
+      <div id="loginErrorBox" class="hidden mb-4 p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs sm:text-sm font-bold"></div>
 
       <form id="loginForm" onsubmit="handleLoginSubmit(event)" class="space-y-4">
         <div>
-          <label class="block text-sm font-bold text-slate-700 mb-1">البريد الإلكتروني</label>
-          <input id="loginEmail" type="email" required placeholder="name@example.com"
-            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" />
+          <label class="block text-xs font-extrabold text-slate-700 mb-1.5">البريد الإلكتروني</label>
+          <input id="loginEmail" type="email" required autocomplete="email" placeholder="name@example.com"
+            class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm transition" />
         </div>
 
         <div>
-          <label class="block text-sm font-bold text-slate-700 mb-1">كلمة المرور</label>
-          <input id="loginPassword" type="password" required placeholder="••••••••••••"
-            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" />
+          <label class="block text-xs font-extrabold text-slate-700 mb-1.5">كلمة المرور</label>
+          <input id="loginPassword" type="password" required autocomplete="current-password" placeholder="••••••••••••"
+            class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm transition" />
         </div>
 
         <button type="submit" id="loginSubmitBtn"
-          class="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm transition">
-          دخول
+          class="w-full py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-extrabold text-sm shadow-md shadow-blue-600/20 transition">
+          تسجيل الدخول
         </button>
       </form>
 
-      <div class="mt-5 pt-4 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2">
+      <div class="mt-6 pt-4 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2">
         <button type="button" onclick="openCloudSettingsModal()"
-          class="px-3 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold">
-          إعدادات الربط السحابي (Supabase)
+          class="px-3 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition">
+          إعدادات الربط السحابي
+        </button>
+        <button type="button" id="loginInstallPwaBtn" onclick="triggerPwaInstall()"
+          class="hidden px-3 py-2 rounded-xl border border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold transition">
+          تثبيت التطبيق
         </button>
         <button type="button" onclick="quickLocalDemoLogin()"
-          class="px-3 py-2 rounded-xl border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold">
-          دخول تجريبي محلي (Admin)
+          class="px-3 py-2 rounded-xl border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold transition">
+          دخول تجريبي محلي
         </button>
       </div>
     </div>
   </div>
 
-  <!-- التطبيق الرئيسي بعد الدخول -->
+  <!-- التطبيق الرئيسي -->
   <div id="appShell" class="hidden min-h-screen flex flex-col">
 
     <!-- الشريط العلوي -->
-    <header class="bg-slate-900 text-white shadow-md">
-      <div class="max-w-7xl mx-auto px-4 py-4 flex flex-wrap items-center justify-between gap-4">
+    <header class="bg-slate-900 text-white shadow-lg sticky top-0 z-30">
+      <div class="max-w-7xl mx-auto px-4 py-3.5 flex flex-wrap items-center justify-between gap-3">
         <div class="flex items-center gap-3">
-          <div class="w-11 h-11 rounded-xl bg-blue-600 flex items-center justify-center font-extrabold text-lg">
-            🛡️
+          <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center font-extrabold text-base shadow">
+            FS
           </div>
           <div>
-            <h1 class="text-lg sm:text-xl font-extrabold">نظام متابعة وثائق وتفاويض الأسطول</h1>
-            <p id="todayDateLabel" class="text-xs text-slate-300"></p>
+            <h1 class="text-base sm:text-lg font-extrabold tracking-tight">نظام متابعة وثائق وتفاويض الأسطول</h1>
+            <p id="todayDateLabel" class="text-[11px] text-slate-300"></p>
           </div>
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
+          <button type="button" id="headerInstallPwaBtn" onclick="triggerPwaInstall()"
+            class="hidden px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow transition">
+            تثبيت التطبيق
+          </button>
+          <button type="button" onclick="openAlertsCenterModal()"
+            class="relative px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 text-xs font-bold border border-amber-400/40 transition flex items-center gap-1.5">
+            <span>الإشعارات</span>
+            <span id="alertsBadgeCount" class="px-1.5 py-0.5 rounded-full bg-rose-600 text-white text-[10px] font-extrabold">0</span>
+          </button>
           <span id="modeBadge" class="px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
-            الوضع: سحابي (Supabase)
+            سحابي (Supabase)
           </span>
           <span id="userBadge" class="px-3 py-1.5 rounded-full text-xs font-bold bg-slate-800 text-slate-100 border border-slate-700">
             مستخدم
           </span>
           <button type="button" onclick="openCloudSettingsModal()"
-            class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold border border-slate-700">
-            الربط السحابي
+            class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold border border-slate-700 transition">
+            الإعدادات
           </button>
           <button type="button" onclick="logoutUser()"
-            class="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-xs font-bold text-white">
-            تسجيل خروج
+            class="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-xs font-bold text-white transition">
+            خروج
           </button>
         </div>
       </div>
     </header>
+
+    <!-- شريط حالة الاتصال بالشبكة -->
+    <div id="offlineNoticeBar" class="hidden bg-rose-600 text-white text-xs font-bold text-center py-1.5 px-4">
+      أنت تعمل حالياً دون اتصال بالإنترنت — سيتم مزامنة البيانات السحابية فور عودة الاتصال.
+    </div>
 
     <!-- شريط التنقل الرئيسي -->
     <nav class="bg-white border-b border-slate-200">
       <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
         <div class="flex flex-wrap items-center gap-2">
           <button type="button" data-main-tab="dashboard" onclick="switchMainTab('dashboard')"
-            class="main-tab-btn px-4 py-2 rounded-xl text-sm font-bold bg-blue-600 text-white">
+            class="main-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-blue-600 text-white transition">
             لوحة المتابعة
           </button>
           <button type="button" data-main-tab="users" onclick="switchMainTab('users')"
-            class="main-tab-btn px-4 py-2 rounded-xl text-sm font-bold bg-slate-100 hover:bg-slate-200 text-slate-700">
+            class="main-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
             المستخدمون والصلاحيات
           </button>
           <button type="button" data-main-tab="logs" onclick="switchMainTab('logs')"
-            class="main-tab-btn px-4 py-2 rounded-xl text-sm font-bold bg-slate-100 hover:bg-slate-200 text-slate-700">
+            class="main-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
             سجل العمليات
           </button>
         </div>
@@ -154,53 +174,80 @@
     </nav>
 
     <!-- المحتوى الرئيسي -->
-    <main class="flex-1 max-w-7xl w-full mx-auto px-4 py-6 space-y-6">
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 py-5 space-y-5">
 
       <!-- شريط إشعارات النظام -->
-      <div id="systemBanner" class="hidden rounded-2xl px-4 py-3 text-sm font-bold border flex items-center justify-between gap-3">
+      <div id="systemBanner" class="hidden rounded-2xl px-4 py-3 text-xs sm:text-sm font-bold border flex items-center justify-between gap-3 shadow-sm">
         <span id="systemBannerText"></span>
-        <button type="button" onclick="hideSystemBanner()" class="text-xs px-2.5 py-1 rounded-lg bg-white/80 hover:bg-white text-slate-800">إخفاء</button>
+        <button type="button" onclick="hideSystemBanner()" class="text-xs px-2.5 py-1 rounded-lg bg-white/90 hover:bg-white text-slate-800 shrink-0">إغفاء</button>
+      </div>
+
+      <!-- شريط التنبيهات الفورية للوثائق المنتهية والقريبة وتيليجرام -->
+      <div id="complianceAlertBanner" class="hidden rounded-2xl p-4 bg-white border border-amber-300 shadow-sm flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-start sm:items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-extrabold text-base shrink-0">
+            !
+          </div>
+          <div>
+            <p id="complianceAlertTitle" class="text-xs sm:text-sm font-extrabold text-slate-900">تنبيهات صلاحية وثائق الأسطول</p>
+            <p id="complianceAlertSummary" class="text-xs text-slate-600 mt-0.5"></p>
+          </div>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <button type="button" id="btnQuickTelegramSend" onclick="sendTelegramReportNow()"
+            class="px-3.5 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold transition">
+            إرسال إشعار تيليجرام الآن
+          </button>
+          <button type="button" onclick="openAlertsCenterModal()"
+            class="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold transition">
+            مركز الإشعارات
+          </button>
+          <button type="button" onclick="setStatusFilter('expired')"
+            class="px-3.5 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold border border-rose-200 transition">
+            تصفية المنتهية
+          </button>
+        </div>
       </div>
 
       <!-- تبويب لوحة المتابعة -->
-      <section id="tab-dashboard" class="space-y-6">
+      <section id="tab-dashboard" class="space-y-5">
 
-        <!-- البطاقات الإحصائية التحليلية للقسم النشط -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div onclick="setStatusFilter('all')" class="cursor-pointer bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:border-blue-400 transition">
-            <p id="statTotalTitle" class="text-xs font-bold text-slate-500 mb-2">إجمالي المركبات (التفاويض)</p>
-            <p id="statTotalVehicles" class="text-3xl font-extrabold text-slate-900">0</p>
-            <p class="text-xs text-slate-400 mt-1">انقر لعرض جميع مركبات القسم</p>
+        <!-- البطاقات الإحصائية -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <div onclick="setStatusFilter('all')" class="cursor-pointer bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm hover:border-blue-400 transition">
+            <p id="statTotalTitle" class="text-xs font-bold text-slate-500 mb-1.5">إجمالي المركبات (التفاويض)</p>
+            <p id="statTotalVehicles" class="text-2xl sm:text-3xl font-extrabold text-slate-900">0</p>
+            <p class="text-[11px] text-slate-400 mt-1">عرض جميع سجلات القسم</p>
           </div>
 
-          <div onclick="setStatusFilter('expired')" class="cursor-pointer bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:border-rose-400 transition">
-            <p id="statExpiredTitle" class="text-xs font-bold text-slate-500 mb-2">منتهية (التفاويض)</p>
-            <p id="statExpired" class="text-3xl font-extrabold text-rose-600">0</p>
-            <p class="text-xs text-rose-500 mt-1">وثائق منتهية الصلاحية في القسم</p>
+          <div onclick="setStatusFilter('expired')" class="cursor-pointer bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm hover:border-rose-400 transition">
+            <p id="statExpiredTitle" class="text-xs font-bold text-slate-500 mb-1.5">منتهية (التفاويض)</p>
+            <p id="statExpired" class="text-2xl sm:text-3xl font-extrabold text-rose-600">0</p>
+            <p class="text-[11px] text-rose-500 mt-1">تتطلب تجديداً فورياً</p>
           </div>
 
-          <div onclick="setStatusFilter('expiring_soon')" class="cursor-pointer bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:border-amber-400 transition">
-            <p id="statSoonTitle" class="text-xs font-bold text-slate-500 mb-2">قريبة الانتهاء (≤ 15 يوم)</p>
-            <p id="statExpiringSoon" class="text-3xl font-extrabold text-amber-500">0</p>
-            <p class="text-xs text-amber-600 mt-1">تحتاج متابعة خلال 15 يوماً</p>
+          <div onclick="setStatusFilter('expiring_soon')" class="cursor-pointer bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm hover:border-amber-400 transition">
+            <p id="statSoonTitle" class="text-xs font-bold text-slate-500 mb-1.5">قريبة الانتهاء (≤ 15 يوم)</p>
+            <p id="statExpiringSoon" class="text-2xl sm:text-3xl font-extrabold text-amber-500">0</p>
+            <p class="text-[11px] text-amber-600 mt-1">تحتاج متابعة قريبة</p>
           </div>
 
-          <div onclick="setStatusFilter('valid')" class="cursor-pointer bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:border-emerald-400 transition">
-            <p id="statValidTitle" class="text-xs font-bold text-slate-500 mb-2">سارية (التفاويض)</p>
-            <p id="statValid" class="text-3xl font-extrabold text-emerald-600">0</p>
-            <p class="text-xs text-emerald-600 mt-1">وثائق سارية المفعول</p>
+          <div onclick="setStatusFilter('valid')" class="cursor-pointer bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm hover:border-emerald-400 transition">
+            <p id="statValidTitle" class="text-xs font-bold text-slate-500 mb-1.5">سارية (التفاويض)</p>
+            <p id="statValid" class="text-2xl sm:text-3xl font-extrabold text-emerald-600">0</p>
+            <p class="text-[11px] text-emerald-600 mt-1">وثائق سارية المفعول</p>
           </div>
         </div>
 
-        <!-- صندوق الأقسام والاستيراد والتصدير والبحث والجدول -->
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4">
+        <!-- صندوق الأقسام والجدول -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5 space-y-4">
 
-          <!-- شريط أقسام الوثائق المستقلة واستيراد/تصدير إكسيل لكل قسم -->
+          <!-- شريط أقسام الوثائق -->
           <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
-            <div class="flex flex-wrap items-center justify-between gap-3">
+            <div class="flex flex-wrap items-center justify-between gap-2">
               <div>
                 <h2 id="sectionHeadingTitle" class="text-sm font-extrabold text-slate-800">قسم التفاويض — جدول واستيراد وتحليل ملفات الإكسيل</h2>
-                <p class="text-xs text-slate-500">عند رفع ملف إكسيل للقسم يتم استبدال بيانات هذا القسم السابقة بالبيانات الجديدة بدون تكرار للوحات مع تفضيل التفويض الفعّال.</p>
+                <p class="text-xs text-slate-500">عند رفع ملف إكسيل للقسم يتم استبدال بيانات هذا القسم السابقة بالبيانات الجديدة بدون تكرار للوحات مع تفضيل التفويض الفعّال. الإرسال التلقائي عبر تيليجرام (Daralshai_bot) يعمل يومياً الساعة 06:00 صباحاً بتوقيت السعودية.</p>
               </div>
               <span id="activeSectionHint" class="px-3 py-1 rounded-lg bg-blue-100 text-blue-800 text-xs font-bold">
                 القسم النشط: التفاويض
@@ -210,23 +257,23 @@
             <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
               <div class="flex flex-wrap gap-2">
                 <button type="button" data-doc="authorization" onclick="setActiveDocSection('authorization')"
-                  class="doc-tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-blue-600 text-white">
+                  class="doc-tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-blue-600 text-white transition">
                   التفاويض
                 </button>
                 <button type="button" data-doc="registration" onclick="setActiveDocSection('registration')"
-                  class="doc-tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-white text-slate-700 border border-slate-300 hover:bg-slate-100">
+                  class="doc-tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-white text-slate-700 border border-slate-300 hover:bg-slate-100 transition">
                   رخص السير
                 </button>
                 <button type="button" data-doc="periodic_inspection" onclick="setActiveDocSection('periodic_inspection')"
-                  class="doc-tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-white text-slate-700 border border-slate-300 hover:bg-slate-100">
+                  class="doc-tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-white text-slate-700 border border-slate-300 hover:bg-slate-100 transition">
                   الفحص الدوري
                 </button>
                 <button type="button" data-doc="insurance" onclick="setActiveDocSection('insurance')"
-                  class="doc-tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-white text-slate-700 border border-slate-300 hover:bg-slate-100">
+                  class="doc-tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-white text-slate-700 border border-slate-300 hover:bg-slate-100 transition">
                   التأمين
                 </button>
                 <button type="button" data-doc="all" onclick="setActiveDocSection('all')"
-                  class="doc-tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-white text-slate-700 border border-slate-300 hover:bg-slate-100">
+                  class="doc-tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-white text-slate-700 border border-slate-300 hover:bg-slate-100 transition">
                   عرض الكل
                 </button>
               </div>
@@ -245,11 +292,11 @@
             </div>
           </div>
 
-          <!-- شريط إضافة مركبة وحذف المحدد وتحديث البيانات والبحث والفلترة -->
+          <!-- شريط الإجراءات والبحث والفلترة -->
           <div class="flex flex-wrap items-center justify-between gap-3">
             <div class="flex flex-wrap items-center gap-2">
               <button type="button" id="addVehicleBtn" onclick="openVehicleModal()"
-                class="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold">
+                class="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-bold transition">
                 + إضافة مركبة
               </button>
               <button type="button" id="deleteSelectedBtn" onclick="deleteSelectedVehicles()"
@@ -257,7 +304,7 @@
                 حذف المحدد (<span id="selectedCountLabel">0</span>)
               </button>
               <button type="button" id="refreshDataBtn" onclick="refreshCloudData(true)"
-                class="px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-bold">
+                class="px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-bold transition">
                 تحديث البيانات
               </button>
             </div>
@@ -277,8 +324,14 @@
             </div>
           </div>
 
-          <!-- جدول المركبات والوثائق حسب القسم النشط -->
-          <div class="overflow-x-auto">
+          <!-- ملخص النتائج الظاهرة -->
+          <div class="flex items-center justify-between text-xs text-slate-500 px-1">
+            <span id="visibleRowsCounter">عدد النتائج المعروضة: 0</span>
+            <span>الفرز التلقائي: المنتهية أولاً ثم قريبة الانتهاء</span>
+          </div>
+
+          <!-- جدول المركبات -->
+          <div class="overflow-x-auto rounded-xl border border-slate-200">
             <table class="w-full text-right border-collapse">
               <thead id="vehiclesTableHead"></thead>
               <tbody id="vehiclesTableBody" class="divide-y divide-slate-100 text-sm"></tbody>
@@ -293,20 +346,21 @@
           <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
             <div>
               <h2 class="text-base font-extrabold text-slate-900">المستخدمون والصلاحيات</h2>
-              <p class="text-xs text-slate-500">إدارة حسابات النظام وأدوار الوصول (Admin / Supervisor / Viewer).</p>
+              <p class="text-xs text-slate-500">إدارة حسابات النظام وأرقام الجوال لتنبيهات الواتساب وأدوار الوصول (Admin / Supervisor / Viewer).</p>
             </div>
             <button type="button" id="addUserBtn" onclick="openUserModal()"
-              class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold">
+              class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold transition">
               + إضافة مستخدم
             </button>
           </div>
 
-          <div class="overflow-x-auto">
+          <div class="overflow-x-auto rounded-xl border border-slate-200">
             <table class="w-full text-right border-collapse">
               <thead>
                 <tr class="border-b border-slate-200 text-slate-500 text-xs sm:text-sm bg-slate-50">
                   <th class="py-3 px-3 font-bold">الاسم الكامل</th>
                   <th class="py-3 px-3 font-bold">البريد الإلكتروني</th>
+                  <th class="py-3 px-3 font-bold">رقم الجوال (واتساب)</th>
                   <th class="py-3 px-3 font-bold">الدور</th>
                   <th class="py-3 px-3 font-bold">الحالة</th>
                   <th class="py-3 px-3 font-bold">الإجراءات</th>
@@ -323,10 +377,10 @@
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
           <div class="mb-4">
             <h2 class="text-base font-extrabold text-slate-900">سجل العمليات</h2>
-            <p class="text-xs text-slate-500">تتبع عمليات الإضافة والتعديل والحذف واستيراد ملفات الإكسيل.</p>
+            <p class="text-xs text-slate-500">تتبع عمليات الإضافة والتعديل والحذف واستيراد ملفات الإكسيل وإرسال التنبيهات عبر تيليجرام وواتساب.</p>
           </div>
 
-          <div class="overflow-x-auto">
+          <div class="overflow-x-auto rounded-xl border border-slate-200">
             <table class="w-full text-right border-collapse">
               <thead>
                 <tr class="border-b border-slate-200 text-slate-500 text-xs sm:text-sm bg-slate-50">
@@ -385,6 +439,34 @@
           حفظ الإعدادات
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- نافذة تعديل تاريخ وثيقة سريع للقسم النشط -->
+  <div id="quickDocDateModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
+    <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 id="quickDocModalTitle" class="text-base font-extrabold text-slate-900">تعديل تاريخ انتهاء الوثيقة</h3>
+        <button type="button" onclick="closeQuickDocDateModal()" class="text-slate-400 hover:text-slate-700 text-xl font-bold">×</button>
+      </div>
+      <form onsubmit="saveQuickDocDateForm(event)" class="space-y-4">
+        <input type="hidden" id="quickDocVehicleId" />
+        <input type="hidden" id="quickDocType" />
+        <p id="quickDocVehicleInfo" class="text-xs font-bold text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-200"></p>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">تاريخ الانتهاء الجديد *</label>
+          <input id="quickDocExpiryInput" type="date" required
+            class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm" />
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeQuickDocDateModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-sm font-bold text-slate-700">
+            إلغاء
+          </button>
+          <button type="submit" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-sm font-bold text-white">
+            حفظ التاريخ
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -479,6 +561,13 @@
         </div>
 
         <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">رقم الجوال (لتنبيهات الواتساب)</label>
+          <input id="uPhone" type="tel" dir="ltr" placeholder="05xxxxxxxx أو 9665xxxxxxxx"
+            class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm text-left" />
+          <p class="text-[11px] text-slate-500 mt-1">يُحوّل تلقائياً إلى الصيغة الدولية (مثال: 9665xxxxxxxx) عند إرسال رسالة واتساب.</p>
+        </div>
+
+        <div>
           <label id="uPasswordLabel" class="block text-xs font-bold text-slate-700 mb-1">كلمة المرور *</label>
           <input id="uPassword" type="password" minlength="6" placeholder="6 أحرف أو أرقام على الأقل"
             class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" />
@@ -518,11 +607,73 @@
     </div>
   </div>
 
+  <!-- نافذة مركز الإشعارات وتنبيهات تيليجرام وواتساب -->
+  <div id="alertsCenterModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
+    <div class="w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 class="text-lg font-extrabold text-slate-900">مركز الإشعارات وتنبيهات تيليجرام</h3>
+          <p class="text-xs text-slate-500">إرسال فوري عبر بوت تيليجرام (Daralshai_bot) أو تجهيز رسالة واتساب للمستخدمين.</p>
+        </div>
+        <button type="button" onclick="closeAlertsCenterModal()" class="text-slate-400 hover:text-slate-700 text-xl font-bold">×</button>
+      </div>
+
+      <div id="alertsSummaryCards" class="grid grid-cols-1 sm:grid-cols-3 gap-3"></div>
+
+      <div class="bg-sky-50/70 border border-sky-200 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p class="text-xs font-extrabold text-sky-950">الإرسال المباشر إلى تيليجرام (Supabase Edge Function)</p>
+          <p class="text-[11px] text-sky-800 mt-0.5">يُرسل تلقائياً الوثائق المنتهية والتي تنتهي اليوم أو غداً (≤ 1 يوم) ويسجّل العملية في سجل العمليات.</p>
+        </div>
+        <button type="button" id="btnModalTelegramSend" onclick="sendTelegramReportNow()"
+          class="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold transition shrink-0">
+          إرسال إلى تيليجرام الآن
+        </button>
+      </div>
+
+      <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <label for="whatsappRecipientSelect" class="text-xs font-extrabold text-slate-800">اختر المستلم (رسالة واتساب فردية):</label>
+          <button type="button" onclick="switchMainTab('users'); closeAlertsCenterModal();"
+            class="text-xs font-bold text-blue-600 hover:underline">
+            إدارة أرقام الجوالات
+          </button>
+        </div>
+        <select id="whatsappRecipientSelect" onchange="updateWhatsappPreview()"
+          class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-sm font-semibold"></select>
+
+        <div>
+          <label class="block text-xs font-extrabold text-slate-700 mb-1">نص رسالة التنبيه:</label>
+          <textarea id="whatsappMessagePreview" rows="6"
+            class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs leading-relaxed"></textarea>
+        </div>
+
+        <div class="flex flex-wrap justify-end gap-2">
+          <button type="button" onclick="copyWhatsappMessageText()"
+            class="px-3.5 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-100 text-xs font-bold text-slate-700">
+            نسخ النص
+          </button>
+          <button type="button" onclick="sendWhatsappReportToSelectedUser()"
+            class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-xs font-bold text-white transition">
+            إرسال عبر واتساب
+          </button>
+        </div>
+      </div>
+
+      <div class="space-y-2">
+        <h4 class="text-xs font-extrabold text-slate-700">أحدث الوثائق المتأثرة (منتهية أو خلال 15 يوماً):</h4>
+        <div id="alertsItemsList" class="divide-y divide-slate-100 border border-slate-200 rounded-xl max-h-56 overflow-y-auto text-xs"></div>
+      </div>
+    </div>
+  </div>
+
   <script>
     const DEFAULT_SUPABASE_URL = 'https://bnndrgctlhexavypqvwa.supabase.co';
     const DEFAULT_SUPABASE_KEY = 'sb_publishable_-MISAr0op3xv3WA9L7iQNw_1ntxvkTG';
+    const TELEGRAM_EDGE_FUNCTION = 'send-expiry-whatsapp';
     const SETTINGS_STORAGE_KEY = 'fleet_compliance_cloud_settings_v1';
     const LOCAL_STATE_KEY = 'fleet_compliance_local_state_v1';
+    const USER_PHONES_CACHE_KEY = 'fleet_compliance_user_phones_v1';
 
     const DOC_SECTION_CONFIG = {
       authorization: {
@@ -567,6 +718,8 @@
       }
     };
 
+    const ALL_DOC_TYPES = ['authorization', 'registration', 'periodic_inspection', 'insurance'];
+
     let cloudSettings = loadCloudSettings();
     let sbClient = null;
     let currentUser = null;
@@ -574,6 +727,53 @@
     let activeDocSection = 'authorization';
     let state = loadLocalState();
     let selectedVehicleIds = new Set();
+    let deferredInstallPrompt = null;
+
+    // إدارة تثبيت التطبيق (PWA Install Prompt)
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredInstallPrompt = e;
+      document.getElementById('loginInstallPwaBtn')?.classList.remove('hidden');
+      document.getElementById('headerInstallPwaBtn')?.classList.remove('hidden');
+    });
+
+    window.addEventListener('appinstalled', () => {
+      deferredInstallPrompt = null;
+      document.getElementById('loginInstallPwaBtn')?.classList.add('hidden');
+      document.getElementById('headerInstallPwaBtn')?.classList.add('hidden');
+      showSystemBanner('تم تثبيت التطبيق على جهازك بنجاح.', 'success');
+    });
+
+    async function triggerPwaInstall() {
+      if (!deferredInstallPrompt) {
+        showSystemBanner('لتثبيت التطبيق: اضغط على قائمة المتصفح (⋮ أو زر المشاركة) واختر «إضافة إلى الشاشة الرئيسية».', 'info');
+        return;
+      }
+      deferredInstallPrompt.prompt();
+      const choice = await deferredInstallPrompt.userChoice;
+      if (choice?.outcome === 'accepted') {
+        deferredInstallPrompt = null;
+        document.getElementById('loginInstallPwaBtn')?.classList.add('hidden');
+        document.getElementById('headerInstallPwaBtn')?.classList.add('hidden');
+      }
+    }
+
+    // مراقبة حالة الاتصال بالإنترنت ومزامنة البيانات تلقائياً عند العودة
+    function updateOnlineStatusUI() {
+      const bar = document.getElementById('offlineNoticeBar');
+      if (!bar) return;
+      if (navigator.onLine) {
+        bar.classList.add('hidden');
+        if (currentUser && isCloudMode()) {
+          refreshCloudData(false, false);
+        }
+      } else {
+        bar.classList.remove('hidden');
+      }
+    }
+
+    window.addEventListener('online', updateOnlineStatusUI);
+    window.addEventListener('offline', updateOnlineStatusUI);
 
     function canEditRecords() {
       return Boolean(currentUser && (currentUser.role === 'admin' || currentUser.role === 'supervisor'));
@@ -603,13 +803,50 @@
         info: 'bg-blue-50 border-blue-200 text-blue-800'
       };
 
-      banner.className = `rounded-2xl px-4 py-3 text-sm font-bold border flex items-center justify-between gap-3 ${styles[type] || styles.info}`;
+      banner.className = `rounded-2xl px-4 py-3 text-xs sm:text-sm font-bold border flex items-center justify-between gap-3 shadow-sm ${styles[type] || styles.info}`;
       textEl.textContent = message;
       banner.classList.remove('hidden');
     }
 
     function hideSystemBanner() {
       document.getElementById('systemBanner')?.classList.add('hidden');
+    }
+
+    function loadPhoneCache() {
+      try {
+        const raw = localStorage.getItem(USER_PHONES_CACHE_KEY);
+        return raw ? JSON.parse(raw) : {};
+      } catch {
+        return {};
+      }
+    }
+
+    function savePhoneToCache(email, phone) {
+      if (!email) return;
+      try {
+        const map = loadPhoneCache();
+        map[String(email).toLowerCase()] = String(phone || '').trim();
+        localStorage.setItem(USER_PHONES_CACHE_KEY, JSON.stringify(map));
+      } catch {}
+    }
+
+    function resolveUserPhone(userObj) {
+      if (!userObj) return '';
+      if (userObj.phone) return String(userObj.phone).trim();
+      const cache = loadPhoneCache();
+      return cache[String(userObj.email || '').toLowerCase()] || '';
+    }
+
+    function normalizeWhatsappPhone(rawPhone) {
+      let digits = toWesternDigits(rawPhone || '').replace(/[^\d]/g, '');
+      if (!digits) return '';
+      if (digits.startsWith('00')) digits = digits.slice(2);
+      if (digits.startsWith('05') && digits.length === 10) {
+        digits = '966' + digits.slice(1);
+      } else if (digits.startsWith('5') && digits.length === 9) {
+        digits = '966' + digits;
+      }
+      return digits;
     }
 
     function loadCloudSettings() {
@@ -697,7 +934,7 @@
         setLoading(true, 'جاري استعادة جلسة الدخول ومزامنة البيانات...');
         const { data: profile } = await sbClient
           .from('app_users')
-          .select('id, full_name, email, role, is_active')
+          .select('*')
           .ilike('email', email)
           .maybeSingle();
 
@@ -706,7 +943,7 @@
           return false;
         }
 
-        currentUser = profile;
+        currentUser = { ...profile, phone: resolveUserPhone(profile) };
         await refreshCloudData(false, false);
         enterApp();
         setLoading(false);
@@ -725,7 +962,7 @@
           return {
             vehicles: Array.isArray(p.vehicles) ? p.vehicles : [],
             users: Array.isArray(p.users) && p.users.length ? p.users : [
-              { id: 'u_admin', full_name: 'شهاب الفريعي', email: 'shehab.a.alfariee@gmail.com', role: 'admin', is_active: true }
+              { id: 'u_admin', full_name: 'شهاب الفريعي', email: 'shehab.a.alfariee@gmail.com', phone: '', role: 'admin', is_active: true }
             ],
             logs: Array.isArray(p.logs) ? p.logs : []
           };
@@ -734,7 +971,7 @@
       return {
         vehicles: [],
         users: [
-          { id: 'u_admin', full_name: 'شهاب الفريعي', email: 'shehab.a.alfariee@gmail.com', role: 'admin', is_active: true }
+          { id: 'u_admin', full_name: 'شهاب الفريعي', email: 'shehab.a.alfariee@gmail.com', phone: '', role: 'admin', is_active: true }
         ],
         logs: []
       };
@@ -804,7 +1041,7 @@
 
           const { data: profile, error: profErr } = await sbClient
             .from('app_users')
-            .select('id, full_name, email, role, is_active')
+            .select('*')
             .ilike('email', email)
             .maybeSingle();
 
@@ -823,13 +1060,13 @@
             return;
           }
 
-          currentUser = profile;
+          currentUser = { ...profile, phone: resolveUserPhone(profile) };
           await refreshCloudData(false, false);
           enterApp();
         } finally {
           setLoading(false);
           btn.disabled = false;
-          btn.textContent = 'دخول';
+          btn.textContent = 'تسجيل الدخول';
         }
       } else {
         const found = (state.users || []).find(u => (u.email || '').toLowerCase() === email && u.is_active !== false);
@@ -837,7 +1074,7 @@
           showLoginError('المستخدم غير موجود في الوضع المحلي.');
           return;
         }
-        currentUser = found;
+        currentUser = { ...found, phone: resolveUserPhone(found) };
         enterApp();
       }
     }
@@ -850,6 +1087,7 @@
         id: 'u_admin',
         full_name: 'شهاب الفريعي',
         email: 'shehab.a.alfariee@gmail.com',
+        phone: resolveUserPhone({ email: 'shehab.a.alfariee@gmail.com' }),
         role: 'admin',
         is_active: true
       };
@@ -860,9 +1098,19 @@
       document.getElementById('loginScreen').classList.add('hidden');
       document.getElementById('appShell').classList.remove('hidden');
       updateHeaderBadges();
+      updateOnlineStatusUI();
       setActiveDocSection(activeDocSection);
       switchMainTab('dashboard');
       renderAll();
+
+      const { expiredItems, soonItems } = collectUrgentDocumentAlerts();
+      const criticalCount = expiredItems.length + soonItems.filter(i => i.diffDays <= 1).length;
+      if (criticalCount > 0) {
+        showSystemBanner(
+          `تنبيه فوري: يوجد (${criticalCount}) وثيقة منتهية أو متبقٍ لها يوم واحد أو تنتهي اليوم. يمكنك الإرسال مباشرة عبر «إرسال إشعار تيليجرام الآن».`,
+          'warning'
+        );
+      }
     }
 
     async function logoutUser() {
@@ -887,15 +1135,15 @@
     function updateHeaderBadges() {
       const modeBadge = document.getElementById('modeBadge');
       if (isCloudMode()) {
-        modeBadge.textContent = 'الوضع: سحابي (Supabase)';
+        modeBadge.textContent = 'سحابي (Supabase)';
         modeBadge.className = 'px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30';
       } else {
-        modeBadge.textContent = 'الوضع: محلي';
+        modeBadge.textContent = 'وضع محلي';
         modeBadge.className = 'px-3 py-1.5 rounded-full text-xs font-bold bg-amber-500/20 text-amber-200 border border-amber-400/30';
       }
 
       const roleLabel = currentUser?.role === 'admin'
-        ? 'مدير النظام (Admin)'
+        ? 'مدير (Admin)'
         : currentUser?.role === 'supervisor'
           ? 'مشرف (Supervisor)'
           : 'مشاهد (Viewer)';
@@ -923,13 +1171,36 @@
       }
     }
 
+    async function fetchAllRowsFromTable(tableName, orderColumn = null, ascending = false) {
+      const allRows = [];
+      const pageSize = 1000;
+      let from = 0;
+
+      while (true) {
+        let query = sbClient.from(tableName).select('*');
+        if (orderColumn) {
+          query = query.order(orderColumn, { ascending });
+        }
+        const { data, error } = await query.range(from, from + pageSize - 1);
+
+        if (error) return { data: allRows, error };
+        if (!Array.isArray(data) || data.length === 0) break;
+
+        allRows.push(...data);
+        if (data.length < pageSize) break;
+        from += pageSize;
+      }
+
+      return { data: allRows, error: null };
+    }
+
     async function refreshCloudData(showBanner = false, useLoader = true) {
       const btn = document.getElementById('refreshDataBtn');
       if (btn) {
         btn.disabled = true;
         btn.textContent = 'جاري التحديث...';
       }
-      if (useLoader) setLoading(true, 'جاري تحديث البيانات من قاعدة البيانات...');
+      if (useLoader) setLoading(true, 'جاري تحميل جميع سجلات المركبات والوثائق...');
 
       try {
         if (!isCloudMode()) {
@@ -945,8 +1216,8 @@
         }
 
         const [vRes, dRes, uRes, lRes] = await Promise.all([
-          sbClient.from('vehicles').select('*').order('created_at', { ascending: false }),
-          sbClient.from('vehicle_documents').select('*'),
+          fetchAllRowsFromTable('vehicles', 'created_at', false),
+          fetchAllRowsFromTable('vehicle_documents', 'id', true),
           sbClient.from('app_users').select('*').order('created_at', { ascending: true }),
           sbClient.from('audit_logs').select('*').order('created_at', { ascending: false }).limit(100)
         ]);
@@ -956,11 +1227,18 @@
           return;
         }
 
+        if (dRes.error) {
+          if (showBanner) showSystemBanner(`خطأ في قراءة الوثائق: ${dRes.error.message}`, 'error');
+        }
+
         const docsByVehicle = {};
-        if (!dRes.error && Array.isArray(dRes.data)) {
+        if (Array.isArray(dRes.data)) {
           for (const doc of dRes.data) {
-            if (!docsByVehicle[doc.vehicle_id]) docsByVehicle[doc.vehicle_id] = {};
-            docsByVehicle[doc.vehicle_id][doc.doc_type] = doc.expiry_date;
+            const vId = String(doc.vehicle_id || '').trim();
+            const dType = String(doc.doc_type || '').trim();
+            if (!vId || !dType) continue;
+            if (!docsByVehicle[vId]) docsByVehicle[vId] = {};
+            docsByVehicle[vId][dType] = doc.expiry_date;
           }
         }
 
@@ -971,12 +1249,16 @@
             vehicle_name: v.vehicle_name,
             assigned_driver: v.assigned_driver,
             notes: v.notes || '',
-            docs: docsByVehicle[v.id] || {}
+            docs: docsByVehicle[String(v.id)] || {}
           }));
         }
 
         if (!uRes.error && Array.isArray(uRes.data)) {
-          state.users = uRes.data;
+          state.users = uRes.data.map(u => {
+            const resolvedPhone = resolveUserPhone(u);
+            if (u.phone) savePhoneToCache(u.email, u.phone);
+            return { ...u, phone: resolvedPhone };
+          });
         }
 
         if (!lRes.error && Array.isArray(lRes.data)) {
@@ -1026,8 +1308,8 @@
       document.querySelectorAll('.main-tab-btn').forEach(btn => {
         const selected = btn.dataset.mainTab === tabName;
         btn.className = selected
-          ? 'main-tab-btn px-4 py-2 rounded-xl text-sm font-bold bg-blue-600 text-white'
-          : 'main-tab-btn px-4 py-2 rounded-xl text-sm font-bold bg-slate-100 hover:bg-slate-200 text-slate-700';
+          ? 'main-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-blue-600 text-white transition'
+          : 'main-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition';
       });
     }
 
@@ -1039,8 +1321,8 @@
       document.querySelectorAll('.doc-tab-btn').forEach(btn => {
         const active = btn.dataset.doc === activeDocSection;
         btn.className = active
-          ? 'doc-tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-blue-600 text-white'
-          : 'doc-tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-white text-slate-700 border border-slate-300 hover:bg-slate-100';
+          ? 'doc-tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-blue-600 text-white transition'
+          : 'doc-tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-white text-slate-700 border border-slate-300 hover:bg-slate-100 transition';
       });
 
       document.getElementById('sectionHeadingTitle').textContent =
@@ -1064,28 +1346,33 @@
 
     function evaluateDocDate(dateStr) {
       if (!dateStr) {
-        return { code: 'missing', label: 'غير محدد', badgeClass: 'bg-slate-100 text-slate-500' };
+        return { code: 'missing', priority: 3, diffDays: null, label: 'غير محدد', badgeClass: 'bg-slate-100 text-slate-500' };
       }
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       const target = new Date(`${dateStr}T00:00:00`);
       if (isNaN(target.getTime())) {
-        return { code: 'missing', label: dateStr, badgeClass: 'bg-slate-100 text-slate-500' };
+        return { code: 'missing', priority: 3, diffDays: null, label: dateStr, badgeClass: 'bg-slate-100 text-slate-500' };
       }
       const diffDays = Math.round((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
       if (diffDays < 0) {
-        return { code: 'expired', label: `منتهي (${dateStr})`, badgeClass: 'bg-rose-100 text-rose-700' };
+        return { code: 'expired', priority: 0, diffDays, label: `منتهي (${dateStr})`, badgeClass: 'bg-rose-100 text-rose-700' };
+      }
+      if (diffDays === 0) {
+        return { code: 'expiring_soon', priority: 0.5, diffDays, label: `ينتهي اليوم (${dateStr})`, badgeClass: 'bg-rose-100 text-rose-700' };
+      }
+      if (diffDays === 1) {
+        return { code: 'expiring_soon', priority: 0.8, diffDays, label: `يتبقى يوم واحد (${dateStr})`, badgeClass: 'bg-amber-100 text-amber-900' };
       }
       if (diffDays <= 15) {
-        return { code: 'expiring_soon', label: `ينتهي خلال ${diffDays} يوم (${dateStr})`, badgeClass: 'bg-amber-100 text-amber-800' };
+        return { code: 'expiring_soon', priority: 1, diffDays, label: `ينتهي خلال ${diffDays} يوم (${dateStr})`, badgeClass: 'bg-amber-100 text-amber-800' };
       }
-      return { code: 'valid', label: `ساري (${dateStr})`, badgeClass: 'bg-emerald-100 text-emerald-700' };
+      return { code: 'valid', priority: 2, diffDays, label: `ساري (${dateStr})`, badgeClass: 'bg-emerald-100 text-emerald-700' };
     }
 
     function getVehicleSectionStatus(vehicle, sectionKey = activeDocSection) {
       if (sectionKey === 'all') {
-        const keys = ['authorization', 'registration', 'periodic_inspection', 'insurance'];
-        const statuses = keys
+        const statuses = ALL_DOC_TYPES
           .map(k => vehicle.docs?.[k])
           .filter(Boolean)
           .map(dt => evaluateDocDate(dt));
@@ -1099,10 +1386,83 @@
       return evaluateDocDate(docDate).code;
     }
 
+    function getStatusPriority(code) {
+      if (code === 'expired') return 0;
+      if (code === 'expiring_soon') return 1;
+      if (code === 'valid') return 2;
+      return 3;
+    }
+
     function getSectionVehiclesList(sectionKey = activeDocSection) {
       const vehicles = state.vehicles || [];
       if (sectionKey === 'all') return vehicles;
       return vehicles.filter(v => Boolean(v.docs && v.docs[sectionKey]));
+    }
+
+    function collectUrgentDocumentAlerts() {
+      const expiredItems = [];
+      const soonItems = [];
+
+      for (const v of state.vehicles || []) {
+        const docs = v.docs || {};
+        for (const docType of ALL_DOC_TYPES) {
+          const expDate = docs[docType];
+          if (!expDate) continue;
+          const ev = evaluateDocDate(expDate);
+          const docLabel = DOC_SECTION_CONFIG[docType]?.label || docType;
+          const entry = {
+            vehicleId: v.id,
+            vehicleName: v.vehicle_name || 'مركبة',
+            plateNumber: v.plate_number || '',
+            driverName: v.assigned_driver || 'غير محدد',
+            docType,
+            docLabel,
+            expiryDate: expDate,
+            diffDays: ev.diffDays,
+            statusCode: ev.code,
+            statusLabel: ev.label
+          };
+          if (ev.code === 'expired') expiredItems.push(entry);
+          else if (ev.code === 'expiring_soon') soonItems.push(entry);
+        }
+      }
+
+      return {
+        expiredItems,
+        soonItems,
+        totalAlerts: expiredItems.length + soonItems.length
+      };
+    }
+
+    function renderComplianceAlertsBanner() {
+      const banner = document.getElementById('complianceAlertBanner');
+      const titleEl = document.getElementById('complianceAlertTitle');
+      const summaryEl = document.getElementById('complianceAlertSummary');
+      const badgeEl = document.getElementById('alertsBadgeCount');
+      if (!banner || !titleEl || !summaryEl) return;
+
+      const { expiredItems, soonItems, totalAlerts } = collectUrgentDocumentAlerts();
+      if (badgeEl) badgeEl.textContent = String(totalAlerts);
+
+      if (totalAlerts === 0) {
+        banner.classList.add('hidden');
+        return;
+      }
+
+      const oneDayCount = soonItems.filter(i => i.diffDays === 1).length;
+      const todayCount = soonItems.filter(i => i.diffDays === 0).length;
+
+      let urgentNote = '';
+      if (oneDayCount > 0 || todayCount > 0) {
+        const parts = [];
+        if (todayCount > 0) parts.push(`${todayCount} ينتهي اليوم`);
+        if (oneDayCount > 0) parts.push(`${oneDayCount} يتبقى له يوم واحد`);
+        urgentNote = ` — عاجل جداً: ${parts.join(' و ')}.`;
+      }
+
+      titleEl.textContent = `تنبيهات النظام: (${expiredItems.length}) وثيقة منتهية و (${soonItems.length}) قريبة الانتهاء${urgentNote}`;
+      summaryEl.textContent = 'يمكنك إرسال تقرير التنبيهات العاجلة مباشرة إلى بوت تيليجرام (Daralshai_bot) أو فتح مركز الإشعارات.';
+      banner.classList.remove('hidden');
     }
 
     function renderStats() {
@@ -1186,6 +1546,7 @@
     function renderVehiclesTable() {
       const headEl = document.getElementById('vehiclesTableHead');
       const tbody = document.getElementById('vehiclesTableBody');
+      const counterEl = document.getElementById('visibleRowsCounter');
       if (!headEl || !tbody) return;
 
       const cfg = DOC_SECTION_CONFIG[activeDocSection] || DOC_SECTION_CONFIG.authorization;
@@ -1198,7 +1559,7 @@
 
       if (activeDocSection === 'all') {
         headEl.innerHTML = `
-          <tr class="border-b border-slate-200 text-slate-500 text-xs sm:text-sm bg-slate-50">
+          <tr class="border-b border-slate-200 text-slate-600 text-xs sm:text-sm bg-slate-50">
             ${checkboxTh}
             <th class="py-3 px-3 font-bold">المركبة واللوحة</th>
             <th class="py-3 px-3 font-bold">السائق / المفوّض</th>
@@ -1210,7 +1571,7 @@
           </tr>`;
       } else {
         headEl.innerHTML = `
-          <tr class="border-b border-slate-200 text-slate-500 text-xs sm:text-sm bg-slate-50">
+          <tr class="border-b border-slate-200 text-slate-600 text-xs sm:text-sm bg-slate-50">
             ${checkboxTh}
             <th class="py-3 px-3 font-bold">المركبة واللوحة</th>
             <th class="py-3 px-3 font-bold">السائق / المفوّض</th>
@@ -1225,16 +1586,30 @@
 
       const baseList = getSectionVehiclesList(activeDocSection);
 
-      const filtered = baseList.filter(v => {
-        const matchQuery = !query ||
-          String(v.plate_number || '').toLowerCase().includes(query) ||
-          String(v.vehicle_name || '').toLowerCase().includes(query) ||
-          String(v.assigned_driver || '').toLowerCase().includes(query);
+      const filtered = baseList
+        .filter(v => {
+          const matchQuery = !query ||
+            String(v.plate_number || '').toLowerCase().includes(query) ||
+            String(v.vehicle_name || '').toLowerCase().includes(query) ||
+            String(v.assigned_driver || '').toLowerCase().includes(query);
 
-        const stCode = getVehicleSectionStatus(v, activeDocSection);
-        const matchStatus = statusFilter === 'all' || stCode === statusFilter;
-        return matchQuery && matchStatus;
-      });
+          const stCode = getVehicleSectionStatus(v, activeDocSection);
+          const matchStatus = statusFilter === 'all' || stCode === statusFilter;
+          return matchQuery && matchStatus;
+        })
+        .sort((a, b) => {
+          const pa = getStatusPriority(getVehicleSectionStatus(a, activeDocSection));
+          const pb = getStatusPriority(getVehicleSectionStatus(b, activeDocSection));
+          if (pa !== pb) return pa - pb;
+          if (activeDocSection !== 'all') {
+            return compareDateStringsAsc(a.docs?.[activeDocSection] || '', b.docs?.[activeDocSection] || '');
+          }
+          return 0;
+        });
+
+      if (counterEl) {
+        counterEl.textContent = `عدد النتائج المعروضة: ${filtered.length} من أصل ${baseList.length}`;
+      }
 
       const baseCols = activeDocSection === 'all' ? 7 : 5;
       const colCount = baseCols + (canDelete ? 1 : 0);
@@ -1264,16 +1639,25 @@
              </td>`
           : '';
 
+        const rowStatusCode = getVehicleSectionStatus(v, activeDocSection);
+        const waBtn = (rowStatusCode === 'expired' || rowStatusCode === 'expiring_soon')
+          ? `<button type="button" onclick="sendSingleVehicleWhatsappAlert('${escapeHtml(v.id)}')" class="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold transition">واتساب</button>`
+          : '';
+
+        const quickDateBtn = (canEdit && activeDocSection !== 'all')
+          ? `<button type="button" onclick="openQuickDocDateModal('${escapeHtml(v.id)}', '${escapeHtml(activeDocSection)}')" class="px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold transition">تاريخ الوثيقة</button>`
+          : '';
+
         const editBtn = canEdit
-          ? `<button type="button" onclick="openVehicleModal('${escapeHtml(v.id)}')" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold">تعديل</button>`
+          ? `<button type="button" onclick="openVehicleModal('${escapeHtml(v.id)}')" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition">تعديل</button>`
           : '';
         const delBtn = canDelete
-          ? `<button type="button" onclick="deleteVehicle('${escapeHtml(v.id)}')" class="px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold">حذف</button>`
+          ? `<button type="button" onclick="deleteVehicle('${escapeHtml(v.id)}')" class="px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition">حذف</button>`
           : '';
 
         const actionsHtml = `
           <td class="py-3 px-3 whitespace-nowrap space-x-1 space-x-reverse">
-            ${(editBtn || delBtn) ? `${editBtn}${delBtn}` : '<span class="text-xs text-slate-400">عرض فقط</span>'}
+            ${(waBtn || quickDateBtn || editBtn || delBtn) ? `${waBtn}${quickDateBtn}${editBtn}${delBtn}` : '<span class="text-xs text-slate-400">عرض فقط</span>'}
           </td>`;
 
         const vehicleCell = `
@@ -1286,7 +1670,7 @@
 
         if (activeDocSection === 'all') {
           return `
-            <tr class="hover:bg-slate-50">
+            <tr class="hover:bg-slate-50/90 transition">
               ${checkboxTd}
               ${vehicleCell}
               ${driverCell}
@@ -1304,7 +1688,7 @@
           : `<span class="text-slate-400 text-xs">غير محدد</span>`;
 
         return `
-          <tr class="hover:bg-slate-50">
+          <tr class="hover:bg-slate-50/90 transition">
             ${checkboxTd}
             ${vehicleCell}
             ${driverCell}
@@ -1328,11 +1712,13 @@
            (u.email && currentUser.email && u.email.toLowerCase() === currentUser.email.toLowerCase()));
 
         const identifier = encodeURIComponent(String(u.id || u.email || ''));
+        const phoneVal = resolveUserPhone(u);
 
         return `
           <tr class="hover:bg-slate-50">
             <td class="py-3 px-3 font-bold text-slate-900">${escapeHtml(u.full_name)}</td>
             <td class="py-3 px-3 text-slate-700">${escapeHtml(u.email)}</td>
+            <td class="py-3 px-3 text-xs font-mono text-slate-700" dir="ltr">${phoneVal ? escapeHtml(phoneVal) : '<span class="text-slate-400 font-sans">غير مسجل</span>'}</td>
             <td class="py-3 px-3"><span class="px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 text-xs font-bold">${escapeHtml(u.role)}</span></td>
             <td class="py-3 px-3">
               <span class="px-2.5 py-1 rounded-lg text-xs font-bold ${u.is_active !== false ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}">
@@ -1341,6 +1727,7 @@
             </td>
             <td class="py-3 px-3 whitespace-nowrap space-x-1 space-x-reverse">
               ${isAdmin ? `
+                ${phoneVal ? `<button type="button" onclick="openAlertsCenterModal('${escapeHtml(u.email)}')" class="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-xs font-bold text-emerald-700">واتساب</button>` : ''}
                 <button type="button" onclick="openUserModal(decodeURIComponent('${identifier}'))" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-xs font-bold text-slate-700">
                   تعديل
                 </button>
@@ -1380,6 +1767,7 @@
 
     function renderAll() {
       updateHeaderBadges();
+      renderComplianceAlertsBanner();
       renderStats();
       renderVehiclesTable();
       renderUsersTable();
@@ -1392,6 +1780,311 @@
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;');
+    }
+
+    // إرسال التنبيهات مباشرة إلى بوت تيليجرام عبر Supabase Edge Function
+    async function sendTelegramReportNow() {
+      const quickBtn = document.getElementById('btnQuickTelegramSend');
+      const modalBtn = document.getElementById('btnModalTelegramSend');
+      if (quickBtn) quickBtn.disabled = true;
+      if (modalBtn) modalBtn.disabled = true;
+
+      setLoading(true, 'جاري إرسال تقرير التنبيهات إلى تيليجرام...');
+      try {
+        if (!isCloudMode()) {
+          showSystemBanner('الإرسال المباشر إلى تيليجرام يتطلب الوضع السحابي (Supabase).', 'warning');
+          return;
+        }
+
+        initSupabaseClient();
+        if (!sbClient) {
+          showSystemBanner('تعذر تهيئة اتصال Supabase؛ تحقق من الإعدادات.', 'error');
+          return;
+        }
+
+        const { data, error } = await sbClient.functions.invoke(TELEGRAM_EDGE_FUNCTION, {
+          body: {}
+        });
+
+        if (error) {
+          showSystemBanner(`تعذر إرسال إشعار تيليجرام: ${error.message}`, 'error');
+          return;
+        }
+
+        if (data?.sent) {
+          showSystemBanner(
+            `تم إرسال تقرير التنبيهات العاجلة إلى تيليجرام بنجاح (${data.alertsCount} تنبيه).`,
+            'success'
+          );
+          await refreshCloudData(false, false);
+        } else {
+          showSystemBanner(data?.message || 'لا توجد وثائق عاجلة تستدعي الإرسال حالياً.', 'info');
+        }
+      } catch (err) {
+        showSystemBanner(`خطأ أثناء الاتصال بدالة تيليجرام: ${err.message || err}`, 'error');
+      } finally {
+        setLoading(false);
+        if (quickBtn) quickBtn.disabled = false;
+        if (modalBtn) modalBtn.disabled = false;
+      }
+    }
+
+    // تعديل تاريخ وثيقة سريع
+    function openQuickDocDateModal(vehicleId, docType) {
+      if (!canEditRecords()) {
+        showSystemBanner('ليس لديك صلاحية تعديل تواريخ الوثائق.', 'error');
+        return;
+      }
+      const v = (state.vehicles || []).find(item => String(item.id) === String(vehicleId));
+      const cfg = DOC_SECTION_CONFIG[docType] || DOC_SECTION_CONFIG.authorization;
+      if (!v) return;
+
+      document.getElementById('quickDocVehicleId').value = v.id;
+      document.getElementById('quickDocType').value = docType;
+      document.getElementById('quickDocModalTitle').textContent = `تعديل تاريخ انتهاء (${cfg.label})`;
+      document.getElementById('quickDocVehicleInfo').textContent =
+        `المركبة: ${v.vehicle_name} — رقم اللوحة: ${v.plate_number} — السائق: ${v.assigned_driver || 'غير محدد'}`;
+      document.getElementById('quickDocExpiryInput').value = v.docs?.[docType] || '';
+      document.getElementById('quickDocDateModal').classList.remove('hidden');
+    }
+
+    function closeQuickDocDateModal() {
+      document.getElementById('quickDocDateModal').classList.add('hidden');
+    }
+
+    async function saveQuickDocDateForm(event) {
+      event.preventDefault();
+      if (!canEditRecords()) return;
+
+      const vehicleId = document.getElementById('quickDocVehicleId').value.trim();
+      const docType = document.getElementById('quickDocType').value.trim();
+      const expiryDate = document.getElementById('quickDocExpiryInput').value.trim();
+      const cfg = DOC_SECTION_CONFIG[docType] || DOC_SECTION_CONFIG.authorization;
+      const v = (state.vehicles || []).find(item => String(item.id) === String(vehicleId));
+
+      if (!vehicleId || !docType || !expiryDate) return;
+
+      setLoading(true, `جاري تحديث تاريخ (${cfg.label})...`);
+      try {
+        if (isCloudMode() && sbClient) {
+          const { error } = await sbClient
+            .from('vehicle_documents')
+            .upsert([{ vehicle_id: vehicleId, doc_type: docType, expiry_date: expiryDate }], { onConflict: 'vehicle_id,doc_type' });
+          if (error) {
+            showSystemBanner(`تعذر تحديث التاريخ: ${error.message}`, 'error');
+            return;
+          }
+          await recordActionLog('تعديل تاريخ وثيقة', `${v?.vehicle_name || vehicleId} (${cfg.label})`, `التاريخ الجديد: ${expiryDate}`);
+          await refreshCloudData(false, false);
+        } else {
+          if (v) {
+            v.docs = v.docs || {};
+            v.docs[docType] = expiryDate;
+          }
+          saveLocalState();
+          await recordActionLog('تعديل تاريخ وثيقة', `${v?.vehicle_name || vehicleId} (${cfg.label})`, `التاريخ الجديد: ${expiryDate}`);
+          renderAll();
+        }
+        closeQuickDocDateModal();
+        showSystemBanner(`تم تحديث تاريخ (${cfg.label}) إلى ${expiryDate} بنجاح.`, 'success');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    // مركز الإشعارات والواتساب
+    function buildExpiryWhatsappMessage(recipientName = '') {
+      const { expiredItems, soonItems } = collectUrgentDocumentAlerts();
+      const greeting = recipientName ? `مرحباً ${recipientName}،\n` : 'مرحباً،\n';
+
+      if (!expiredItems.length && !soonItems.length) {
+        return `${greeting}تقرير متابعة وثائق الأسطول: لا توجد وثائق منتهية أو قريبة الانتهاء (خلال 15 يوماً) حالياً.`;
+      }
+
+      const oneDayItems = soonItems.filter(i => i.diffDays === 1);
+      const todayItems = soonItems.filter(i => i.diffDays === 0);
+
+      const lines = [
+        `${greeting}تنبيه عاجل — متابعة وثائق الأسطول:`,
+        `• وثائق منتهية: ${expiredItems.length}`,
+        `• تنتهي اليوم: ${todayItems.length} | يتبقى لها يوم واحد: ${oneDayItems.length}`,
+        `• إجمالي القريبة الانتهاء (≤ 15 يوم): ${soonItems.length}`,
+        ''
+      ];
+
+      const urgentSlice = [...expiredItems, ...soonItems].sort((a, b) => a.diffDays - b.diffDays).slice(0, 15);
+      for (const item of urgentSlice) {
+        let stateTag = `ينتهي خلال ${item.diffDays} يوم`;
+        if (item.diffDays < 0) stateTag = 'منتهي';
+        else if (item.diffDays === 0) stateTag = 'ينتهي اليوم';
+        else if (item.diffDays === 1) stateTag = 'يتبقى يوم واحد';
+        lines.push(`- ${item.vehicleName} [${item.plateNumber}] | ${item.docLabel}: ${stateTag} (${item.expiryDate})`);
+      }
+
+      if (expiredItems.length + soonItems.length > 15) {
+        lines.push(`... وعدد (${expiredItems.length + soonItems.length - 15}) تنبيه إضافي داخل النظام.`);
+      }
+
+      return lines.join('\n');
+    }
+
+    function openAlertsCenterModal(preferredEmail = '') {
+      const { expiredItems, soonItems } = collectUrgentDocumentAlerts();
+      const cardsEl = document.getElementById('alertsSummaryCards');
+      const listEl = document.getElementById('alertsItemsList');
+      const selectEl = document.getElementById('whatsappRecipientSelect');
+
+      if (cardsEl) {
+        cardsEl.innerHTML = `
+          <div class="p-3.5 rounded-xl bg-rose-50 border border-rose-200">
+            <p class="text-xs font-bold text-rose-700">وثائق منتهية</p>
+            <p class="text-2xl font-extrabold text-rose-800 mt-1">${expiredItems.length}</p>
+          </div>
+          <div class="p-3.5 rounded-xl bg-amber-50 border border-amber-200">
+            <p class="text-xs font-bold text-amber-800">قريبة الانتهاء (≤ 15 يوم)</p>
+            <p class="text-2xl font-extrabold text-amber-900 mt-1">${soonItems.length}</p>
+          </div>
+          <div class="p-3.5 rounded-xl bg-blue-50 border border-blue-200">
+            <p class="text-xs font-bold text-blue-700">إجمالي التنبيهات</p>
+            <p class="text-2xl font-extrabold text-blue-900 mt-1">${expiredItems.length + soonItems.length}</p>
+          </div>`;
+      }
+
+      const usersWithPhone = (state.users || []).filter(u => Boolean(normalizeWhatsappPhone(resolveUserPhone(u))));
+      if (selectEl) {
+        if (!usersWithPhone.length) {
+          selectEl.innerHTML = `<option value="">لا يوجد مستخدمون مسجل لهم رقم جوال صالح</option>`;
+        } else {
+          selectEl.innerHTML = usersWithPhone.map(u => {
+            const p = resolveUserPhone(u);
+            return `<option value="${escapeHtml(u.email)}">${escapeHtml(u.full_name)} (${escapeHtml(p)})</option>`;
+          }).join('');
+
+          if (preferredEmail) {
+            const match = usersWithPhone.find(u => String(u.email).toLowerCase() === String(preferredEmail).toLowerCase());
+            if (match) selectEl.value = match.email;
+          }
+        }
+      }
+
+      if (listEl) {
+        const combined = [...expiredItems, ...soonItems].slice(0, 30);
+        if (!combined.length) {
+          listEl.innerHTML = `<div class="p-6 text-center text-slate-400 font-semibold">جميع الوثائق المسجلة سارية حالياً.</div>`;
+        } else {
+          listEl.innerHTML = combined.map(it => `
+            <div class="p-3 flex flex-wrap items-center justify-between gap-2 bg-white">
+              <div>
+                <span class="font-bold text-slate-900">${escapeHtml(it.vehicleName)}</span>
+                <span class="text-slate-500 mx-1" dir="ltr">(${escapeHtml(it.plateNumber)})</span>
+                <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-bold">${escapeHtml(it.docLabel)}</span>
+              </div>
+              <span class="px-2.5 py-1 rounded-lg font-bold ${it.statusCode === 'expired' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-800'}">
+                ${escapeHtml(it.statusLabel)}
+              </span>
+            </div>
+          `).join('');
+        }
+      }
+
+      updateWhatsappPreview();
+      document.getElementById('alertsCenterModal').classList.remove('hidden');
+    }
+
+    function closeAlertsCenterModal() {
+      document.getElementById('alertsCenterModal').classList.add('hidden');
+    }
+
+    function updateWhatsappPreview() {
+      const selectEl = document.getElementById('whatsappRecipientSelect');
+      const msgEl = document.getElementById('whatsappMessagePreview');
+      if (!msgEl) return;
+
+      const selectedEmail = selectEl?.value || '';
+      const userObj = (state.users || []).find(u => String(u.email).toLowerCase() === String(selectedEmail).toLowerCase());
+      msgEl.value = buildExpiryWhatsappMessage(userObj?.full_name || '');
+    }
+
+    function copyWhatsappMessageText() {
+      const msgEl = document.getElementById('whatsappMessagePreview');
+      if (!msgEl || !msgEl.value) return;
+      navigator.clipboard?.writeText(msgEl.value).then(() => {
+        showSystemBanner('تم نسخ نص رسالة التنبيه بنجاح.', 'success');
+      }).catch(() => {
+        showSystemBanner('تعذر النسخ التلقائي؛ يمكنك نسخ النص مباشرة من الصندوق.', 'info');
+      });
+    }
+
+    function openWhatsappUrlWithMessage(phoneDigits, messageText) {
+      const cleanPhone = normalizeWhatsappPhone(phoneDigits);
+      if (!cleanPhone) {
+        showSystemBanner('يرجى إضافة رقم جوال صحيح للمستخدم أولاً من تبويب «المستخدمون والصلاحيات».', 'warning');
+        return false;
+      }
+      const url = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(messageText)}`;
+      window.open(url, '_blank', 'noopener,noreferrer');
+      return true;
+    }
+
+    async function sendWhatsappReportToSelectedUser() {
+      const selectEl = document.getElementById('whatsappRecipientSelect');
+      const msgEl = document.getElementById('whatsappMessagePreview');
+      const selectedEmail = selectEl?.value || '';
+      const userObj = (state.users || []).find(u => String(u.email).toLowerCase() === String(selectedEmail).toLowerCase());
+      const phoneRaw = resolveUserPhone(userObj);
+      const text = (msgEl?.value || '').trim();
+
+      if (!openWhatsappUrlWithMessage(phoneRaw, text)) return;
+
+      await recordActionLog(
+        'تنبيه واتساب',
+        userObj ? `${userObj.full_name} (${phoneRaw})` : phoneRaw,
+        'إرسال تقرير حالة وثائق الأسطول'
+      );
+      if (isCloudMode()) {
+        await refreshCloudData(false, false);
+      } else {
+        renderLogsTable();
+      }
+      showSystemBanner('تم فتح واتساب وتجهيز رسالة التنبيه بنجاح.', 'success');
+    }
+
+    async function sendSingleVehicleWhatsappAlert(vehicleId) {
+      const v = (state.vehicles || []).find(item => String(item.id) === String(vehicleId));
+      if (!v) return;
+
+      const usersWithPhone = (state.users || []).filter(u => Boolean(normalizeWhatsappPhone(resolveUserPhone(u))));
+      const targetUser = usersWithPhone[0] || currentUser;
+      const phoneRaw = resolveUserPhone(targetUser);
+
+      const docLines = [];
+      for (const docType of ALL_DOC_TYPES) {
+        const exp = v.docs?.[docType];
+        if (!exp) continue;
+        const ev = evaluateDocDate(exp);
+        if (ev.code === 'expired' || ev.code === 'expiring_soon') {
+          docLines.push(`• ${DOC_SECTION_CONFIG[docType]?.label}: ${ev.label}`);
+        }
+      }
+
+      const msg = [
+        `تنبيه وثيقة مركبة:`,
+        `المركبة: ${v.vehicle_name} (${v.plate_number})`,
+        `السائق: ${v.assigned_driver || 'غير محدد'}`,
+        ...docLines
+      ].join('\n');
+
+      if (!openWhatsappUrlWithMessage(phoneRaw, msg)) {
+        openAlertsCenterModal();
+        return;
+      }
+
+      await recordActionLog('تنبيه واتساب لمركبة', `${v.vehicle_name} (${v.plate_number})`, phoneRaw);
+      if (isCloudMode()) {
+        await refreshCloudData(false, false);
+      } else {
+        renderLogsTable();
+      }
     }
 
     // نافذة الربط السحابي
@@ -1509,17 +2202,42 @@
             targetId = inserted.id;
           }
 
-          const docRows = Object.entries(docs)
-            .filter(([, dt]) => Boolean(dt))
-            .map(([doc_type, expiry_date]) => ({ vehicle_id: targetId, doc_type, expiry_date }));
+          const filledEntries = Object.entries(docs).filter(([, dt]) => Boolean(dt));
+          const emptyDocTypes = Object.entries(docs)
+            .filter(([, dt]) => !dt)
+            .map(([docType]) => docType);
 
-          if (docRows.length) {
-            await sbClient.from('vehicle_documents').upsert(docRows, { onConflict: 'vehicle_id,doc_type' });
+          if (emptyDocTypes.length > 0) {
+            const { error: delDocErr } = await sbClient
+              .from('vehicle_documents')
+              .delete()
+              .eq('vehicle_id', targetId)
+              .in('doc_type', emptyDocTypes);
+            if (delDocErr) {
+              showSystemBanner(`تنبيه في حذف التواريخ الفارغة: ${delDocErr.message}`, 'warning');
+            }
+          }
+
+          if (filledEntries.length > 0) {
+            const docRows = filledEntries.map(([doc_type, expiry_date]) => ({
+              vehicle_id: targetId,
+              doc_type,
+              expiry_date
+            }));
+
+            const { error: docErr } = await sbClient
+              .from('vehicle_documents')
+              .upsert(docRows, { onConflict: 'vehicle_id,doc_type' });
+
+            if (docErr) {
+              showSystemBanner(`تعذر حفظ تواريخ الوثائق: ${docErr.message}`, 'error');
+              return;
+            }
           }
 
           await recordActionLog(editId ? 'تعديل مركبة' : 'إضافة مركبة', `${vehicle_name} (${plate_number})`, assigned_driver);
           await refreshCloudData(false, false);
-          showSystemBanner(editId ? 'تم تحديث بيانات المركبة بنجاح.' : 'تمت إضافة المركبة بنجاح.', 'success');
+          showSystemBanner(editId ? 'تم تحديث بيانات المركبة والوثائق بنجاح.' : 'تمت إضافة المركبة بنجاح.', 'success');
         } else {
           if (editId) {
             const idx = state.vehicles.findIndex(v => String(v.id) === String(editId));
@@ -1562,23 +2280,28 @@
 
       try {
         if (isCloudMode() && sbClient) {
-          if (isSectionOnly) {
-            const { error: dErr } = await sbClient
-              .from('vehicle_documents')
-              .delete()
-              .in('vehicle_id', uniqueIds)
-              .eq('doc_type', activeDocSection);
+          const CHUNK_SIZE = 100;
+          for (let start = 0; start < uniqueIds.length; start += CHUNK_SIZE) {
+            const chunkIds = uniqueIds.slice(start, start + CHUNK_SIZE);
 
-            if (dErr) {
-              showSystemBanner(`تعذر حذف السجلات من القسم: ${dErr.message}`, 'error');
-              return;
-            }
-          } else {
-            await sbClient.from('vehicle_documents').delete().in('vehicle_id', uniqueIds);
-            const { error: vErr } = await sbClient.from('vehicles').delete().in('id', uniqueIds);
-            if (vErr) {
-              showSystemBanner(`تعذر حذف المركبات: ${vErr.message}`, 'error');
-              return;
+            if (isSectionOnly) {
+              const { error: dErr } = await sbClient
+                .from('vehicle_documents')
+                .delete()
+                .in('vehicle_id', chunkIds)
+                .eq('doc_type', activeDocSection);
+
+              if (dErr) {
+                showSystemBanner(`تعذر حذف السجلات من القسم: ${dErr.message}`, 'error');
+                return;
+              }
+            } else {
+              await sbClient.from('vehicle_documents').delete().in('vehicle_id', chunkIds);
+              const { error: vErr } = await sbClient.from('vehicles').delete().in('id', chunkIds);
+              if (vErr) {
+                showSystemBanner(`تعذر حذف المركبات: ${vErr.message}`, 'error');
+                return;
+              }
             }
           }
 
@@ -1646,6 +2369,7 @@
       form.reset();
       document.getElementById('userEditId').value = '';
       document.getElementById('userOriginalEmail').value = '';
+      document.getElementById('uPhone').value = '';
       document.getElementById('uActive').value = 'true';
 
       const passInput = document.getElementById('uPassword');
@@ -1661,6 +2385,7 @@
           document.getElementById('userOriginalEmail').value = u.email || '';
           document.getElementById('uFullName').value = u.full_name || '';
           document.getElementById('uEmail').value = u.email || '';
+          document.getElementById('uPhone').value = resolveUserPhone(u);
           document.getElementById('uRole').value = u.role || 'supervisor';
           document.getElementById('uActive').value = u.is_active !== false ? 'true' : 'false';
           passInput.required = false;
@@ -1686,6 +2411,7 @@
       const originalEmail = document.getElementById('userOriginalEmail').value.trim().toLowerCase();
       const full_name = document.getElementById('uFullName').value.trim();
       const email = document.getElementById('uEmail').value.trim().toLowerCase();
+      const phone = toWesternDigits(document.getElementById('uPhone').value || '').trim();
       const password = document.getElementById('uPassword').value;
       const role = document.getElementById('uRole').value;
       const is_active = document.getElementById('uActive').value === 'true';
@@ -1698,6 +2424,7 @@
       setLoading(true, 'جاري حفظ بيانات المستخدم...');
       try {
         let authNote = '';
+        savePhoneToCache(email, phone);
 
         if (isCloudMode() && sbClient) {
           if (password && password.length >= 6) {
@@ -1706,7 +2433,7 @@
               const { error: signUpErr } = await tempClient.auth.signUp({
                 email,
                 password,
-                options: { data: { full_name, role } }
+                options: { data: { full_name, role, phone } }
               });
               if (signUpErr) {
                 authNote = ` (تنبيه Auth: ${signUpErr.message})`;
@@ -1716,14 +2443,21 @@
             }
           }
 
-          const payload = { full_name, email, role, is_active };
+          const basePayload = { full_name, email, role, is_active };
+          const payloadWithPhone = { ...basePayload, phone };
           let dbErr = null;
 
           if (editId) {
-            const res = await sbClient.from('app_users').update(payload).eq('id', editId);
+            let res = await sbClient.from('app_users').update(payloadWithPhone).eq('id', editId);
+            if (res.error && String(res.error.message || '').toLowerCase().includes('phone')) {
+              res = await sbClient.from('app_users').update(basePayload).eq('id', editId);
+            }
             dbErr = res.error;
           } else {
-            const res = await sbClient.from('app_users').upsert([payload], { onConflict: 'email' });
+            let res = await sbClient.from('app_users').upsert([payloadWithPhone], { onConflict: 'email' });
+            if (res.error && String(res.error.message || '').toLowerCase().includes('phone')) {
+              res = await sbClient.from('app_users').upsert([basePayload], { onConflict: 'email' });
+            }
             dbErr = res.error;
           }
 
@@ -1735,7 +2469,7 @@
           await recordActionLog(
             editId ? 'تعديل مستخدم' : 'إضافة مستخدم',
             `${full_name} (${email})`,
-            `الدور: ${role} | الحالة: ${is_active ? 'نشط' : 'معطّل'}`
+            `الدور: ${role} | الجوال: ${phone || 'غير مسجل'}`
           );
           await refreshCloudData(false, false);
         } else {
@@ -1749,6 +2483,7 @@
                 ...state.users[idx],
                 full_name,
                 email,
+                phone,
                 role,
                 is_active,
                 ...(password ? { password_hint_set: true } : {})
@@ -1759,6 +2494,7 @@
               id: 'u_' + Date.now(),
               full_name,
               email,
+              phone,
               role,
               is_active,
               ...(password ? { password_hint_set: true } : {})
@@ -1769,7 +2505,7 @@
           await recordActionLog(
             editId ? 'تعديل مستخدم' : 'إضافة مستخدم',
             `${full_name} (${email})`,
-            `الدور: ${role} | الحالة: ${is_active ? 'نشط' : 'معطّل'}`
+            `الدور: ${role} | الجوال: ${phone || 'غير مسجل'}`
           );
           renderUsersTable();
         }
@@ -2164,7 +2900,7 @@
           const newVehiclesToInsert = [];
           const newVehiclesMeta = [];
           const existingDocUpserts = [];
-          const nameFixUpdates = [];
+          const vehicleMetaUpdates = [];
 
           let updatedVehicles = 0;
           let newVehicles = 0;
@@ -2178,11 +2914,17 @@
               existingV.docs = existingV.docs || {};
               existingV.docs[targetDocType] = item.expiryDate;
 
-              if (item.builtName && existingV.vehicle_name === 'صالحة') {
+              const patchFields = {};
+              if (item.builtName && (!existingV.vehicle_name || existingV.vehicle_name === 'صالحة' || existingV.vehicle_name.startsWith('مركبة '))) {
                 existingV.vehicle_name = item.builtName;
-                if (existingV.id) {
-                  nameFixUpdates.push({ id: existingV.id, vehicle_name: item.builtName });
-                }
+                patchFields.vehicle_name = item.builtName;
+              }
+              if (item.assignedDriver && item.assignedDriver !== 'غير محدد' && (!existingV.assigned_driver || existingV.assigned_driver === 'غير محدد')) {
+                existingV.assigned_driver = item.assignedDriver;
+                patchFields.assigned_driver = item.assignedDriver;
+              }
+              if (Object.keys(patchFields).length > 0 && existingV.id) {
+                vehicleMetaUpdates.push({ id: existingV.id, fields: patchFields });
               }
 
               if (existingV.id) {
@@ -2251,9 +2993,9 @@
               }
             }
 
-            if (nameFixUpdates.length > 0) {
-              for (const fix of nameFixUpdates) {
-                await sbClient.from('vehicles').update({ vehicle_name: fix.vehicle_name }).eq('id', fix.id);
+            if (vehicleMetaUpdates.length > 0) {
+              for (const upd of vehicleMetaUpdates) {
+                await sbClient.from('vehicles').update(upd.fields).eq('id', upd.id);
               }
             }
 
@@ -2365,7 +3107,7 @@
       }
     }
 
-    // التهيئة الأولية واستعادة الجلسة تلقائياً
+    // التهيئة الأولية
     formatArabicToday();
     initSupabaseClient();
     if (cloudSettings.url) {
@@ -2378,7 +3120,17 @@
 
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js').catch(() => {});
+        navigator.serviceWorker.register('./sw.js').then((reg) => {
+          reg.addEventListener('updatefound', () => {
+            const newWorker = reg.installing;
+            if (!newWorker) return;
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                showSystemBanner('يتوفر تحديث جديد للتطبيق — أعد تحميل الصفحة لتطبيقه.', 'info');
+              }
+            });
+          });
+        }).catch(() => {});
       });
     }
   </script>
