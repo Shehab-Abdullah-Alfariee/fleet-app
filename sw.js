@@ -32,12 +32,10 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(req.url);
 
-  // لا نعترض طلبات Supabase API أو Edge Functions لضمان حداثة البيانات والمصادقة
   if (url.hostname.includes('supabase.co')) {
     return;
   }
 
-  // استراتيجية Network-First للصفحات والملفات الأساسية لضمان وصول أحدث تعديل فوراً
   if (req.mode === 'navigate' || url.pathname.endsWith('.html') || url.pathname.endsWith('.json')) {
     event.respondWith(
       fetch(req)
@@ -51,7 +49,6 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // لباقي الملفات الثابتة: محاولة الشبكة ثم الكاش كبديل
   event.respondWith(
     fetch(req)
       .then((networkRes) => {
