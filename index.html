@@ -2,11 +2,10 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>نظام متابعة وثائق وتفاويض الأسطول</title>
   <link rel="manifest" href="./manifest.json" />
   <meta name="theme-color" content="#0f172a" />
-  <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="تفاويض الأسطول" />
@@ -20,7 +19,6 @@
       font-family: 'Cairo', sans-serif;
       background-color: #f1f5f9;
       color: #0f172a;
-      -webkit-tap-highlight-color: transparent;
     }
     .modal-backdrop {
       background-color: rgba(15, 23, 42, 0.55);
@@ -34,7 +32,7 @@
     }
   </style>
 </head>
-<body class="min-h-screen select-none sm:select-auto">
+<body class="min-h-screen">
 
   <!-- طبقة التحميل -->
   <div id="loadingOverlay" class="hidden fixed inset-0 z-[70] bg-slate-900/65 backdrop-blur-[2px] flex items-center justify-center p-4">
@@ -88,10 +86,6 @@
           class="px-3 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition">
           إعدادات الربط السحابي
         </button>
-        <button type="button" id="loginInstallPwaBtn" onclick="triggerPwaInstall()"
-          class="hidden px-3 py-2 rounded-xl border border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold transition">
-          تثبيت التطبيق
-        </button>
         <button type="button" onclick="quickLocalDemoLogin()"
           class="px-3 py-2 rounded-xl border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold transition">
           دخول تجريبي محلي
@@ -117,10 +111,10 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
-          <button type="button" id="headerInstallPwaBtn" onclick="triggerPwaInstall()"
-            class="hidden px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow transition">
-            تثبيت التطبيق
-          </button>
+          <span id="autoDigestBadge"
+            class="px-3 py-1.5 rounded-full text-xs font-bold bg-indigo-500/20 text-indigo-200 border border-indigo-400/30">
+            الفحص اليومي: نشط (06:00 ص)
+          </span>
           <button type="button" onclick="openAlertsCenterModal()"
             class="relative px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 text-xs font-bold border border-amber-400/40 transition flex items-center gap-1.5">
             <span>الإشعارات</span>
@@ -143,11 +137,6 @@
         </div>
       </div>
     </header>
-
-    <!-- شريط حالة الاتصال بالشبكة -->
-    <div id="offlineNoticeBar" class="hidden bg-rose-600 text-white text-xs font-bold text-center py-1.5 px-4">
-      أنت تعمل حالياً دون اتصال بالإنترنت — سيتم مزامنة البيانات السحابية فور عودة الاتصال.
-    </div>
 
     <!-- شريط التنقل الرئيسي -->
     <nav class="bg-white border-b border-slate-200">
@@ -182,7 +171,7 @@
         <button type="button" onclick="hideSystemBanner()" class="text-xs px-2.5 py-1 rounded-lg bg-white/90 hover:bg-white text-slate-800 shrink-0">إغفاء</button>
       </div>
 
-      <!-- شريط التنبيهات الفورية للوثائق المنتهية والقريبة وتيليجرام -->
+      <!-- شريط التنبيهات الفورية للوثائق المنتهية والقريبة + أزرار الواتساب والإيميل (إرسال مرة واحدة فقط) -->
       <div id="complianceAlertBanner" class="hidden rounded-2xl p-4 bg-white border border-amber-300 shadow-sm flex flex-wrap items-center justify-between gap-3">
         <div class="flex items-start sm:items-center gap-3">
           <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-extrabold text-base shrink-0">
@@ -194,9 +183,15 @@
           </div>
         </div>
         <div class="flex flex-wrap items-center gap-2">
-          <button type="button" id="btnQuickTelegramSend" onclick="sendTelegramReportNow()"
-            class="px-3.5 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold transition">
-            إرسال إشعار تيليجرام الآن
+          <button type="button" onclick="sendNewExpiredWhatsappQuick()"
+            class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition flex items-center gap-1.5">
+            <span>إرسال واتساب</span>
+            <span id="bannerNewExpiredWaBadge" class="px-1.5 py-0.5 rounded-full bg-white/20 text-[11px]">0</span>
+          </button>
+          <button type="button" onclick="sendNewExpiredEmailQuick()"
+            class="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition flex items-center gap-1.5">
+            <span>إرسال إيميل</span>
+            <span id="bannerNewExpiredMailBadge" class="px-1.5 py-0.5 rounded-full bg-white/20 text-[11px]">0</span>
           </button>
           <button type="button" onclick="openAlertsCenterModal()"
             class="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold transition">
@@ -223,7 +218,7 @@
           <div onclick="setStatusFilter('expired')" class="cursor-pointer bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm hover:border-rose-400 transition">
             <p id="statExpiredTitle" class="text-xs font-bold text-slate-500 mb-1.5">منتهية (التفاويض)</p>
             <p id="statExpired" class="text-2xl sm:text-3xl font-extrabold text-rose-600">0</p>
-            <p class="text-[11px] text-rose-500 mt-1">تتطلب تجديداً فورياً</p>
+            <p id="statExpiredNewSub" class="text-[11px] text-rose-500 mt-1">منها (0) جديدة لم تُرسل</p>
           </div>
 
           <div onclick="setStatusFilter('expiring_soon')" class="cursor-pointer bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm hover:border-amber-400 transition">
@@ -247,7 +242,7 @@
             <div class="flex flex-wrap items-center justify-between gap-2">
               <div>
                 <h2 id="sectionHeadingTitle" class="text-sm font-extrabold text-slate-800">قسم التفاويض — جدول واستيراد وتحليل ملفات الإكسيل</h2>
-                <p class="text-xs text-slate-500">عند رفع ملف إكسيل للقسم يتم استبدال بيانات هذا القسم السابقة بالبيانات الجديدة بدون تكرار للوحات مع تفضيل التفويض الفعّال. الإرسال التلقائي عبر تيليجرام (Daralshai_bot) يعمل يومياً الساعة 06:00 صباحاً بتوقيت السعودية.</p>
+                <p class="text-xs text-slate-500">عند رفع ملف إكسيل للقسم يتم استبدال بيانات هذا القسم السابقة بالبيانات الجديدة بدون تكرار للوحات مع تفضيل التفويض الفعّال.</p>
               </div>
               <span id="activeSectionHint" class="px-3 py-1 rounded-lg bg-blue-100 text-blue-800 text-xs font-bold">
                 القسم النشط: التفاويض
@@ -377,7 +372,7 @@
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
           <div class="mb-4">
             <h2 class="text-base font-extrabold text-slate-900">سجل العمليات</h2>
-            <p class="text-xs text-slate-500">تتبع عمليات الإضافة والتعديل والحذف واستيراد ملفات الإكسيل وإرسال التنبيهات عبر تيليجرام وواتساب.</p>
+            <p class="text-xs text-slate-500">تتبع عمليات الإضافة والتعديل والحذف واستيراد ملفات الإكسيل وإرسال التنبيهات.</p>
           </div>
 
           <div class="overflow-x-auto rounded-xl border border-slate-200">
@@ -401,11 +396,11 @@
     </main>
   </div>
 
-  <!-- نافذة إعدادات الربط السحابي -->
+  <!-- نافذة إعدادات الربط السحابي والفحص اليومي -->
   <div id="cloudSettingsModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
-    <div class="w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 space-y-4">
+    <div class="w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 space-y-4 max-h-[90vh] overflow-y-auto">
       <div class="flex items-center justify-between">
-        <h3 class="text-lg font-extrabold text-slate-900">إعدادات الربط السحابي (Supabase)</h3>
+        <h3 class="text-lg font-extrabold text-slate-900">إعدادات الربط السحابي والتنبيه اليومي</h3>
         <button type="button" onclick="closeCloudSettingsModal()" class="text-slate-400 hover:text-slate-700 text-xl font-bold">×</button>
       </div>
 
@@ -429,6 +424,27 @@
             <option value="local">محلي على هذا الجهاز</option>
           </select>
         </div>
+
+        <div class="pt-2 border-t border-slate-200 space-y-3">
+          <p class="text-xs font-extrabold text-slate-800">إعدادات الفحص اليومي ومنع تكرار إشعارات الوثائق المنتهية</p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">وقت الفحص اليومي (توقيت السعودية)</label>
+              <input id="dailyDigestTimeInput" type="time" value="06:00"
+                class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">بريد إشعارات النظام الافتراضي</label>
+              <input id="defaultAlertEmailInput" type="email" placeholder="alerts@company.com"
+                class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" />
+            </div>
+          </div>
+
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input id="dailyDigestEnabledInput" type="checkbox" checked class="w-4 h-4 rounded border-slate-300" />
+            <span class="text-xs font-bold text-slate-700">تفعيل الفحص اليومي التلقائي للوثائق المنتهية الجديدة (مرة واحدة لكل وثيقة)</span>
+          </label>
+        </div>
       </div>
 
       <div class="flex justify-end gap-2 pt-2">
@@ -439,34 +455,6 @@
           حفظ الإعدادات
         </button>
       </div>
-    </div>
-  </div>
-
-  <!-- نافذة تعديل تاريخ وثيقة سريع للقسم النشط -->
-  <div id="quickDocDateModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
-    <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 space-y-4">
-      <div class="flex items-center justify-between">
-        <h3 id="quickDocModalTitle" class="text-base font-extrabold text-slate-900">تعديل تاريخ انتهاء الوثيقة</h3>
-        <button type="button" onclick="closeQuickDocDateModal()" class="text-slate-400 hover:text-slate-700 text-xl font-bold">×</button>
-      </div>
-      <form onsubmit="saveQuickDocDateForm(event)" class="space-y-4">
-        <input type="hidden" id="quickDocVehicleId" />
-        <input type="hidden" id="quickDocType" />
-        <p id="quickDocVehicleInfo" class="text-xs font-bold text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-200"></p>
-        <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">تاريخ الانتهاء الجديد *</label>
-          <input id="quickDocExpiryInput" type="date" required
-            class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm" />
-        </div>
-        <div class="flex justify-end gap-2 pt-2">
-          <button type="button" onclick="closeQuickDocDateModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-sm font-bold text-slate-700">
-            إلغاء
-          </button>
-          <button type="submit" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-sm font-bold text-white">
-            حفظ التاريخ
-          </button>
-        </div>
-      </form>
     </div>
   </div>
 
@@ -607,37 +595,32 @@
     </div>
   </div>
 
-  <!-- نافذة مركز الإشعارات وتنبيهات تيليجرام وواتساب -->
+  <!-- نافذة مركز الإشعارات وتنبيهات الواتساب والإيميل -->
   <div id="alertsCenterModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
     <div class="w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 space-y-4 max-h-[90vh] overflow-y-auto">
       <div class="flex items-center justify-between">
         <div>
-          <h3 class="text-lg font-extrabold text-slate-900">مركز الإشعارات وتنبيهات تيليجرام</h3>
-          <p class="text-xs text-slate-500">إرسال فوري عبر بوت تيليجرام (Daralshai_bot) أو تجهيز رسالة واتساب للمستخدمين.</p>
+          <h3 class="text-lg font-extrabold text-slate-900">مركز الإشعارات (واتساب + إيميل)</h3>
+          <p class="text-xs text-slate-500">إرسال للوثائق المنتهية الجديدة مرة واحدة فقط لكل دورة صلاحية (مع إمكانية إعادة الضبط عند الحاجة).</p>
         </div>
         <button type="button" onclick="closeAlertsCenterModal()" class="text-slate-400 hover:text-slate-700 text-xl font-bold">×</button>
       </div>
 
       <div id="alertsSummaryCards" class="grid grid-cols-1 sm:grid-cols-3 gap-3"></div>
 
-      <div class="bg-sky-50/70 border border-sky-200 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <p class="text-xs font-extrabold text-sky-950">الإرسال المباشر إلى تيليجرام (Supabase Edge Function)</p>
-          <p class="text-[11px] text-sky-800 mt-0.5">يُرسل تلقائياً الوثائق المنتهية والتي تنتهي اليوم أو غداً (≤ 1 يوم) ويسجّل العملية في سجل العمليات.</p>
-        </div>
-        <button type="button" id="btnModalTelegramSend" onclick="sendTelegramReportNow()"
-          class="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold transition shrink-0">
-          إرسال إلى تيليجرام الآن
-        </button>
-      </div>
-
       <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
         <div class="flex flex-wrap items-center justify-between gap-2">
-          <label for="whatsappRecipientSelect" class="text-xs font-extrabold text-slate-800">اختر المستلم (رسالة واتساب فردية):</label>
-          <button type="button" onclick="switchMainTab('users'); closeAlertsCenterModal();"
-            class="text-xs font-bold text-blue-600 hover:underline">
-            إدارة أرقام الجوالات
-          </button>
+          <label for="whatsappRecipientSelect" class="text-xs font-extrabold text-slate-800">اختر المستلم (مستخدم برقم جوال / بريد):</label>
+          <div class="flex items-center gap-3">
+            <button type="button" onclick="resetNotifiedExpiredHistory()"
+              class="text-xs font-bold text-rose-600 hover:underline">
+              إعادة ضبط منع التكرار
+            </button>
+            <button type="button" onclick="switchMainTab('users'); closeAlertsCenterModal();"
+              class="text-xs font-bold text-blue-600 hover:underline">
+              إدارة المستخدمين
+            </button>
+          </div>
         </div>
         <select id="whatsappRecipientSelect" onchange="updateWhatsappPreview()"
           class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-sm font-semibold"></select>
@@ -652,6 +635,10 @@
           <button type="button" onclick="copyWhatsappMessageText()"
             class="px-3.5 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-100 text-xs font-bold text-slate-700">
             نسخ النص
+          </button>
+          <button type="button" onclick="sendEmailReportToSelectedUser()"
+            class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-xs font-bold text-white transition">
+            إرسال عبر الإيميل
           </button>
           <button type="button" onclick="sendWhatsappReportToSelectedUser()"
             class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-xs font-bold text-white transition">
@@ -670,10 +657,11 @@
   <script>
     const DEFAULT_SUPABASE_URL = 'https://bnndrgctlhexavypqvwa.supabase.co';
     const DEFAULT_SUPABASE_KEY = 'sb_publishable_-MISAr0op3xv3WA9L7iQNw_1ntxvkTG';
-    const TELEGRAM_EDGE_FUNCTION = 'send-expiry-whatsapp';
     const SETTINGS_STORAGE_KEY = 'fleet_compliance_cloud_settings_v1';
     const LOCAL_STATE_KEY = 'fleet_compliance_local_state_v1';
     const USER_PHONES_CACHE_KEY = 'fleet_compliance_user_phones_v1';
+    const NOTIFIED_CACHE_KEY = 'fleet_compliance_notified_expired_v1';
+    const AUTO_DIGEST_KEY = 'fleet_compliance_auto_digest_v1';
 
     const DOC_SECTION_CONFIG = {
       authorization: {
@@ -727,53 +715,7 @@
     let activeDocSection = 'authorization';
     let state = loadLocalState();
     let selectedVehicleIds = new Set();
-    let deferredInstallPrompt = null;
-
-    // إدارة تثبيت التطبيق (PWA Install Prompt)
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredInstallPrompt = e;
-      document.getElementById('loginInstallPwaBtn')?.classList.remove('hidden');
-      document.getElementById('headerInstallPwaBtn')?.classList.remove('hidden');
-    });
-
-    window.addEventListener('appinstalled', () => {
-      deferredInstallPrompt = null;
-      document.getElementById('loginInstallPwaBtn')?.classList.add('hidden');
-      document.getElementById('headerInstallPwaBtn')?.classList.add('hidden');
-      showSystemBanner('تم تثبيت التطبيق على جهازك بنجاح.', 'success');
-    });
-
-    async function triggerPwaInstall() {
-      if (!deferredInstallPrompt) {
-        showSystemBanner('لتثبيت التطبيق: اضغط على قائمة المتصفح (⋮ أو زر المشاركة) واختر «إضافة إلى الشاشة الرئيسية».', 'info');
-        return;
-      }
-      deferredInstallPrompt.prompt();
-      const choice = await deferredInstallPrompt.userChoice;
-      if (choice?.outcome === 'accepted') {
-        deferredInstallPrompt = null;
-        document.getElementById('loginInstallPwaBtn')?.classList.add('hidden');
-        document.getElementById('headerInstallPwaBtn')?.classList.add('hidden');
-      }
-    }
-
-    // مراقبة حالة الاتصال بالإنترنت ومزامنة البيانات تلقائياً عند العودة
-    function updateOnlineStatusUI() {
-      const bar = document.getElementById('offlineNoticeBar');
-      if (!bar) return;
-      if (navigator.onLine) {
-        bar.classList.add('hidden');
-        if (currentUser && isCloudMode()) {
-          refreshCloudData(false, false);
-        }
-      } else {
-        bar.classList.remove('hidden');
-      }
-    }
-
-    window.addEventListener('online', updateOnlineStatusUI);
-    window.addEventListener('offline', updateOnlineStatusUI);
+    let notifiedExpiredSet = loadNotifiedExpiredCache();
 
     function canEditRecords() {
       return Boolean(currentUser && (currentUser.role === 'admin' || currentUser.role === 'supervisor'));
@@ -859,7 +801,10 @@
           return {
             url: savedUrl || DEFAULT_SUPABASE_URL,
             anonKey: savedKey || DEFAULT_SUPABASE_KEY,
-            mode: parsed.mode === 'local' ? 'local' : 'cloud'
+            mode: parsed.mode === 'local' ? 'local' : 'cloud',
+            dailyDigestEnabled: parsed.dailyDigestEnabled !== false,
+            dailyDigestTime: parsed.dailyDigestTime || '06:00',
+            defaultAlertEmail: parsed.defaultAlertEmail || ''
           };
         }
       } catch {}
@@ -867,7 +812,10 @@
       const initial = {
         url: DEFAULT_SUPABASE_URL,
         anonKey: DEFAULT_SUPABASE_KEY,
-        mode: 'cloud'
+        mode: 'cloud',
+        dailyDigestEnabled: true,
+        dailyDigestTime: '06:00',
+        defaultAlertEmail: ''
       };
       try {
         localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(initial));
@@ -880,13 +828,165 @@
         localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify({
           url: (cloudSettings.url || DEFAULT_SUPABASE_URL).trim(),
           anonKey: (cloudSettings.anonKey || '').trim(),
-          mode: cloudSettings.mode === 'local' ? 'local' : 'cloud'
+          mode: cloudSettings.mode === 'local' ? 'local' : 'cloud',
+          dailyDigestEnabled: cloudSettings.dailyDigestEnabled !== false,
+          dailyDigestTime: cloudSettings.dailyDigestTime || '06:00',
+          defaultAlertEmail: (cloudSettings.defaultAlertEmail || '').trim()
         }));
       } catch {}
     }
 
     function isCloudMode() {
       return cloudSettings.mode === 'cloud';
+    }
+
+    // منطق منع التكرار (إرسال مرة واحدة فقط لكل دورة انتهاء وثيقة)
+    function buildExpiredAlertKey(vehicleId, docType, expiryDate) {
+      return `${String(vehicleId || '').trim()}__${String(docType || '').trim()}__${String(expiryDate || '').trim().slice(0, 10)}`;
+    }
+
+    function loadNotifiedExpiredCache() {
+      try {
+        const raw = localStorage.getItem(NOTIFIED_CACHE_KEY);
+        const arr = raw ? JSON.parse(raw) : [];
+        return new Set(Array.isArray(arr) ? arr : []);
+      } catch {
+        return new Set();
+      }
+    }
+
+    function saveNotifiedExpiredCache() {
+      try {
+        localStorage.setItem(NOTIFIED_CACHE_KEY, JSON.stringify(Array.from(notifiedExpiredSet)));
+      } catch {}
+    }
+
+    async function syncNotifiedExpiredFromCloud() {
+      if (!isCloudMode() || !sbClient) return;
+      try {
+        const { data, error } = await sbClient
+          .from('notified_expired_documents')
+          .select('vehicle_id, doc_type, expiry_date');
+        if (!error && Array.isArray(data)) {
+          for (const row of data) {
+            notifiedExpiredSet.add(buildExpiredAlertKey(row.vehicle_id, row.doc_type, row.expiry_date));
+          }
+          saveNotifiedExpiredCache();
+        }
+      } catch {}
+    }
+
+    async function persistNotifiedExpiredItems(items, channelLabel = 'manual') {
+      if (!Array.isArray(items) || !items.length) return;
+
+      const rowsToSave = [];
+      for (const item of items) {
+        if (!item.alertKey) {
+          item.alertKey = buildExpiredAlertKey(item.vehicleId, item.docType, item.expiryDate);
+        }
+        notifiedExpiredSet.add(item.alertKey);
+        rowsToSave.push({
+          vehicle_id: String(item.vehicleId),
+          doc_type: String(item.docType),
+          expiry_date: String(item.expiryDate).slice(0, 10),
+          channel: channelLabel
+        });
+      }
+      saveNotifiedExpiredCache();
+
+      if (isCloudMode() && sbClient && rowsToSave.length) {
+        try {
+          await sbClient
+            .from('notified_expired_documents')
+            .upsert(rowsToSave, { onConflict: 'vehicle_id,doc_type,expiry_date', ignoreDuplicates: true });
+        } catch {}
+      }
+    }
+
+    async function resetNotifiedExpiredHistory() {
+      notifiedExpiredSet.clear();
+      saveNotifiedExpiredCache();
+
+      if (isCloudMode() && sbClient) {
+        try {
+          await sbClient.from('notified_expired_documents').delete().neq('id', 0);
+        } catch {}
+      }
+
+      await recordActionLog('إعادة ضبط منع التكرار', 'notified_expired_documents', 'تم السماح بإعادة إشعار الوثائق المنتهية الحالية');
+      if (isCloudMode()) await refreshCloudData(false, false);
+      renderAll();
+      if (!document.getElementById('alertsCenterModal').classList.contains('hidden')) {
+        openAlertsCenterModal();
+      }
+      showSystemBanner('تمت إعادة ضبط سجل منع التكرار؛ ستظهر الوثائق المنتهية الحالية كجديدة مرة واحدة.', 'success');
+    }
+
+    // فحص يومي تلقائي (توقيت السعودية Asia/Riyadh) للوثائق المنتهية الجديدة فقط
+    function getKsaNowParts() {
+      const parts = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Asia/Riyadh',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      }).formatToParts(new Date());
+      const map = Object.fromEntries(parts.map(p => [p.type, p.value]));
+      return {
+        dateStr: `${map.year}-${map.month}-${map.day}`,
+        timeStr: `${map.hour}:${map.minute}`
+      };
+    }
+
+    function updateAutoDigestBadge() {
+      const badge = document.getElementById('autoDigestBadge');
+      if (!badge) return;
+      if (cloudSettings.dailyDigestEnabled === false) {
+        badge.textContent = 'الفحص اليومي: متوقف';
+        badge.className = 'px-3 py-1.5 rounded-full text-xs font-bold bg-slate-700 text-slate-300 border border-slate-600';
+      } else {
+        badge.textContent = `الفحص اليومي: ${cloudSettings.dailyDigestTime || '06:00'} ص`;
+        badge.className = 'px-3 py-1.5 rounded-full text-xs font-bold bg-indigo-500/20 text-indigo-200 border border-indigo-400/30';
+      }
+    }
+
+    async function runDailyAutoCheckIfDue() {
+      updateAutoDigestBadge();
+      if (cloudSettings.dailyDigestEnabled === false) return;
+
+      const nowKsa = getKsaNowParts();
+      const targetTime = cloudSettings.dailyDigestTime || '06:00';
+      let lastRunDate = '';
+      try {
+        lastRunDate = localStorage.getItem(AUTO_DIGEST_KEY) || '';
+      } catch {}
+
+      if (lastRunDate === nowKsa.dateStr) return;
+      if (nowKsa.timeStr < targetTime) return;
+
+      try {
+        localStorage.setItem(AUTO_DIGEST_KEY, nowKsa.dateStr);
+      } catch {}
+
+      const { newExpiredItems } = collectUrgentDocumentAlerts();
+      if (!newExpiredItems.length) {
+        await recordActionLog('فحص يومي تلقائي', '0 وثائق منتهية جديدة', `فحص ${nowKsa.dateStr} — لا توجد وثائق جديدة`);
+        return;
+      }
+
+      await persistNotifiedExpiredItems(newExpiredItems, 'auto-daily');
+      await recordActionLog(
+        'فحص يومي تلقائي (منع تكرار)',
+        `${newExpiredItems.length} وثيقة منتهية جديدة`,
+        `تم رصدها بتاريخ ${nowKsa.dateStr} ولن تُرسل مراراً لنفس التاريخ`
+      );
+      if (isCloudMode()) {
+        await refreshCloudData(false, false);
+      } else {
+        renderAll();
+      }
     }
 
     function initSupabaseClient() {
@@ -1098,16 +1198,16 @@
       document.getElementById('loginScreen').classList.add('hidden');
       document.getElementById('appShell').classList.remove('hidden');
       updateHeaderBadges();
-      updateOnlineStatusUI();
       setActiveDocSection(activeDocSection);
       switchMainTab('dashboard');
+      runDailyAutoCheckIfDue().catch(() => {});
       renderAll();
 
-      const { expiredItems, soonItems } = collectUrgentDocumentAlerts();
-      const criticalCount = expiredItems.length + soonItems.filter(i => i.diffDays <= 1).length;
+      const { newExpiredItems, soonItems } = collectUrgentDocumentAlerts();
+      const criticalCount = newExpiredItems.length + soonItems.filter(i => i.diffDays <= 1).length;
       if (criticalCount > 0) {
         showSystemBanner(
-          `تنبيه فوري: يوجد (${criticalCount}) وثيقة منتهية أو متبقٍ لها يوم واحد أو تنتهي اليوم. يمكنك الإرسال مباشرة عبر «إرسال إشعار تيليجرام الآن».`,
+          `تنبيه: يوجد (${newExpiredItems.length}) وثيقة منتهية جديدة (لم تُرسل بعد) و (${soonItems.filter(i => i.diffDays <= 1).length}) تنتهي اليوم/غداً. يمكنك الإرسال عبر واتساب أو الإيميل لمرة واحدة.`,
           'warning'
         );
       }
@@ -1133,6 +1233,7 @@
     }
 
     function updateHeaderBadges() {
+      updateAutoDigestBadge();
       const modeBadge = document.getElementById('modeBadge');
       if (isCloudMode()) {
         modeBadge.textContent = 'سحابي (Supabase)';
@@ -1221,6 +1322,8 @@
           sbClient.from('app_users').select('*').order('created_at', { ascending: true }),
           sbClient.from('audit_logs').select('*').order('created_at', { ascending: false }).limit(100)
         ]);
+
+        await syncNotifiedExpiredFromCloud();
 
         if (vRes.error) {
           if (showBanner) showSystemBanner(`خطأ في قراءة المركبات: ${vRes.error.message}`, 'error');
@@ -1401,6 +1504,7 @@
 
     function collectUrgentDocumentAlerts() {
       const expiredItems = [];
+      const newExpiredItems = [];
       const soonItems = [];
 
       for (const v of state.vehicles || []) {
@@ -1410,6 +1514,9 @@
           if (!expDate) continue;
           const ev = evaluateDocDate(expDate);
           const docLabel = DOC_SECTION_CONFIG[docType]?.label || docType;
+          const alertKey = buildExpiredAlertKey(v.id, docType, expDate);
+          const alreadyNotified = ev.code === 'expired' && notifiedExpiredSet.has(alertKey);
+
           const entry = {
             vehicleId: v.id,
             vehicleName: v.vehicle_name || 'مركبة',
@@ -1420,15 +1527,23 @@
             expiryDate: expDate,
             diffDays: ev.diffDays,
             statusCode: ev.code,
-            statusLabel: ev.label
+            statusLabel: ev.label,
+            alertKey,
+            alreadyNotified
           };
-          if (ev.code === 'expired') expiredItems.push(entry);
-          else if (ev.code === 'expiring_soon') soonItems.push(entry);
+
+          if (ev.code === 'expired') {
+            expiredItems.push(entry);
+            if (!alreadyNotified) newExpiredItems.push(entry);
+          } else if (ev.code === 'expiring_soon') {
+            soonItems.push(entry);
+          }
         }
       }
 
       return {
         expiredItems,
+        newExpiredItems,
         soonItems,
         totalAlerts: expiredItems.length + soonItems.length
       };
@@ -1439,10 +1554,14 @@
       const titleEl = document.getElementById('complianceAlertTitle');
       const summaryEl = document.getElementById('complianceAlertSummary');
       const badgeEl = document.getElementById('alertsBadgeCount');
+      const waBadge = document.getElementById('bannerNewExpiredWaBadge');
+      const mailBadge = document.getElementById('bannerNewExpiredMailBadge');
       if (!banner || !titleEl || !summaryEl) return;
 
-      const { expiredItems, soonItems, totalAlerts } = collectUrgentDocumentAlerts();
+      const { expiredItems, newExpiredItems, soonItems, totalAlerts } = collectUrgentDocumentAlerts();
       if (badgeEl) badgeEl.textContent = String(totalAlerts);
+      if (waBadge) waBadge.textContent = String(newExpiredItems.length);
+      if (mailBadge) mailBadge.textContent = String(newExpiredItems.length);
 
       if (totalAlerts === 0) {
         banner.classList.add('hidden');
@@ -1460,26 +1579,40 @@
         urgentNote = ` — عاجل جداً: ${parts.join(' و ')}.`;
       }
 
-      titleEl.textContent = `تنبيهات النظام: (${expiredItems.length}) وثيقة منتهية و (${soonItems.length}) قريبة الانتهاء${urgentNote}`;
-      summaryEl.textContent = 'يمكنك إرسال تقرير التنبيهات العاجلة مباشرة إلى بوت تيليجرام (Daralshai_bot) أو فتح مركز الإشعارات.';
+      titleEl.textContent = `تنبيهات النظام: (${newExpiredItems.length}) منتهية جديدة من أصل (${expiredItems.length}) منتهية و (${soonItems.length}) قريبة${urgentNote}`;
+      summaryEl.textContent = 'الإرسال للمنتهية الجديدة يتم مرة واحدة فقط لكل دورة صلاحية (ولا يتكرر لنفس الوثيقة).';
       banner.classList.remove('hidden');
     }
 
     function renderStats() {
       const sectionList = getSectionVehiclesList(activeDocSection);
       let expired = 0;
+      let newExpired = 0;
       let expiringSoon = 0;
       let valid = 0;
 
       for (const v of sectionList) {
         const code = getVehicleSectionStatus(v, activeDocSection);
-        if (code === 'expired') expired++;
-        else if (code === 'expiring_soon') expiringSoon++;
+        if (code === 'expired') {
+          expired++;
+          if (activeDocSection !== 'all') {
+            const dt = v.docs?.[activeDocSection];
+            if (dt && !notifiedExpiredSet.has(buildExpiredAlertKey(v.id, activeDocSection, dt))) {
+              newExpired++;
+            }
+          }
+        } else if (code === 'expiring_soon') expiringSoon++;
         else if (code === 'valid') valid++;
+      }
+
+      if (activeDocSection === 'all') {
+        newExpired = collectUrgentDocumentAlerts().newExpiredItems.length;
       }
 
       document.getElementById('statTotalVehicles').textContent = sectionList.length;
       document.getElementById('statExpired').textContent = expired;
+      const newSub = document.getElementById('statExpiredNewSub');
+      if (newSub) newSub.textContent = `منها (${newExpired}) جديدة لم تُرسل`;
       document.getElementById('statExpiringSoon').textContent = expiringSoon;
       document.getElementById('statValid').textContent = valid;
     }
@@ -1644,10 +1777,6 @@
           ? `<button type="button" onclick="sendSingleVehicleWhatsappAlert('${escapeHtml(v.id)}')" class="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold transition">واتساب</button>`
           : '';
 
-        const quickDateBtn = (canEdit && activeDocSection !== 'all')
-          ? `<button type="button" onclick="openQuickDocDateModal('${escapeHtml(v.id)}', '${escapeHtml(activeDocSection)}')" class="px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold transition">تاريخ الوثيقة</button>`
-          : '';
-
         const editBtn = canEdit
           ? `<button type="button" onclick="openVehicleModal('${escapeHtml(v.id)}')" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition">تعديل</button>`
           : '';
@@ -1657,7 +1786,7 @@
 
         const actionsHtml = `
           <td class="py-3 px-3 whitespace-nowrap space-x-1 space-x-reverse">
-            ${(waBtn || quickDateBtn || editBtn || delBtn) ? `${waBtn}${quickDateBtn}${editBtn}${delBtn}` : '<span class="text-xs text-slate-400">عرض فقط</span>'}
+            ${(waBtn || editBtn || delBtn) ? `${waBtn}${editBtn}${delBtn}` : '<span class="text-xs text-slate-400">عرض فقط</span>'}
           </td>`;
 
         const vehicleCell = `
@@ -1782,154 +1911,94 @@
         .replace(/"/g, '&quot;');
     }
 
-    // إرسال التنبيهات مباشرة إلى بوت تيليجرام عبر Supabase Edge Function
-    async function sendTelegramReportNow() {
-      const quickBtn = document.getElementById('btnQuickTelegramSend');
-      const modalBtn = document.getElementById('btnModalTelegramSend');
-      if (quickBtn) quickBtn.disabled = true;
-      if (modalBtn) modalBtn.disabled = true;
-
-      setLoading(true, 'جاري إرسال تقرير التنبيهات إلى تيليجرام...');
-      try {
-        if (!isCloudMode()) {
-          showSystemBanner('الإرسال المباشر إلى تيليجرام يتطلب الوضع السحابي (Supabase).', 'warning');
-          return;
-        }
-
-        initSupabaseClient();
-        if (!sbClient) {
-          showSystemBanner('تعذر تهيئة اتصال Supabase؛ تحقق من الإعدادات.', 'error');
-          return;
-        }
-
-        const { data, error } = await sbClient.functions.invoke(TELEGRAM_EDGE_FUNCTION, {
-          body: {}
-        });
-
-        if (error) {
-          showSystemBanner(`تعذر إرسال إشعار تيليجرام: ${error.message}`, 'error');
-          return;
-        }
-
-        if (data?.sent) {
-          showSystemBanner(
-            `تم إرسال تقرير التنبيهات العاجلة إلى تيليجرام بنجاح (${data.alertsCount} تنبيه).`,
-            'success'
-          );
-          await refreshCloudData(false, false);
-        } else {
-          showSystemBanner(data?.message || 'لا توجد وثائق عاجلة تستدعي الإرسال حالياً.', 'info');
-        }
-      } catch (err) {
-        showSystemBanner(`خطأ أثناء الاتصال بدالة تيليجرام: ${err.message || err}`, 'error');
-      } finally {
-        setLoading(false);
-        if (quickBtn) quickBtn.disabled = false;
-        if (modalBtn) modalBtn.disabled = false;
-      }
-    }
-
-    // تعديل تاريخ وثيقة سريع
-    function openQuickDocDateModal(vehicleId, docType) {
-      if (!canEditRecords()) {
-        showSystemBanner('ليس لديك صلاحية تعديل تواريخ الوثائق.', 'error');
-        return;
-      }
-      const v = (state.vehicles || []).find(item => String(item.id) === String(vehicleId));
-      const cfg = DOC_SECTION_CONFIG[docType] || DOC_SECTION_CONFIG.authorization;
-      if (!v) return;
-
-      document.getElementById('quickDocVehicleId').value = v.id;
-      document.getElementById('quickDocType').value = docType;
-      document.getElementById('quickDocModalTitle').textContent = `تعديل تاريخ انتهاء (${cfg.label})`;
-      document.getElementById('quickDocVehicleInfo').textContent =
-        `المركبة: ${v.vehicle_name} — رقم اللوحة: ${v.plate_number} — السائق: ${v.assigned_driver || 'غير محدد'}`;
-      document.getElementById('quickDocExpiryInput').value = v.docs?.[docType] || '';
-      document.getElementById('quickDocDateModal').classList.remove('hidden');
-    }
-
-    function closeQuickDocDateModal() {
-      document.getElementById('quickDocDateModal').classList.add('hidden');
-    }
-
-    async function saveQuickDocDateForm(event) {
-      event.preventDefault();
-      if (!canEditRecords()) return;
-
-      const vehicleId = document.getElementById('quickDocVehicleId').value.trim();
-      const docType = document.getElementById('quickDocType').value.trim();
-      const expiryDate = document.getElementById('quickDocExpiryInput').value.trim();
-      const cfg = DOC_SECTION_CONFIG[docType] || DOC_SECTION_CONFIG.authorization;
-      const v = (state.vehicles || []).find(item => String(item.id) === String(vehicleId));
-
-      if (!vehicleId || !docType || !expiryDate) return;
-
-      setLoading(true, `جاري تحديث تاريخ (${cfg.label})...`);
-      try {
-        if (isCloudMode() && sbClient) {
-          const { error } = await sbClient
-            .from('vehicle_documents')
-            .upsert([{ vehicle_id: vehicleId, doc_type: docType, expiry_date: expiryDate }], { onConflict: 'vehicle_id,doc_type' });
-          if (error) {
-            showSystemBanner(`تعذر تحديث التاريخ: ${error.message}`, 'error');
-            return;
-          }
-          await recordActionLog('تعديل تاريخ وثيقة', `${v?.vehicle_name || vehicleId} (${cfg.label})`, `التاريخ الجديد: ${expiryDate}`);
-          await refreshCloudData(false, false);
-        } else {
-          if (v) {
-            v.docs = v.docs || {};
-            v.docs[docType] = expiryDate;
-          }
-          saveLocalState();
-          await recordActionLog('تعديل تاريخ وثيقة', `${v?.vehicle_name || vehicleId} (${cfg.label})`, `التاريخ الجديد: ${expiryDate}`);
-          renderAll();
-        }
-        closeQuickDocDateModal();
-        showSystemBanner(`تم تحديث تاريخ (${cfg.label}) إلى ${expiryDate} بنجاح.`, 'success');
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    // مركز الإشعارات والواتساب
-    function buildExpiryWhatsappMessage(recipientName = '') {
-      const { expiredItems, soonItems } = collectUrgentDocumentAlerts();
+    // مركز الإشعارات والواتساب والإيميل (مرة واحدة فقط للوثائق المنتهية الجديدة)
+    function buildExpiryAlertMessage(recipientName = '', includeSoon = false) {
+      const { newExpiredItems, soonItems } = collectUrgentDocumentAlerts();
       const greeting = recipientName ? `مرحباً ${recipientName}،\n` : 'مرحباً،\n';
 
-      if (!expiredItems.length && !soonItems.length) {
-        return `${greeting}تقرير متابعة وثائق الأسطول: لا توجد وثائق منتهية أو قريبة الانتهاء (خلال 15 يوماً) حالياً.`;
+      const targetItems = includeSoon
+        ? [...newExpiredItems, ...soonItems]
+        : [...newExpiredItems];
+
+      if (!targetItems.length) {
+        return `${greeting}متابعة وثائق الأسطول: لا توجد وثائق منتهية جديدة لم يتم إشعارك بها مسبقاً.`;
       }
 
-      const oneDayItems = soonItems.filter(i => i.diffDays === 1);
-      const todayItems = soonItems.filter(i => i.diffDays === 0);
-
       const lines = [
-        `${greeting}تنبيه عاجل — متابعة وثائق الأسطول:`,
-        `• وثائق منتهية: ${expiredItems.length}`,
-        `• تنتهي اليوم: ${todayItems.length} | يتبقى لها يوم واحد: ${oneDayItems.length}`,
-        `• إجمالي القريبة الانتهاء (≤ 15 يوم): ${soonItems.length}`,
+        `${greeting}تنبيه وثائق الأسطول (إشعار لمرة واحدة — ${newExpiredItems.length} منتهية جديدة):`,
         ''
       ];
 
-      const urgentSlice = [...expiredItems, ...soonItems].sort((a, b) => a.diffDays - b.diffDays).slice(0, 15);
-      for (const item of urgentSlice) {
-        let stateTag = `ينتهي خلال ${item.diffDays} يوم`;
-        if (item.diffDays < 0) stateTag = 'منتهي';
-        else if (item.diffDays === 0) stateTag = 'ينتهي اليوم';
-        else if (item.diffDays === 1) stateTag = 'يتبقى يوم واحد';
-        lines.push(`- ${item.vehicleName} [${item.plateNumber}] | ${item.docLabel}: ${stateTag} (${item.expiryDate})`);
+      const slice = targetItems.sort((a, b) => a.diffDays - b.diffDays).slice(0, 20);
+      for (const item of slice) {
+        const tag = item.diffDays < 0 ? 'منتهية' : (item.diffDays === 0 ? 'تنتهي اليوم' : `تنتهي خلال ${item.diffDays} يوم`);
+        lines.push(`- ${item.vehicleName} [${item.plateNumber}] | ${item.docLabel}: ${tag} (${item.expiryDate})`);
       }
 
-      if (expiredItems.length + soonItems.length > 15) {
-        lines.push(`... وعدد (${expiredItems.length + soonItems.length - 15}) تنبيه إضافي داخل النظام.`);
+      if (targetItems.length > 20) {
+        lines.push(`... وعدد (${targetItems.length - 20}) وثيقة إضافية.`);
       }
 
       return lines.join('\n');
     }
 
+    async function sendNewExpiredWhatsappQuick() {
+      const { newExpiredItems } = collectUrgentDocumentAlerts();
+      if (!newExpiredItems.length) {
+        showSystemBanner('لا توجد وثائق منتهية جديدة لم يتم إشعارك بها مسبقاً (لن تتكرر نفس الوثيقة).', 'info');
+        return;
+      }
+
+      const usersWithPhone = (state.users || []).filter(u => Boolean(normalizeWhatsappPhone(resolveUserPhone(u))));
+      const targetUser = usersWithPhone[0] || currentUser;
+      const phoneDigits = normalizeWhatsappPhone(resolveUserPhone(targetUser));
+      const msg = buildExpiryAlertMessage(targetUser?.full_name || '', false);
+
+      await persistNotifiedExpiredItems(newExpiredItems, 'whatsapp');
+      await recordActionLog(
+        'إرسال واتساب (مرة واحدة)',
+        `${newExpiredItems.length} وثيقة منتهية جديدة`,
+        phoneDigits ? `إلى ${phoneDigits}` : 'فتح واتساب بدون رقم محدد'
+      );
+
+      if (isCloudMode()) await refreshCloudData(false, false);
+      else renderAll();
+
+      const waUrl = phoneDigits
+        ? `https://wa.me/${phoneDigits}?text=${encodeURIComponent(msg)}`
+        : `https://wa.me/?text=${encodeURIComponent(msg)}`;
+      window.open(waUrl, '_blank', 'noopener,noreferrer');
+      showSystemBanner(`تم تجهيز رسالة الواتساب لـ (${newExpiredItems.length}) وثيقة منتهية جديدة ولن تتكرر مرة أخرى.`, 'success');
+    }
+
+    async function sendNewExpiredEmailQuick() {
+      const { newExpiredItems } = collectUrgentDocumentAlerts();
+      if (!newExpiredItems.length) {
+        showSystemBanner('لا توجد وثائق منتهية جديدة لم يتم إشعارك بها مسبقاً (لن تتكرر نفس الوثيقة).', 'info');
+        return;
+      }
+
+      const toEmail = (cloudSettings.defaultAlertEmail || currentUser?.email || '').trim();
+      const subject = `تنبيه وثائق أسطول منتهية جديدة (${newExpiredItems.length})`;
+      const body = buildExpiryAlertMessage(currentUser?.full_name || '', false);
+
+      await persistNotifiedExpiredItems(newExpiredItems, 'email');
+      await recordActionLog(
+        'إرسال إيميل (مرة واحدة)',
+        `${newExpiredItems.length} وثيقة منتهية جديدة`,
+        toEmail ? `إلى ${toEmail}` : 'فتح بريد النظام'
+      );
+
+      if (isCloudMode()) await refreshCloudData(false, false);
+      else renderAll();
+
+      const mailto = `mailto:${encodeURIComponent(toEmail)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      window.location.href = mailto;
+      showSystemBanner(`تم تجهيز الإيميل لـ (${newExpiredItems.length}) وثيقة منتهية جديدة ولن تتكرر مرة أخرى.`, 'success');
+    }
+
     function openAlertsCenterModal(preferredEmail = '') {
-      const { expiredItems, soonItems } = collectUrgentDocumentAlerts();
+      const { expiredItems, newExpiredItems, soonItems } = collectUrgentDocumentAlerts();
       const cardsEl = document.getElementById('alertsSummaryCards');
       const listEl = document.getElementById('alertsItemsList');
       const selectEl = document.getElementById('whatsappRecipientSelect');
@@ -1937,16 +2006,17 @@
       if (cardsEl) {
         cardsEl.innerHTML = `
           <div class="p-3.5 rounded-xl bg-rose-50 border border-rose-200">
-            <p class="text-xs font-bold text-rose-700">وثائق منتهية</p>
-            <p class="text-2xl font-extrabold text-rose-800 mt-1">${expiredItems.length}</p>
+            <p class="text-xs font-bold text-rose-700">منتهية جديدة (لم تُرسل)</p>
+            <p class="text-2xl font-extrabold text-rose-800 mt-1">${newExpiredItems.length}</p>
+            <p class="text-[11px] text-rose-600 mt-0.5">إجمالي المنتهي: ${expiredItems.length}</p>
           </div>
           <div class="p-3.5 rounded-xl bg-amber-50 border border-amber-200">
             <p class="text-xs font-bold text-amber-800">قريبة الانتهاء (≤ 15 يوم)</p>
             <p class="text-2xl font-extrabold text-amber-900 mt-1">${soonItems.length}</p>
           </div>
           <div class="p-3.5 rounded-xl bg-blue-50 border border-blue-200">
-            <p class="text-xs font-bold text-blue-700">إجمالي التنبيهات</p>
-            <p class="text-2xl font-extrabold text-blue-900 mt-1">${expiredItems.length + soonItems.length}</p>
+            <p class="text-xs font-bold text-blue-700">تم إشعارها مسبقاً</p>
+            <p class="text-2xl font-extrabold text-blue-900 mt-1">${Math.max(0, expiredItems.length - newExpiredItems.length)}</p>
           </div>`;
       }
 
@@ -1968,22 +2038,29 @@
       }
 
       if (listEl) {
-        const combined = [...expiredItems, ...soonItems].slice(0, 30);
+        const combined = [...newExpiredItems, ...soonItems, ...expiredItems.filter(i => i.alreadyNotified)].slice(0, 30);
         if (!combined.length) {
           listEl.innerHTML = `<div class="p-6 text-center text-slate-400 font-semibold">جميع الوثائق المسجلة سارية حالياً.</div>`;
         } else {
-          listEl.innerHTML = combined.map(it => `
-            <div class="p-3 flex flex-wrap items-center justify-between gap-2 bg-white">
-              <div>
-                <span class="font-bold text-slate-900">${escapeHtml(it.vehicleName)}</span>
-                <span class="text-slate-500 mx-1" dir="ltr">(${escapeHtml(it.plateNumber)})</span>
-                <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-bold">${escapeHtml(it.docLabel)}</span>
-              </div>
-              <span class="px-2.5 py-1 rounded-lg font-bold ${it.statusCode === 'expired' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-800'}">
-                ${escapeHtml(it.statusLabel)}
-              </span>
-            </div>
-          `).join('');
+          listEl.innerHTML = combined.map(it => {
+            const statusTag = it.statusCode === 'expired'
+              ? (it.alreadyNotified ? 'منتهي — تم الإشعار سابقاً' : 'منتهي — جديد (لم يُرسل)')
+              : it.statusLabel;
+            const badgeStyle = it.statusCode === 'expired'
+              ? (it.alreadyNotified ? 'bg-slate-100 text-slate-600' : 'bg-rose-100 text-rose-700')
+              : 'bg-amber-100 text-amber-800';
+            return `
+              <div class="p-3 flex flex-wrap items-center justify-between gap-2 bg-white">
+                <div>
+                  <span class="font-bold text-slate-900">${escapeHtml(it.vehicleName)}</span>
+                  <span class="text-slate-500 mx-1" dir="ltr">(${escapeHtml(it.plateNumber)})</span>
+                  <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-bold">${escapeHtml(it.docLabel)}</span>
+                </div>
+                <span class="px-2.5 py-1 rounded-lg font-bold ${badgeStyle}">
+                  ${escapeHtml(statusTag)}
+                </span>
+              </div>`;
+          }).join('');
         }
       }
 
@@ -2002,7 +2079,7 @@
 
       const selectedEmail = selectEl?.value || '';
       const userObj = (state.users || []).find(u => String(u.email).toLowerCase() === String(selectedEmail).toLowerCase());
-      msgEl.value = buildExpiryWhatsappMessage(userObj?.full_name || '');
+      msgEl.value = buildExpiryAlertMessage(userObj?.full_name || '', false);
     }
 
     function copyWhatsappMessageText() {
@@ -2017,11 +2094,9 @@
 
     function openWhatsappUrlWithMessage(phoneDigits, messageText) {
       const cleanPhone = normalizeWhatsappPhone(phoneDigits);
-      if (!cleanPhone) {
-        showSystemBanner('يرجى إضافة رقم جوال صحيح للمستخدم أولاً من تبويب «المستخدمون والصلاحيات».', 'warning');
-        return false;
-      }
-      const url = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(messageText)}`;
+      const url = cleanPhone
+        ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(messageText)}`
+        : `https://wa.me/?text=${encodeURIComponent(messageText)}`;
       window.open(url, '_blank', 'noopener,noreferrer');
       return true;
     }
@@ -2033,20 +2108,60 @@
       const userObj = (state.users || []).find(u => String(u.email).toLowerCase() === String(selectedEmail).toLowerCase());
       const phoneRaw = resolveUserPhone(userObj);
       const text = (msgEl?.value || '').trim();
+      const { newExpiredItems } = collectUrgentDocumentAlerts();
 
-      if (!openWhatsappUrlWithMessage(phoneRaw, text)) return;
+      if (!newExpiredItems.length) {
+        showSystemBanner('لا توجد وثائق منتهية جديدة لم يتم إشعارك بها مسبقاً.', 'info');
+        return;
+      }
 
+      openWhatsappUrlWithMessage(phoneRaw, text);
+      await persistNotifiedExpiredItems(newExpiredItems, 'whatsapp');
       await recordActionLog(
-        'تنبيه واتساب',
-        userObj ? `${userObj.full_name} (${phoneRaw})` : phoneRaw,
-        'إرسال تقرير حالة وثائق الأسطول'
+        'تنبيه واتساب (مرة واحدة)',
+        userObj ? `${userObj.full_name} (${phoneRaw || 'بدون رقم'})` : `${newExpiredItems.length} وثيقة جديدة`,
+        `إرسال ${newExpiredItems.length} وثيقة منتهية جديدة`
       );
       if (isCloudMode()) {
         await refreshCloudData(false, false);
       } else {
-        renderLogsTable();
+        renderAll();
       }
-      showSystemBanner('تم فتح واتساب وتجهيز رسالة التنبيه بنجاح.', 'success');
+      openAlertsCenterModal(selectedEmail);
+      showSystemBanner('تم فتح واتساب وتسجيل الوثائق المنتهية الجديدة لمنع تكرارها.', 'success');
+    }
+
+    async function sendEmailReportToSelectedUser() {
+      const selectEl = document.getElementById('whatsappRecipientSelect');
+      const msgEl = document.getElementById('whatsappMessagePreview');
+      const selectedEmail = selectEl?.value || '';
+      const userObj = (state.users || []).find(u => String(u.email).toLowerCase() === String(selectedEmail).toLowerCase());
+      const toEmail = (userObj?.email || cloudSettings.defaultAlertEmail || currentUser?.email || '').trim();
+      const { newExpiredItems } = collectUrgentDocumentAlerts();
+
+      if (!newExpiredItems.length) {
+        showSystemBanner('لا توجد وثائق منتهية جديدة لم يتم إشعارك بها مسبقاً.', 'info');
+        return;
+      }
+
+      const subject = `تنبيه وثائق أسطول منتهية جديدة (${newExpiredItems.length})`;
+      const body = (msgEl?.value || '').trim() || buildExpiryAlertMessage(userObj?.full_name || '', false);
+
+      await persistNotifiedExpiredItems(newExpiredItems, 'email');
+      await recordActionLog(
+        'تنبيه إيميل (مرة واحدة)',
+        toEmail || `${newExpiredItems.length} وثيقة جديدة`,
+        `إرسال ${newExpiredItems.length} وثيقة منتهية جديدة`
+      );
+
+      if (isCloudMode()) {
+        await refreshCloudData(false, false);
+      } else {
+        renderAll();
+      }
+
+      window.location.href = `mailto:${encodeURIComponent(toEmail)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      showSystemBanner('تم فتح البريد الإلكتروني وتسجيل الوثائق المنتهية الجديدة لمنع تكرارها.', 'success');
     }
 
     async function sendSingleVehicleWhatsappAlert(vehicleId) {
@@ -2058,12 +2173,21 @@
       const phoneRaw = resolveUserPhone(targetUser);
 
       const docLines = [];
+      const expiredToMark = [];
       for (const docType of ALL_DOC_TYPES) {
         const exp = v.docs?.[docType];
         if (!exp) continue;
         const ev = evaluateDocDate(exp);
         if (ev.code === 'expired' || ev.code === 'expiring_soon') {
           docLines.push(`• ${DOC_SECTION_CONFIG[docType]?.label}: ${ev.label}`);
+          if (ev.code === 'expired') {
+            expiredToMark.push({
+              vehicleId: v.id,
+              docType,
+              expiryDate: exp,
+              alertKey: buildExpiredAlertKey(v.id, docType, exp)
+            });
+          }
         }
       }
 
@@ -2074,24 +2198,26 @@
         ...docLines
       ].join('\n');
 
-      if (!openWhatsappUrlWithMessage(phoneRaw, msg)) {
-        openAlertsCenterModal();
-        return;
+      openWhatsappUrlWithMessage(phoneRaw, msg);
+      if (expiredToMark.length) {
+        await persistNotifiedExpiredItems(expiredToMark, 'whatsapp-vehicle');
       }
-
-      await recordActionLog('تنبيه واتساب لمركبة', `${v.vehicle_name} (${v.plate_number})`, phoneRaw);
+      await recordActionLog('تنبيه واتساب لمركبة', `${v.vehicle_name} (${v.plate_number})`, phoneRaw || 'بدون رقم محدد');
       if (isCloudMode()) {
         await refreshCloudData(false, false);
       } else {
-        renderLogsTable();
+        renderAll();
       }
     }
 
-    // نافذة الربط السحابي
+    // نافذة الربط السحابي والفحص اليومي
     function openCloudSettingsModal() {
       document.getElementById('cloudUrlInput').value = cloudSettings.url || DEFAULT_SUPABASE_URL;
       document.getElementById('cloudKeyInput').value = cloudSettings.anonKey || DEFAULT_SUPABASE_KEY;
       document.getElementById('storageModeInput').value = cloudSettings.mode || 'cloud';
+      document.getElementById('dailyDigestTimeInput').value = cloudSettings.dailyDigestTime || '06:00';
+      document.getElementById('defaultAlertEmailInput').value = cloudSettings.defaultAlertEmail || '';
+      document.getElementById('dailyDigestEnabledInput').checked = cloudSettings.dailyDigestEnabled !== false;
       document.getElementById('cloudSettingsModal').classList.remove('hidden');
     }
 
@@ -2100,12 +2226,15 @@
     }
 
     async function saveCloudSettings() {
-      setLoading(true, 'جاري حفظ إعدادات الربط السحابي...');
+      setLoading(true, 'جاري حفظ إعدادات الربط السحابي والتنبيه اليومي...');
       try {
         cloudSettings = {
           url: document.getElementById('cloudUrlInput').value.trim() || DEFAULT_SUPABASE_URL,
           anonKey: document.getElementById('cloudKeyInput').value.trim() || DEFAULT_SUPABASE_KEY,
-          mode: document.getElementById('storageModeInput').value === 'local' ? 'local' : 'cloud'
+          mode: document.getElementById('storageModeInput').value === 'local' ? 'local' : 'cloud',
+          dailyDigestTime: document.getElementById('dailyDigestTimeInput').value || '06:00',
+          defaultAlertEmail: document.getElementById('defaultAlertEmailInput').value.trim(),
+          dailyDigestEnabled: document.getElementById('dailyDigestEnabledInput').checked
         };
         persistCloudSettings();
         initSupabaseClient();
@@ -2113,8 +2242,10 @@
         updateHeaderBadges();
         if (currentUser && isCloudMode()) {
           await refreshCloudData(false, false);
+        } else {
+          renderAll();
         }
-        showSystemBanner('تم حفظ إعدادات الربط السحابي بنجاح.', 'success');
+        showSystemBanner('تم حفظ الإعدادات بنجاح.', 'success');
       } finally {
         setLoading(false);
       }
@@ -3107,7 +3238,7 @@
       }
     }
 
-    // التهيئة الأولية
+    // التهيئة الأولية + فحص دوري كل 5 دقائق
     formatArabicToday();
     initSupabaseClient();
     if (cloudSettings.url) {
@@ -3117,20 +3248,13 @@
       document.getElementById('cloudKeyInput').value = cloudSettings.anonKey;
     }
     restoreSessionOnLoad();
+    setInterval(() => {
+      if (currentUser) runDailyAutoCheckIfDue().catch(() => {});
+    }, 5 * 60 * 1000);
 
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js').then((reg) => {
-          reg.addEventListener('updatefound', () => {
-            const newWorker = reg.installing;
-            if (!newWorker) return;
-            newWorker.addEventListener('statechange', () => {
-              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                showSystemBanner('يتوفر تحديث جديد للتطبيق — أعد تحميل الصفحة لتطبيقه.', 'info');
-              }
-            });
-          });
-        }).catch(() => {});
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
       });
     }
   </script>
