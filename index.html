@@ -235,10 +235,10 @@
             class="main-tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
             التفويضات والوثائق
           </button>
-          <!-- <button type="button" data-main-tab="fuel_ops" onclick="switchMainTab('fuel_ops')"
+          <button type="button" data-main-tab="fuel_ops" onclick="switchMainTab('fuel_ops')"
             class="main-tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
             الوقود والرقابة التشغيلية
-          </button> -->
+          </button>
           <button type="button" data-main-tab="violations" onclick="switchMainTab('violations')"
             class="main-tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
             المخالفات والتصاريح
@@ -250,6 +250,10 @@
           <button type="button" data-main-tab="logs" onclick="switchMainTab('logs')"
             class="main-tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
             سجل العمليات
+          </button>
+          <button type="button" data-main-tab="reports" onclick="switchMainTab('reports')"
+            class="main-tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
+            مركز التقارير
           </button>
         </div>
 
@@ -680,7 +684,7 @@
                   <th class="py-3 px-3 font-bold">انتهاء التفويض</th>
                   <th class="py-3 px-3 font-bold">انتهاء الهوية/الإقامة</th>
                   <th class="py-3 px-3 font-bold">انتهاء الرخصة</th>
-                  <!-- <th class="py-3 px-3 font-bold">الإجراء السريع</th> -->
+                  <th class="py-3 px-3 font-bold">الإجراء السريع</th>
                 </tr>
               </thead>
               <tbody id="complianceMatrixBody" class="divide-y divide-slate-100 text-sm bg-white"></tbody>
@@ -760,7 +764,7 @@
         </div>
       </section>
 
-        <!-- سجل حركات الوقود (PetroApp) والمطابقات
+        <!-- سجل حركات الوقود (PetroApp) والمطابقات -->
         <div class="glass-card rounded-2xl p-4 sm:p-5 space-y-3">
           <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
             <div>
@@ -795,7 +799,7 @@
               <tbody id="fuelTransactionsTableBody" class="divide-y divide-slate-100 text-xs bg-white"></tbody>
             </table>
           </div>
-        </div> -->
+        </div>
       </section>
 
       <!-- قسم المخالفات المرورية والتصاريح التشغيلية (بيان / تصريح / تام) -->
@@ -925,6 +929,41 @@
         </div>
       </section>
 
+      <!-- مركز التقارير الموحد -->
+      <section id="tab-reports" class="hidden space-y-4">
+        <div class="glass-card rounded-2xl p-5 space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 class="text-lg font-extrabold text-slate-900">مركز التقارير الموحد</h2>
+              <p class="text-xs text-slate-500 mt-1">إنشاء تقارير الأقسام من مكان واحد، مع احترام صلاحيات المستخدم والفلاتر المعتمدة داخل كل قسم.</p>
+            </div>
+            <span class="px-3 py-1.5 rounded-xl bg-blue-50 text-blue-700 border border-blue-100 text-xs font-bold">تقارير قابلة للطباعة والحفظ PDF</span>
+          </div>
+          <div id="centralReportStats" class="grid grid-cols-2 md:grid-cols-4 gap-3"></div>
+          <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4 space-y-3">
+            <h3 class="text-sm font-extrabold text-slate-800">تقرير الوثائق والحوادث</h3>
+            <div class="flex flex-wrap items-center gap-2">
+              <select id="centralReportDocSection" class="form-input-pro max-w-sm bg-white">
+                <option value="all">جميع الوثائق والحوادث</option>
+                <option value="authorization">التفويضات</option>
+                <option value="registration">رخص السير</option>
+                <option value="periodic_inspection">الفحص الدوري</option>
+                <option value="insurance">التأمين</option>
+                <option value="accidents">الحوادث</option>
+              </select>
+              <button type="button" onclick="generateCentralReport('compliance')" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold">إنشاء التقرير</button>
+            </div>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+            <button type="button" onclick="generateCentralReport('drivers')" class="text-right rounded-2xl border border-slate-200 bg-white hover:border-blue-300 hover:bg-blue-50/40 p-4 transition"><span class="text-xs text-slate-500">تقرير القسم</span><strong class="block text-sm text-slate-900 mt-1">السائقون والمفوّضون</strong><span class="block text-xs text-slate-500 mt-2">بيانات السائقين والمركبات والأرصدة والحالة</span></button>
+            <button type="button" onclick="generateCentralReport('fuel_ops')" class="text-right rounded-2xl border border-slate-200 bg-white hover:border-blue-300 hover:bg-blue-50/40 p-4 transition"><span class="text-xs text-slate-500">تقرير القسم</span><strong class="block text-sm text-slate-900 mt-1">الوقود والرقابة التشغيلية</strong><span class="block text-xs text-slate-500 mt-2">أرصدة السائقين وحركات الوقود المسجلة</span></button>
+            <button type="button" onclick="generateCentralReport('violations')" class="text-right rounded-2xl border border-slate-200 bg-white hover:border-blue-300 hover:bg-blue-50/40 p-4 transition"><span class="text-xs text-slate-500">تقرير القسم</span><strong class="block text-sm text-slate-900 mt-1">المخالفات والتصاريح</strong><span class="block text-xs text-slate-500 mt-2">المراجع والمبالغ والحالات والملاحظات</span></button>
+            <button type="button" onclick="generateCentralReport('logs')" class="text-right rounded-2xl border border-slate-200 bg-white hover:border-blue-300 hover:bg-blue-50/40 p-4 transition"><span class="text-xs text-slate-500">تقرير تدقيق</span><strong class="block text-sm text-slate-900 mt-1">سجل العمليات</strong><span class="block text-xs text-slate-500 mt-2">المستخدمون والإجراءات والتوقيت والتفاصيل</span></button>
+          </div>
+          <p class="text-[11px] text-slate-500 leading-relaxed">ملاحظة: التقرير يعرض البيانات المتاحة حالياً في النظام. لا يضيف هذا المركز سجلات جديدة ولا يغيّر البيانات الأصلية.</p>
+        </div>
+      </section>
+
     </main>
   </div>
 
@@ -942,9 +981,9 @@
         <div id="drawerDriverBody" class="space-y-4"></div>
       </div>
       <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-        <!-- <button type="button" id="drawerRenewAuthBtn" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold">
+        <button type="button" id="drawerRenewAuthBtn" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold">
           تجديد تفويض (+180 يوم)
-        </button> -->
+        </button>
         <button type="button" onclick="closeDriverDetailsDrawer()" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold">
           إغلاق
         </button>
@@ -2735,13 +2774,14 @@
 
     function switchMainTab(tabName) {
       activeMainTab = tabName;
-      ['dashboard', 'drivers', 'compliance', 'fuel_ops', 'users', 'logs'].forEach(t => {
+      ['dashboard', 'drivers', 'compliance', 'fuel_ops', 'violations', 'users', 'logs', 'reports'].forEach(t => {
         document.getElementById(`tab-${t}`)?.classList.toggle('hidden', tabName !== t);
       });
       if (tabName === 'drivers') renderDriversDirectory();
       if (tabName === 'compliance') renderComplianceMatrix();
       if (tabName === 'fuel_ops') renderFuelAndOperationalControls();
       if (tabName === 'logs') renderLogsTable();
+      if (tabName === 'reports') renderCentralReportCenter();
 
       document.querySelectorAll('.main-tab-btn').forEach(btn => {
         const selected = btn.dataset.mainTab === tabName;
@@ -5977,16 +6017,16 @@
           <td class="py-3 px-3"><span class="px-2 py-1 rounded-lg text-xs font-bold ${r.authEval.badgeClass}">${escapeHtml(r.authEval.label)}</span></td>
           <td class="py-3 px-3"><span class="px-2 py-1 rounded-lg text-xs font-bold ${r.idEval.badgeClass}">${escapeHtml(r.idEval.label)}</span></td>
           <td class="py-3 px-3"><span class="px-2 py-1 rounded-lg text-xs font-bold ${r.licEval.badgeClass}">${escapeHtml(r.licEval.label)}</span></td>
-         
+          <td class="py-3 px-3">
+            <button type="button" onclick="renewDriverAuthorization('${escapeHtml(r.driver.full_name)}', 180)"
+              class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition ${!canEditRecords() ? 'observer-disabled' : ''}">
+              تجديد (+180 يوم)
+            </button>
+          </td>
         </tr>
       `).join('');
     }
-     // <td class="py-3 px-3">
-          //   <button type="button" onclick="renewDriverAuthorization('${escapeHtml(r.driver.full_name)}', 180)"
-          //     class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition ${!canEditRecords() ? 'observer-disabled' : ''}">
-          //     تجديد (+180 يوم)
-          //   </button>
-     // </td>
+
     // =========================================================================
     // 4. الوقود والرقابة التشغيلية: أرصدة PetroApp + شحن سريع + حدود الجمعة
     // =========================================================================
@@ -6541,41 +6581,177 @@
     }
 
     function openReportPrintWindow(reportTitle, bodyHtml) {
-      const win = window.open('', '_blank', 'noopener,noreferrer,width=960,height=720');
+      const win = window.open('', '_blank', 'width=1100,height=850');
       if (!win) {
-        showSystemBanner('يرجى السماح بالنوافذ المنبثقة لفتح تقرير الطباعة / PDF.', 'warning');
+        showSystemBanner('يرجى السماح بالنوافذ المنبثقة لفتح التقرير.', 'warning');
         return;
       }
-      const generatedAt = new Date().toLocaleString('ar-SA');
+      const generatedAt = new Date().toLocaleString('ar-SA', { dateStyle: 'medium', timeStyle: 'short' });
+      const userLabel = currentUser?.full_name || currentUser?.email || 'مستخدم النظام';
+      const reportId = `RPT-${new Date().toISOString().replace(/[-:TZ.]/g, '').slice(0, 14)}`;
+      const normalizedBody = String(bodyHtml || '').replace(/<table(?![^>]*class=)/gi, '<table class="report-table"');
+      win.document.open();
       win.document.write(`<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>${escapeHtml(reportTitle)}</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap');
-    body { font-family: 'Cairo', sans-serif; margin: 24px; color: #0f172a; }
-    .hdr { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0f172a; padding-bottom: 12px; margin-bottom: 18px; }
-    .hdr h1 { margin: 0; font-size: 18px; font-weight: 800; }
-    .meta { font-size: 12px; color: #475569; }
-    table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
-    th, td { border: 1px solid #cbd5e1; padding: 8px 10px; text-align: right; }
-    th { background: #f1f5f9; font-weight: 800; }
-    .print-bar { margin-bottom: 14px; display: flex; gap: 8px; }
-    .btn { padding: 8px 14px; border-radius: 8px; border: 1px solid #0f172a; background: #0f172a; color: #fff; font-family: 'Cairo', sans-serif; font-weight: 700; cursor: pointer; }
-    @media print { .print-bar { display: none; } body { margin: 0; } }
+    /* خطوط عربية محلية لضمان عدم الاعتماد على اتصال خارجي أثناء الطباعة */
+    :root { --navy:#10243e; --blue:#1d4ed8; --teal:#0f766e; --line:#d8e1ec; --muted:#64748b; --paper:#fff; }
+    * { box-sizing:border-box; }
+    html { background:#eef2f7; }
+    body { margin:0; padding:26px; color:#172033; background:#eef2f7; font-family:'Segoe UI',Tahoma,'Arial',sans-serif; font-size:12px; line-height:1.85; -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility; }
+    .sheet { max-width:1180px; margin:0 auto; background:var(--paper); padding:28px 30px; border:1px solid #dce4ee; box-shadow:0 12px 36px rgba(15,23,42,.09); }
+    .toolbar { max-width:1180px; margin:0 auto 14px; display:flex; gap:9px; justify-content:flex-start; }
+    .btn { border:0; border-radius:9px; padding:9px 17px; color:#fff; background:var(--navy); font:700 12px 'Segoe UI',Tahoma,Arial,sans-serif; cursor:pointer; }
+    .btn.secondary { color:var(--navy); background:#fff; border:1px solid #cbd5e1; }
+    .brandline { height:6px; margin:-28px -30px 22px; background:linear-gradient(90deg,#0f766e,#2563eb,#10243e); }
+    .masthead { display:flex; align-items:center; justify-content:space-between; gap:20px; padding-bottom:17px; border-bottom:2px solid var(--navy); }
+    .brand { display:flex; align-items:center; gap:12px; }
+    .brand-mark { width:48px; height:48px; border-radius:13px; display:grid; place-items:center; color:#fff; background:linear-gradient(135deg,#1d4ed8,#0f766e); font-weight:900; font-size:17px; letter-spacing:.5px; }
+    .brand-name { color:var(--navy); font-size:14px; font-weight:900; }
+    .brand-sub { color:var(--muted); font-size:10px; }
+    .report-tag { padding:5px 11px; border:1px solid #bfdbfe; border-radius:999px; color:#1e40af; background:#eff6ff; font-size:10px; font-weight:800; white-space:nowrap; }
+    .title-row { display:flex; justify-content:space-between; align-items:flex-start; gap:15px; margin:21px 0 14px; }
+    h1 { margin:0 0 4px; color:var(--navy); font-size:21px; line-height:1.5; font-weight:900; }
+    .subtitle { color:var(--muted); font-size:10px; }
+    .report-code { text-align:left; color:var(--muted); font-size:10px; direction:ltr; }
+    .meta-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:9px; margin:15px 0 20px; }
+    .meta-card { padding:9px 12px; border:1px solid var(--line); border-radius:9px; background:#f8fafc; }
+    .meta-label { color:var(--muted); font-size:9px; }
+    .meta-value { color:var(--navy); font-size:11px; font-weight:800; overflow-wrap:anywhere; }
+    .report-content { min-height:100px; }
+    .report-tools { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin:0 0 12px; padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:#f8fafc; }
+    .report-search { min-width:220px; max-width:420px; flex:1; border:1px solid #cbd5e1; border-radius:8px; padding:8px 10px; font:inherit; background:#fff; color:#172033; }
+    .report-count { color:var(--muted); font-size:10px; font-weight:800; }
+    .report-content table { min-width:100%; }
+    .report-content th { white-space:normal; }
+    .report-content td { max-width:260px; }
+    .report-content .status-pill { line-height:1.6; }
+    .report-footer span { overflow-wrap:anywhere; }
+    .summary-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:9px; margin:14px 0 18px; }
+    .summary-card { border:1px solid var(--line); border-right:4px solid var(--blue); border-radius:10px; padding:10px 12px; background:linear-gradient(135deg,#fff,#f7faff); }
+    .summary-card:nth-child(2) { border-right-color:#0f766e; } .summary-card:nth-child(3) { border-right-color:#d97706; } .summary-card:nth-child(4) { border-right-color:#7c3aed; }
+    .summary-label { color:var(--muted); font-size:9px; font-weight:700; } .summary-value { color:var(--navy); font-size:17px; font-weight:900; line-height:1.5; }
+    .status-pill { display:inline-block; padding:2px 8px; border-radius:999px; font-size:9px; font-weight:800; white-space:nowrap; border:1px solid transparent; }
+    .status-good { color:#166534; background:#dcfce7; border-color:#bbf7d0; } .status-warn { color:#92400e; background:#fef3c7; border-color:#fde68a; } .status-bad { color:#991b1b; background:#fee2e2; border-color:#fecaca; } .status-info { color:#1e40af; background:#dbeafe; border-color:#bfdbfe; }
+    .section-note { padding:9px 12px; margin:12px 0; border-right:3px solid var(--teal); background:#f0fdfa; color:#115e59; border-radius:7px; font-size:10px; }
+    .toolbar .btn.export { background:#0f766e; }
+    .toolbar .btn:focus-visible,.report-search:focus-visible { outline:3px solid #93c5fd; outline-offset:2px; }
+    .report-content p { margin:9px 0 13px; }
+    h2,h3 { color:var(--navy); font-weight:900; page-break-after:avoid; }
+    h3 { font-size:13px; margin:19px 0 8px; padding-right:9px; border-right:4px solid var(--teal); }
+    table,.report-table { width:100%; border-collapse:collapse; margin:10px 0 18px; font-size:10px; table-layout:auto; }
+    thead { display:table-header-group; }
+    tfoot { display:table-footer-group; }
+    tr { page-break-inside:avoid; }
+    th,td { border:1px solid var(--line); padding:7px 8px; text-align:right; vertical-align:middle; overflow-wrap:anywhere; }
+    th { color:#fff; background:var(--navy); font-weight:800; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    tbody tr:nth-child(even) { background:#f4f7fb; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    tbody tr:hover { background:#eff6ff; }
+    td[dir="ltr"], [dir="ltr"] { direction:ltr; unicode-bidi:embed; text-align:left; }
+    .empty-state { padding:20px; text-align:center; color:var(--muted); background:#f8fafc; border:1px dashed var(--line); border-radius:10px; }
+    .report-footer { display:flex; justify-content:space-between; gap:12px; margin-top:25px; padding-top:10px; border-top:1px solid var(--line); color:var(--muted); font-size:9px; }
+    .confidential { color:#0f766e; font-weight:800; }
+    @page { size:A4 landscape; margin:12mm 10mm 15mm; @bottom-left { content:'صفحة ' counter(page) ' من ' counter(pages); color:#64748b; font:9px Tahoma,Arial,sans-serif; } }
+    @media print {
+      html,body { background:#fff !important; padding:0; }
+      .toolbar,.report-tools { display:none !important; }
+      .summary-card,.meta-card,.status-pill,.section-note { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+      .report-footer { position:relative; break-inside:avoid; }
+      h1,h2,h3 { break-after:avoid; }
+      table { break-inside:auto; }
+      tr,td,th { break-inside:avoid; }
+      .summary-grid { grid-template-columns:repeat(4,minmax(0,1fr)); }
+      .sheet { max-width:none; margin:0; padding:0; border:0; box-shadow:none; }
+      .report-content { font-size:10pt; }
+      .brandline { margin:0 0 16px; }
+      th { background:#e8eef6 !important; color:#10243e !important; }
+      tbody tr:nth-child(even) { background:#f7f9fc !important; }
+      a { color:inherit; text-decoration:none; }
+    }
+    @media screen and (max-width:700px) {
+      body { padding:8px; } .sheet { padding:17px; } .brandline { margin:-17px -17px 15px; }
+      .meta-grid { grid-template-columns:1fr; } .summary-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .title-row { flex-direction:column; }
+      table { font-size:9px; } th,td { padding:5px; }
+      .report-search { min-width:100%; }
+    }
   </style>
 </head>
 <body>
-  <div class="print-bar">
-    <button class="btn" onclick="window.print()">طباعة / حفظ كـ PDF</button>
-    <button class="btn" style="background:#fff;color:#0f172a" onclick="window.close()">إغلاق</button>
+  <div class="toolbar">
+    <button class="btn" onclick="window.print()">طباعة التقرير / حفظ PDF</button>
+    <button class="btn export" onclick="exportReportTablesCsv()">تصدير Excel / CSV</button>
+    <button class="btn secondary" onclick="window.close()">إغلاق</button>
   </div>
-  <div class="hdr">
-    <div><h1>${escapeHtml(reportTitle)}</h1><div class="meta">نظام متابعة وثائق وتفاويض وحوادث الأسطول</div></div>
-    <div class="meta">تاريخ التقرير: ${escapeHtml(generatedAt)}</div>
-  </div>
-  ${bodyHtml}
+  <main class="sheet">
+    <div class="brandline"></div>
+    <header class="masthead">
+      <div class="brand"><div class="brand-mark">FS</div><div><div class="brand-name">إدارة ومتابعة الأسطول</div><div class="brand-sub">نظام متابعة الوثائق والتفاويض والحوادث والعمليات التشغيلية</div></div></div>
+      <div class="report-tag">تقرير رسمي · للاستخدام الإداري</div>
+    </header>
+    <section class="title-row">
+      <div><h1>${escapeHtml(reportTitle)}</h1><div class="subtitle">تم إنشاء هذا التقرير آلياً من نظام متابعة الأسطول</div></div>
+      <div class="report-code">${escapeHtml(reportId)}<br/>Generated report</div>
+    </section>
+    <section class="meta-grid">
+      <div class="meta-card"><div class="meta-label">تاريخ ووقت الإصدار</div><div class="meta-value">${escapeHtml(generatedAt)}</div></div>
+      <div class="meta-card"><div class="meta-label">أُعد بواسطة</div><div class="meta-value">${escapeHtml(userLabel)}</div></div>
+      <div class="meta-card"><div class="meta-label">مرجع التقرير</div><div class="meta-value" dir="ltr">${escapeHtml(reportId)}</div></div>
+    </section>
+    <section class="summary-grid" id="reportSummary"></section>
+    <div class="report-tools"><input id="reportSearch" class="report-search" type="search" placeholder="ابحث داخل التقرير..." aria-label="البحث داخل التقرير" /><span class="report-count" id="reportVisibleCount">جارٍ تجهيز التقرير...</span></div>
+    <section class="report-content">${normalizedBody || '<div class="empty-state">لا توجد بيانات متاحة للعرض.</div>'}</section>
+    <footer class="report-footer"><span class="confidential">داخلي — للاستخدام الإداري</span><span>نظام متابعة الأسطول · ${escapeHtml(generatedAt)}</span><span>يرجى مراجعة البيانات قبل اعتمادها</span></footer>
+  </main>
+<script>
+  (function(){
+    const content=document.querySelector('.report-content');
+    const tables=[...(content?.querySelectorAll('table')||[])];
+    const rowCount=tables.reduce((n,t)=>n+Math.max(0,t.querySelectorAll('tbody tr').length),0);
+    const cellText=(el)=>((el?.textContent||'').trim());
+    const statusWords=[
+      {re:/(منتهي|مرفوض|راسب|ملغي|غير مسدد|غير مدفوع|متأخر|غير نشط|مغلق|متعطل|مرفوضة)/i,cls:'status-bad'},
+      {re:/(قريب من الانتهاء|قريب|تحذير|معلق|بانتظار|جزئي|قيد المراجعة|تحت الإجراء)/i,cls:'status-warn'},
+      {re:/(ساري|سليمة|ناجح|مسدد|مدفوع|مكتمل|نشط|معتمد|مفعل|تمت الموافقة)/i,cls:'status-good'},
+      {re:/(غير محدد|لا يوجد|جديد|معلومات|—)/i,cls:'status-info'}
+    ];
+    tables.forEach(table=>{
+      table.classList.add('report-table');
+      table.querySelectorAll('tbody td').forEach(td=>{
+        const raw=cellText(td); const match=raw.length<65 && statusWords.find(x=>x.re.test(raw));
+        if(match && !td.querySelector('.status-pill')) {
+          const span=document.createElement('span'); span.className='status-pill '+match.cls; span.textContent=raw; td.textContent=''; td.appendChild(span);
+        }
+      });
+    });
+    const summary=document.getElementById('reportSummary');
+    const statusCells=[...content.querySelectorAll('tbody td')].map(cellText);
+    const badCount=statusCells.filter(v=>statusWords[0].re.test(v)).length;
+    const warnCount=statusCells.filter(v=>statusWords[1].re.test(v)).length;
+    const goodCount=statusCells.filter(v=>statusWords[2].re.test(v)).length;
+    const cards=[['إجمالي السجلات',rowCount.toLocaleString('ar-SA')],['عدد الجداول',tables.length.toLocaleString('ar-SA')],['حالات تحتاج متابعة',(badCount+warnCount).toLocaleString('ar-SA')],['حالات سليمة',goodCount.toLocaleString('ar-SA')]];
+    summary.innerHTML=cards.map(([a,b])=>'<div class="summary-card"><div class="summary-label">'+a+'</div><div class="summary-value">'+b+'</div></div>').join('');
+    const search=document.getElementById('reportSearch');
+    const countLabel=document.getElementById('reportVisibleCount');
+    const updateSearch=()=>{ let visible=0; content.querySelectorAll('tbody tr').forEach(row=>{const show=row.textContent.toLocaleLowerCase().includes((search.value||'').trim().toLocaleLowerCase());row.hidden=!show;if(show)visible++;}); countLabel.textContent='السجلات الظاهرة: '+visible.toLocaleString('ar-SA')+' من '+rowCount.toLocaleString('ar-SA'); };
+    search?.addEventListener('input',updateSearch); updateSearch();
+  })();
+  function exportReportTablesCsv(){
+    const tables=[...document.querySelectorAll('.report-content table')];
+    if(!tables.length){alert('لا توجد جداول لتصديرها.');return;}
+    const csv=tables.map((table,index)=>{
+      const rows=[...table.querySelectorAll('tr')].map(tr=>[...tr.querySelectorAll('th,td')].map(td=>'"'+(td.innerText||'').replace(/"/g,'""').replace(/\s+/g,' ').trim()+'"').join(','));
+      return 'جدول '+(index+1)+'\r\n'+rows.join('\r\n');
+    }).join('\r\n\r\n');
+    const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8;'});
+    const url=URL.createObjectURL(blob); const a=document.createElement('a');
+    a.href=url; a.download='fleet-report-'+new Date().toISOString().slice(0,10)+'.csv';
+    document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  }
+<\/script>
 </body>
 </html>`);
       win.document.close();
@@ -7500,6 +7676,54 @@
       }
     }
 
+    function renderCentralReportCenter() {
+      const host = document.getElementById('centralReportStats');
+      if (!host) return;
+      const drivers = typeof buildAggregatedDriversList === 'function' ? buildAggregatedDriversList() : [];
+      const vehicles = Array.isArray(state.vehicles) ? state.vehicles : [];
+      const violations = Array.isArray(state.violations) ? state.violations : [];
+      const logs = Array.isArray(state.logs) ? state.logs : [];
+      const cards = [
+        { label: 'المركبات', value: vehicles.length, color: 'blue' },
+        { label: 'السائقون', value: drivers.length, color: 'indigo' },
+        { label: 'المخالفات', value: violations.length, color: 'rose' },
+        { label: 'عمليات التدقيق', value: logs.length, color: 'emerald' }
+      ];
+      host.innerHTML = cards.map(c => `<div class="rounded-xl border border-${c.color}-100 bg-${c.color}-50/70 p-3"><div class="text-[11px] font-bold text-slate-500">${c.label}</div><div class="text-xl font-extrabold text-slate-900 mt-1" dir="ltr">${Number(c.value).toLocaleString('en-US')}</div></div>`).join('');
+    }
+
+    function generateCentralReport(sectionKey) {
+      const permissionMap = { drivers: 'drivers', fuel_ops: 'fuel_ops', violations: 'violations', logs: 'logs', compliance: 'compliance' };
+      const targetPermission = permissionMap[sectionKey];
+      if (!targetPermission || !hasPermission(targetPermission, 'view')) {
+        showSystemBanner('ليس لديك صلاحية عرض بيانات هذا التقرير.', 'error');
+        return;
+      }
+      if (!hasPermission(targetPermission, 'print') && !hasPermission(targetPermission, 'export')) {
+        showSystemBanner('ليس لديك صلاحية طباعة أو تصدير تقارير هذا القسم.', 'error');
+        return;
+      }
+      const previousTab = activeMainTab;
+      const previousDocSection = activeDocSection;
+      if (sectionKey === 'compliance') {
+        const chosen = document.getElementById('centralReportDocSection')?.value || 'all';
+        activeDocSection = chosen;
+      }
+      activeMainTab = sectionKey === 'compliance' ? 'compliance' : sectionKey;
+      try {
+        const report = buildActiveTabScopedReport();
+        const meta = `${report.metaText} | إنشاء من مركز التقارير`;
+        openReportPrintWindow(report.title, `<p><strong>${escapeHtml(meta)}</strong></p>${report.tableHtml}`);
+        recordActionLog('إنشاء تقرير من مركز التقارير', report.fileName, meta).catch(() => {});
+      } catch (err) {
+        console.error('Central report error:', err);
+        showSystemBanner('تعذر إنشاء التقرير. راجع بيانات القسم وحاول مرة أخرى.', 'error');
+      } finally {
+        activeMainTab = previousTab;
+        activeDocSection = previousDocSection;
+      }
+    }
+
     // =========================================================================
     // 5. حصر الطباعة وتصدير PDF على القسم النشط والفلاتر الحالية فقط
     // =========================================================================
@@ -7609,42 +7833,10 @@
 
     exportCurrentSectionPdf = async function() {
       const rep = buildActiveTabScopedReport();
-      if (window.html2pdf) {
-        setLoading(true, `جاري إنشاء ملف PDF (${rep.title})...`);
-        try {
-          const container = document.createElement('div');
-          container.innerHTML = `<div dir="rtl" style="font-family:'Cairo',sans-serif;padding:16px;color:#0f172a;background:#fff;">
-            <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #0f172a;padding-bottom:8px;margin-bottom:12px;">
-              <div>
-                <h2 style="margin:0;font-size:16px;font-weight:800;">${escapeHtml(rep.title)}</h2>
-                <div style="font-size:11px;color:#475569;">${escapeHtml(rep.metaText)}</div>
-              </div>
-              <div style="font-size:11px;color:#475569;">${escapeHtml(new Date().toLocaleString('ar-SA'))}</div>
-            </div>
-            ${rep.tableHtml}
-          </div>`;
-          document.body.appendChild(container);
-          await window.html2pdf()
-            .set({
-              margin: 8,
-              filename: rep.fileName,
-              image: { type: 'jpeg', quality: 0.96 },
-              html2canvas: { scale: 2, useCORS: true, letterRendering: true },
-              jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
-            })
-            .from(container.firstElementChild)
-            .save();
-          container.remove();
-          await recordActionLog('تصدير PDF (القسم النشط)', rep.fileName, rep.metaText);
-          showSystemBanner(`تم تنزيل ملف PDF (${rep.fileName}) للقسم المحدد فقط.`, 'success');
-          return;
-        } catch {
-          showSystemBanner('تعذر التوليد المباشر لملف PDF؛ سيتم فتح نافذة الطباعة للقسم المحدد.', 'warning');
-        } finally {
-          setLoading(false);
-        }
-      }
-      printSectionTableReport();
+      const reportBody = `<p><strong>${escapeHtml(rep.metaText)}</strong></p>${rep.tableHtml}`;
+      openReportPrintWindow(rep.title, reportBody);
+      showSystemBanner('تم تجهيز التقرير. اختر «طباعة التقرير / حفظ PDF» ثم اختر Save as PDF من وجهة الطباعة.', 'success');
+      await recordActionLog('تجهيز تقرير للطباعة / PDF', rep.fileName, rep.metaText);
     };
 
     function printFuelSectionReport() {
