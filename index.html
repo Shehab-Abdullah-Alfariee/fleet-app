@@ -4449,81 +4449,142 @@ async function deleteVehicle(vehicleId) {
       reader.readAsArrayBuffer(file);
     }
 
-    function exportCurrentSectionExcel() {
-      if (!canSectionAction(activeDocSection, 'export')) {
-        showSystemBanner('ليس لديك صلاحية تصدير البيانات لهذا القسم.', 'error');
-        return;
+    function getFilteredSortedSectionVehicles() {
+  const isAccidents = activeDocSection === 'accidents';
+  const query = (document.getElementById('searchInput')?.value || '').trim().toLowerCase();
+  const statusFilter = document.getElementById('statusFilterSelect')?.value || 'all';
+  const baseList = getSectionVehiclesList(activeDocSection);
+
+  return baseList
+    .filter(v => {
+      const accReport = String(v.accidents?.reportNumber || '').toLowerCase();
+      const matchQuery = !query ||
+        String(v.plate_number || '').toLowerCase().includes(query) ||
+        String(v.vehicle_name || '').toLowerCase().includes(query) ||
+        String(v.assigned_driver || '').toLowerCase().includes(query) ||
+        accReport.includes(query);
+
+      const stCode = getVehicleSectionStatus(v, activeDocSection);
+      const matchStatus = statusFilter === 'all' || stCode === statusFilter;
+      return matchQuery && matchStatus;
+    })
+    .sort((a, b) => {
+      const pa = getStatusPriority(getVehicleSectionStatus(a, activeDocSection));
+      const pb = getStatusPriority(getVehicleSectionStatus(b, activeDocSection));
+      if (pa !== pb) return pa - pb;
+      if (isAccidents) {
+        return compareDateStringsAsc(b.accidents?.date || b.docs?.accidents || '', a.accidents?.date || a.docs?.accidents || '');
       }
-      if (!window.XLSX) {
-        showSystemBanner('تعذر تحميل مكتبة الإكسيل، تحقق من الاتصال بالإنترنت.', 'error');
-        return;
+      if (activeDocSection !== 'all') {
+        return compareDateStringsAsc(a.docs?.[activeDocSection] || '', b.docs?.[activeDocSection] || '');
       }
+      return 0;
+    });
+}
 
-      setLoading(true, 'جاري تجهيز وتصدير ملف الإكسيل...');
-      try {
-        const cfg = DOC_SECTION_CONFIG[activeDocSection] || DOC_SECTION_CONFIG.all;
-        const list = getSectionVehiclesList(activeDocSection);
+function exportCurrentSectionExcel() {
+  if (!canSectionAction(activeDocSection, 'export')) {
+    showSystemBanner('ليس لديك صلاحية تصدير البيانات لهذا القسم.', 'error');
+    return;
+  }
+  if (!window.XLSX) {
+    showSystemBanner('تعذر تحميل مكتبة الإكسيل، تحقق من الاتصال بالإنترنت.', 'error');
+    return;
+  }
 
-        const rows = list.map(v => {
-          if (activeDocSection === 'accidents') {
-            const acc = v.accidents || {};
-            const accEv = evaluateAccidentStatus(v);
-            return {
-              'رقم اللوحة': v.plate_number || '',
-              'السيارة / المركبة': v.vehicle_name || '',
-              'السائق / المفوّض': v.assigned_driver || '',
-              'تاريخ الحادث': acc.date || v.docs?.accidents || '',
-              'رقم التقرير (نجم / المرور)': acc.reportNumber || '',
-              'نسبة المسؤولية': acc.faultPercent || '',
-              'التكلفة (ر.س)': Number(acc.cost || 0),
-              'حالة الحادث': accEv.label
-            };
-          }
+  setLoading(true, 'جاري تجهيز وتصدير ملف الإكسيل حسب اختيارك...');
+  try {
+    const cfg = DOC_SECTION_CONFIG[activeDocSection] || DOC_SECTION_CONFIG.all;
+    const statusFilter = document.getElementById('statusFilterSelect')?.value || 'all';
+    const filteredList = getFilteredSortedSectionVehicles();
 
-          if (activeDocSection === 'all') {
-            const sAuth = evaluateDocDate(v.docs?.authorization);
-            const sReg = evaluateDocDate(v.docs?.registration);
-            const sInsp = evaluateDocDate(v.docs?.periodic_inspection);
-            const sIns = evaluateDocDate(v.docs?.insurance);
-            const sAcc = evaluateAccidentStatus(v);
-            return {
-              'رقم اللوحة': v.plate_number || '',
-              'السيارة / المركبة': v.vehicle_name || '',
-              'السائق / المفوّض': v.assigned_driver || '',
-              'انتهاء التفويض': v.docs?.authorization || '',
-              'حالة التفويض': sAuth.label,
-              'انتهاء رخصة السير': v.docs?.registration || '',
-              'حالة رخصة السير': sReg.label,
-              'انتهاء الفحص الدوري': v.docs?.periodic_inspection || '',
-              'حالة الفحص الدوري': sInsp.label,
-              'انتهاء التأمين': v.docs?.insurance || '',
-              'حالة التأمين': sIns.label,
-              'تاريخ الحادث': v.accidents?.date || v.docs?.accidents || '',
-              'حالة الحادث': sAcc.label
-            };
-          }
+    // إذا قام المستخدم بتحديد صفوف معينة بمربع الاختيار ضمن النتائج الظاهرة، يتم تصديرها فقط؛ وإلا تصدير كل النتائج المطابقة للفلتر
+    const checkedInView = filteredList.filter(v => selectedVehicleIds.has(String(v.id)));
+    const list = checkedInView.length > 0 ? checkedInView : filteredList;
 
-          const exp = v.docs?.[activeDocSection] || '';
-          const st = evaluateDocDate(exp);
-          return {
-            'رقم اللوحة': v.plate_number || '',
-            'السيارة / المركبة': v.vehicle_name || '',
-            'السائق / المفوّض': v.assigned_driver || '',
-            [`تاريخ انتهاء ${cfg.label}`]: exp,
-            [`حالة ${cfg.label}`]: st.label
-          };
-        });
-
-        const ws = XLSX.utils.json_to_sheet(rows);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, cfg.label.slice(0, 31));
-        XLSX.writeFile(wb, cfg.fileName);
-        showSystemBanner(`تم تصدير ملف إكسيل لقسم (${cfg.label}).`, 'success');
-      } finally {
-        setLoading(false);
-      }
+    if (!list.length) {
+      showSystemBanner('لا توجد سجلات مطابقة للاختيار الحالي لتصديرها.', 'warning');
+      return;
     }
 
+    const statusSuffixMap = {
+      all: '',
+      expired: '-expired',
+      expiring_soon: '-expiring-soon',
+      valid: '-valid'
+    };
+    const statusLabelMap = {
+      all: 'الكل',
+      expired: 'المنتهية',
+      expiring_soon: 'قريبة الانتهاء',
+      valid: 'السارية'
+    };
+
+    const rows = list.map(v => {
+      if (activeDocSection === 'accidents') {
+        const acc = v.accidents || {};
+        const accEv = evaluateAccidentStatus(v);
+        return {
+          'رقم اللوحة': v.plate_number || '',
+          'السيارة / المركبة': v.vehicle_name || '',
+          'السائق / المفوّض': v.assigned_driver || '',
+          'تاريخ الحادث': acc.date || v.docs?.accidents || '',
+          'رقم التقرير (نجم / المرور)': acc.reportNumber || '',
+          'نسبة المسؤولية': acc.faultPercent || '',
+          'التكلفة (ر.س)': Number(acc.cost || 0),
+          'حالة الحادث': accEv.label
+        };
+      }
+
+      if (activeDocSection === 'all') {
+        const sAuth = evaluateDocDate(v.docs?.authorization);
+        const sReg = evaluateDocDate(v.docs?.registration);
+        const sInsp = evaluateDocDate(v.docs?.periodic_inspection);
+        const sIns = evaluateDocDate(v.docs?.insurance);
+        const sAcc = evaluateAccidentStatus(v);
+        return {
+          'رقم اللوحة': v.plate_number || '',
+          'السيارة / المركبة': v.vehicle_name || '',
+          'السائق / المفوّض': v.assigned_driver || '',
+          'انتهاء التفويض': v.docs?.authorization || '',
+          'حالة التفويض': sAuth.label,
+          'انتهاء رخصة السير': v.docs?.registration || '',
+          'حالة رخصة السير': sReg.label,
+          'انتهاء الفحص الدوري': v.docs?.periodic_inspection || '',
+          'حالة الفحص الدوري': sInsp.label,
+          'انتهاء التأمين': v.docs?.insurance || '',
+          'حالة التأمين': sIns.label,
+          'تاريخ الحادث': v.accidents?.date || v.docs?.accidents || '',
+          'حالة الحادث': sAcc.label
+        };
+      }
+
+      const exp = v.docs?.[activeDocSection] || '';
+      const st = evaluateDocDate(exp);
+      return {
+        'رقم اللوحة': v.plate_number || '',
+        'السيارة / المركبة': v.vehicle_name || '',
+        'السائق / المفوّض': v.assigned_driver || '',
+        [`تاريخ انتهاء ${cfg.label}`]: exp,
+        [`حالة ${cfg.label}`]: st.label
+      };
+    });
+
+    const suffix = (statusSuffixMap[statusFilter] || '') + (checkedInView.length > 0 ? '-selected' : '');
+    const outFileName = cfg.fileName.replace(/\.xlsx$/i, `${suffix}.xlsx`);
+
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, cfg.label.slice(0, 31));
+    XLSX.writeFile(wb, outFileName);
+
+    const filterNote = statusFilter !== 'all' ? ` - حالة (${statusLabelMap[statusFilter]})` : '';
+    const selectionNote = checkedInView.length > 0 ? ' [المحددة يدوياً]' : '';
+    showSystemBanner(`تم تصدير (${list.length}) سجل من قسم (${cfg.label})${filterNote}${selectionNote}.`, 'success');
+  } finally {
+    setLoading(false);
+  }
+}
     // =========================================================================
     // منظومة الأمان، رسائل التأكيد الاحترافية، ومزايا التطوير الإضافية
     // =========================================================================
