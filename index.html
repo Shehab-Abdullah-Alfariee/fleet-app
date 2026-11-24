@@ -3432,89 +3432,146 @@
       }
     }
 
-    // حذف سجل من أي قسم = حذف المركبة نفسها بالكامل
-    async function deleteVehiclesBatch(idsList) {
-      if (!canDeleteRecords(activeDocSection)) {
-        showSystemBanner('ليس لديك صلاحية حذف المركبات في هذا القسم.', 'error');
-        return;
-      }
+    // حذف سجل من أي قسم = حذف المركبة  نفسها بالكامل ماعدا قسم الحوادث الذي يحذف السجل فقط مع الإبقاء على المركبة
+   async function deleteVehiclesBatch(idsList) {
+  if (!canDeleteRecords()) {
+    showSystemBanner('ليس لديك صلاحية حذف السجلات؛ هذا الحساب بصلاحية مشاهد (Viewer) فقط.', 'error');
+    return;
+  }
 
-      const uniqueIds = Array.from(new Set((idsList || []).map(String)));
-      if (!uniqueIds.length) return;
+  const uniqueIds = Array.from(new Set((idsList || []).map(String)));
+  if (!uniqueIds.length) return;
 
-      const cfg = DOC_SECTION_CONFIG[activeDocSection] || DOC_SECTION_CONFIG.all;
-      const deletedVehiclesInfo = (state.vehicles || [])
-        .filter(v => uniqueIds.includes(String(v.id)))
-        .map(v => `${v.vehicle_name || 'مركبة'} [${v.plate_number || ''}]`);
+  const cfg = DOC_SECTION_CONFIG[activeDocSection] || DOC_SECTION_CONFIG.all;
+  const isAccidentsSection = activeDocSection === 'accidents';
+  const isSectionOnly = activeDocSection !== 'all';
 
-      setLoading(true, `جاري حذف (${uniqueIds.length}) مركبة بالكامل من النظام...`);
+  setLoading(
+    true,
+    isAccidentsSection
+      ? `جاري حذف (${uniqueIds.length}) سجل حادث فقط مع الإبقاء على المركبات...`
+      : isSectionOnly
+        ? `جاري حذف (${uniqueIds.length}) سجل من قسم (${cfg.label})...`
+        : `جاري حذف (${uniqueIds.length}) مركبة...`
+  );
 
-      try {
-        if (isCloudMode() && sbClient) {
-          const CHUNK_SIZE = 100;
-          for (let start = 0; start < uniqueIds.length; start += CHUNK_SIZE) {
-            const chunkIds = uniqueIds.slice(start, start + CHUNK_SIZE);
-            await sbClient.from('vehicle_documents').delete().in('vehicle_id', chunkIds);
-            const { error: vErr } = await sbClient.from('vehicles').delete().in('id', chunkIds);
-            if (vErr) {
-              showSystemBanner(`تعذر حذف المركبات: ${vErr.message}`, 'error');
-              return;
-            }
+  try {
+    if (isCloudMode() && sbClient) {
+      const CHUNK_SIZE = 100;
+      for (let start = 0; start < uniqueIds.length; start += CHUNK_SIZE) {
+        const chunkIds = uniqueIds.slice(start, start + CHUNK_SIZE);
+
+        if (isSectionOnly) {
+          const { error: dErr } = await sbClient
+            .from('vehicle_documents')
+            .delete()
+            .in('vehicle_id', chunkIds)
+            .eq('doc_type', activeDocSection);
+
+          if (dErr) {
+            showSystemBanner(`تعذر حذف السجلات من القسم: ${dErr.message}`, 'error');
+            return;
           }
 
-          await recordActionLog(
-            `حذف مركبة من قسم (${cfg.label})`,
-            deletedVehiclesInfo.slice(0, 5).join('، ') || `${uniqueIds.length} مركبة`,
-            `تم حذف المركبة نفسها وجميع وثائقها من قسم: ${cfg.label}`
-          );
-
-          uniqueIds.forEach(id => selectedVehicleIds.delete(id));
-          await refreshCloudData(false, false);
+          if (isAccidentsSection) {
+            for (const id of chunkIds) {
+              const vObj = (state.vehicles || []).find(item => String(item.id) === String(id));
+              const cleanedNotes = stripAccidentPayloadFromNotes(vObj?.notes || '');
+              const { error: nErr } = await sbClient
+                .from('vehicles')
+                .update({ notes: cleanedNotes, updated_at: new Date().toISOString() })
+                .eq('id', id);
+              if (nErr) {
+                showSystemBanner(`تعذر إزالة بيانات الحادث من ملاحظات المركبة: ${nErr.message}`, 'error');
+                return;
+              }
+            }
+          }
         } else {
-          state.vehicles = (state.vehicles || []).filter(v => !uniqueIds.includes(String(v.id)));
-          uniqueIds.forEach(id => selectedVehicleIds.delete(id));
-          saveLocalState();
-          await recordActionLog(
-            `حذف مركبة من قسم (${cfg.label})`,
-            deletedVehiclesInfo.slice(0, 5).join('، ') || `${uniqueIds.length} مركبة`,
-            `تم حذف المركبة نفسها وجميع وثائقها من قسم: ${cfg.label}`
-          );
-          renderAll();
+          await sbClient.from('vehicle_documents').delete().in('vehicle_id', chunkIds);
+          const { error: vErr } = await sbClient.from('vehicles').delete().in('id', chunkIds);
+          if (vErr) {
+            showSystemBanner(`تعذر حذف المركبات: ${vErr.message}`, 'error');
+            return;
+          }
         }
-
-        showSystemBanner(
-          `تم حذف (${uniqueIds.length}) مركبة بالكامل من النظام (عبر قسم ${cfg.label}).`,
-          'success'
-        );
-      } finally {
-        setLoading(false);
       }
+
+      await recordActionLog(
+        isAccidentsSection ? 'حذف سجل حادث فقط' : (isSectionOnly ? `حذف جماعي (${cfg.label})` : 'حذف جماعي للمركبات'),
+        `${uniqueIds.length} عنصر`,
+        isAccidentsSection ? 'تم حذف سجل الحادث فقط والإبقاء على المركبة' : (isSectionOnly ? `إزالة سجل ${cfg.label}` : 'حذف كامل للمركبات')
+      );
+
+      uniqueIds.forEach(id => selectedVehicleIds.delete(id));
+      await refreshCloudData(false, false);
+    } else {
+      if (isSectionOnly) {
+        for (const v of state.vehicles || []) {
+          if (uniqueIds.includes(String(v.id))) {
+            if (v.docs) delete v.docs[activeDocSection];
+            if (isAccidentsSection) {
+              v.accidents = null;
+              v.notes = stripAccidentPayloadFromNotes(v.notes || '');
+            }
+          }
+        }
+      } else {
+        state.vehicles = (state.vehicles || []).filter(v => !uniqueIds.includes(String(v.id)));
+      }
+
+      uniqueIds.forEach(id => selectedVehicleIds.delete(id));
+      saveLocalState();
+      await recordActionLog(
+        isAccidentsSection ? 'حذف سجل حادث فقط' : (isSectionOnly ? `حذف جماعي (${cfg.label})` : 'حذف جماعي للمركبات'),
+        `${uniqueIds.length} عنصر`,
+        isAccidentsSection ? 'تم حذف سجل الحادث فقط والإبقاء على المركبة' : (isSectionOnly ? `إزالة سجل ${cfg.label}` : 'حذف كامل للمركبات')
+      );
+      renderAll();
     }
 
-    async function deleteVehicle(vehicleId) {
-      if (!canDeleteRecords(activeDocSection)) {
-        showSystemBanner('ليس لديك صلاحية حذف المركبات.', 'error');
-        return;
-      }
-      const target = (state.vehicles || []).find(v => String(v.id) === String(vehicleId));
-      const cfg = DOC_SECTION_CONFIG[activeDocSection] || DOC_SECTION_CONFIG.all;
+    showSystemBanner(
+      isAccidentsSection
+        ? `تم حذف (${uniqueIds.length}) سجل حادث فقط مع الإبقاء على المركبات كاملة.`
+        : isSectionOnly
+          ? `تم حذف (${uniqueIds.length}) سجل من قسم (${cfg.label}) بنجاح.`
+          : `تم حذف (${uniqueIds.length}) مركبة بنجاح.`,
+      'success'
+    );
+  } finally {
+    setLoading(false);
+  }
+}
+async function deleteVehicle(vehicleId) {
+  if (!canDeleteRecords()) {
+    showSystemBanner('ليس لديك صلاحية حذف السجلات؛ هذا الحساب بصلاحية مشاهد (Viewer) فقط.', 'error');
+    return;
+  }
+  const target = (state.vehicles || []).find(v => String(v.id) === String(vehicleId));
+  const cfg = DOC_SECTION_CONFIG[activeDocSection] || DOC_SECTION_CONFIG.all;
+  const isAccidentsSection = activeDocSection === 'accidents';
+  const isSectionOnly = activeDocSection !== 'all';
 
-      const ok = await openSecurityConfirmModal({
-        title: `تأكيد حذف المركبة نهائياً (من قسم ${cfg.label})`,
-        description: `تنبيه: الحذف من قسم (${cfg.label}) سيؤدي إلى حذف المركبة نفسها بالكامل وجميع وثائقها وسجلاتها في جميع الأقسام.`,
-        details: target ? [
-          `القسم المصدر: ${cfg.label}`,
-          `المركبة: ${target.vehicle_name || 'غير محدد'}`,
-          `رقم اللوحة: ${target.plate_number || 'غير محدد'}`,
-          `السائق: ${target.assigned_driver || 'غير محدد'}`
-        ] : [`القسم المصدر: ${cfg.label}`, `معرّف السجل: ${vehicleId}`],
-        confirmText: 'نعم، احذف المركبة بالكامل',
-        variant: 'danger'
-      });
-      if (!ok) return;
-      await deleteVehiclesBatch([vehicleId]);
-    }
-
+  const ok = await openSecurityConfirmModal({
+    title: isAccidentsSection
+      ? 'تأكيد حذف سجل الحادث فقط'
+      : (isSectionOnly ? `تأكيد حذف سجل (${cfg.label})` : 'تأكيد حذف المركبة نهائياً'),
+    description: isAccidentsSection
+      ? 'سيتم حذف سجل الحادث فقط مع الإبقاء على المركبة وجميع وثائقها وبياناتها دون حذف.'
+      : (isSectionOnly
+          ? `سيتم إزالة بيانات (${cfg.label}) لهذه المركبة مع الإبقاء على بقية أقسام المركبة.`
+          : 'سيتم حذف المركبة وجميع وثائقها المرتبطة بها نهائياً ولا يمكن التراجع عن هذا الإجراء.'),
+    details: target ? [
+      `المركبة: ${target.vehicle_name || 'غير محدد'}`,
+      `رقم اللوحة: ${target.plate_number || 'غير محدد'}`,
+      `السائق: ${target.assigned_driver || 'غير محدد'}`
+    ] : [`معرّف السجل: ${vehicleId}`],
+    confirmText: isAccidentsSection ? 'نعم، احذف سجل الحادث فقط' : 'نعم، احذف السجل',
+    variant: 'danger'
+  });
+  if (!ok) return;
+  await deleteVehiclesBatch([vehicleId]);
+}
     async function deleteSelectedVehicles() {
       if (!canDeleteRecords(activeDocSection)) {
         showSystemBanner('ليس لديك صلاحية حذف المركبات.', 'error');
