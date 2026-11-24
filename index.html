@@ -939,7 +939,86 @@
             </div>
             <span class="px-3 py-1.5 rounded-xl bg-blue-50 text-blue-700 border border-blue-100 text-xs font-bold">تقارير قابلة للطباعة والحفظ PDF</span>
           </div>
+          <div class="rounded-2xl border border-slate-200 bg-white p-4 space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-2"><h3 class="text-sm font-extrabold text-slate-800">إعدادات إصدار التقارير</h3><span class="text-[11px] text-slate-500">تُطبق على تقارير المركز والتقارير المطبوعة من الأقسام</span></div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <label class="text-xs font-bold text-slate-600">هوية التقرير
+                <select id="reportIdentityMode" class="form-input-pro mt-1 bg-white"><option value="system">هوية النظام</option><option value="company">هوية الشركة</option></select>
+              </label>
+              <label class="text-xs font-bold text-slate-600">نوع التقرير
+                <select id="reportAudienceMode" class="form-input-pro mt-1 bg-white"><option value="internal">داخلي — تفاصيل كاملة</option><option value="external">خارجي — تفاصيل انتقائية</option></select>
+              </label>
+              <label class="text-xs font-bold text-slate-600">اسم الشركة في التقرير
+                <input id="reportCompanyName" type="text" maxlength="100" class="form-input-pro mt-1 bg-white" placeholder="أدخل اسم الشركة" />
+              </label>
+            </div>
+            <div id="externalReportFields" class="hidden rounded-xl bg-slate-50 border border-slate-200 p-3 space-y-2">
+              <p class="text-xs font-extrabold text-slate-700">حدد أنواع التفاصيل المسموح بإظهارها في التقرير الخارجي</p>
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs text-slate-700">
+                <label class="flex items-center gap-2"><input type="checkbox" data-external-field="identity" /> بيانات الهوية والتواصل</label>
+                <label class="flex items-center gap-2"><input type="checkbox" data-external-field="financial" /> المبالغ والأرصدة</label>
+                <label class="flex items-center gap-2"><input type="checkbox" data-external-field="notes" /> الملاحظات والتفاصيل</label>
+                <label class="flex items-center gap-2"><input type="checkbox" data-external-field="audit" /> تفاصيل سجل العمليات</label>
+              </div>
+              <p class="text-[10px] text-slate-500">عند عدم تفعيل نوع من التفاصيل الحساسة، ستُحذف أعمدته من التقرير الخارجي تلقائياً.</p>
+            </div>
+            <p id="reportSettingsHint" class="text-[11px] text-slate-500">التقرير الداخلي يعرض البيانات وفق صلاحيات حسابك. راجع محتوى التقرير قبل مشاركته.</p>
+          </div>
+          <div class="rounded-2xl border border-blue-200 bg-gradient-to-l from-blue-50/80 to-white p-4 space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div><h3 class="text-sm font-extrabold text-slate-900">معالج إصدار التقرير</h3><p class="text-xs text-slate-500 mt-1">اختر القسم والفترة والهوية، ثم أنشئ المعاينة النهائية قبل التصدير.</p></div>
+              <span class="text-[11px] font-bold text-blue-700 bg-blue-100 px-3 py-1 rounded-full">6 مراحل موحدة</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
+              <label class="text-xs font-bold text-slate-600">1. القسم ونوع التقرير
+                <select id="reportWizardDepartment" class="form-input-pro mt-1 bg-white">
+                  <option value="compliance">التفاويض والوثائق والحوادث</option>
+                  <option value="drivers">السائقون والمفوّضون</option>
+                  <option value="fuel_ops">الوقود والرقابة التشغيلية</option>
+                  <option value="violations">المخالفات والتصاريح</option>
+                  <option value="logs">سجل العمليات والتدقيق</option>
+                </select>
+              </label>
+              <label class="text-xs font-bold text-slate-600">2. تصنيف التقرير
+                <select id="reportWizardScope" class="form-input-pro mt-1 bg-white">
+                  <option value="all">كل سجلات القسم ضمن الفترة</option>
+                  <option value="filtered">السجلات المطابقة لفلاتر القسم الحالية</option>
+                </select>
+              </label>
+              <label class="text-xs font-bold text-slate-600">3. الهوية
+                <select id="reportWizardIdentity" class="form-input-pro mt-1 bg-white">
+                  <option value="system">هوية النظام</option><option value="company">هوية الشركة</option>
+                </select>
+              </label>
+              <label class="text-xs font-bold text-slate-600">4. الجمهور
+                <select id="reportWizardAudience" class="form-input-pro mt-1 bg-white">
+                  <option value="internal">داخلي</option><option value="external">خارجي — مع تطبيق الخصوصية</option>
+                </select>
+              </label>
+            </div>
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <p class="text-[11px] text-slate-500">الفترة الزمنية وتفاصيل المشاركة تُؤخذ من إعدادات التقرير أعلاه. ستفتح المعاينة في نافذة مستقلة وبها جميع خيارات التصدير.</p>
+              <button type="button" onclick="generateReportFromWizard()" class="px-5 py-2.5 rounded-xl bg-blue-700 hover:bg-blue-800 text-white text-xs font-extrabold shadow-sm">5. إنشاء المعاينة النهائية</button>
+            </div>
+          </div>
           <div id="centralReportStats" class="grid grid-cols-2 md:grid-cols-4 gap-3"></div>
+          <div class="rounded-2xl border border-blue-100 bg-blue-50/40 p-4 space-y-3">
+            <div><h3 class="text-sm font-extrabold text-slate-800">الفترة الزمنية للتقارير والمقارنات</h3><p class="text-xs text-slate-500 mt-1">تُطبق الفترة على السجلات التي تحتوي على تاريخ حدث أو إنشاء موثوق.</p></div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
+              <label class="text-xs font-bold text-slate-600">من تاريخ<input id="centralReportFrom" type="date" class="form-input-pro mt-1 bg-white" /></label>
+              <label class="text-xs font-bold text-slate-600">إلى تاريخ<input id="centralReportTo" type="date" class="form-input-pro mt-1 bg-white" /></label>
+              <button type="button" onclick="renderCentralPeriodComparison('month')" class="px-3 py-2 rounded-xl bg-white border border-slate-200 text-slate-700 text-xs font-bold hover:bg-slate-100">مقارنة شهرية</button>
+              <button type="button" onclick="renderCentralPeriodComparison('year')" class="px-3 py-2 rounded-xl bg-white border border-slate-200 text-slate-700 text-xs font-bold hover:bg-slate-100">مقارنة سنوية</button>
+            </div>
+            <div id="centralPeriodComparison" class="overflow-x-auto"></div>
+          </div>
+          <div class="rounded-2xl border border-indigo-100 bg-indigo-50/30 p-4 space-y-3">
+            <h3 class="text-sm font-extrabold text-slate-800">التقارير التفصيلية</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div class="flex gap-2"><select id="centralReportVehicle" class="form-input-pro bg-white flex-1"><option value="">اختر المركبة</option></select><button type="button" onclick="generateEntityDetailReport('vehicle')" class="px-3 py-2 rounded-xl bg-indigo-600 text-white text-xs font-bold">تقرير المركبة</button></div>
+              <div class="flex gap-2"><select id="centralReportDriver" class="form-input-pro bg-white flex-1"><option value="">اختر السائق</option></select><button type="button" onclick="generateEntityDetailReport('driver')" class="px-3 py-2 rounded-xl bg-indigo-600 text-white text-xs font-bold">تقرير السائق</button></div>
+            </div>
+          </div>
           <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4 space-y-3">
             <h3 class="text-sm font-extrabold text-slate-800">تقرير الوثائق والحوادث</h3>
             <div class="flex flex-wrap items-center gap-2">
@@ -2668,12 +2747,14 @@
           return;
         }
 
-        const [vRes, dRes, uRes, lRes, drvRes] = await Promise.all([
+        const [vRes, dRes, uRes, lRes, drvRes, violationsRes, fuelTransactionsRes] = await Promise.all([
           fetchAllRowsFromTable('vehicles', 'created_at', false),
           fetchAllRowsFromTable('vehicle_documents', 'id', true),
           sbClient.from('app_users').select('*').order('created_at', { ascending: true }),
           sbClient.from('audit_logs').select('*').order('created_at', { ascending: false }).limit(150),
-          sbClient.from('drivers').select('*').order('created_at', { ascending: false })
+          sbClient.from('drivers').select('*').order('created_at', { ascending: false }),
+          fetchAllRowsFromTable('violations'),
+          fetchAllRowsFromTable('fuel_transactions')
         ]);
 
         await syncNotifiedExpiredFromCloud();
@@ -2733,6 +2814,19 @@
 
         if (drvRes && !drvRes.error && Array.isArray(drvRes.data)) {
           state.driversDirectory = drvRes.data;
+        }
+
+        // Load operational collections as well; otherwise cloud reports and comparisons
+        // would show empty/stale data after a fresh login or page reload.
+        if (violationsRes && !violationsRes.error && Array.isArray(violationsRes.data)) {
+          state.violations = violationsRes.data;
+        } else if (violationsRes?.error && showBanner) {
+          console.warn('تعذر تحميل المخالفات من Supabase:', violationsRes.error.message);
+        }
+        if (fuelTransactionsRes && !fuelTransactionsRes.error && Array.isArray(fuelTransactionsRes.data)) {
+          state.fuelTransactions = fuelTransactionsRes.data;
+        } else if (fuelTransactionsRes?.error && showBanner) {
+          console.warn('تعذر تحميل حركات الوقود من Supabase:', fuelTransactionsRes.error.message);
         }
 
         renderAll();
@@ -6580,16 +6674,87 @@
       `);
     }
 
-    function openReportPrintWindow(reportTitle, bodyHtml) {
+    function getCurrentReportSettings() {
+      const identity = document.getElementById('reportIdentityMode')?.value || localStorage.getItem('fleet_report_identity') || 'system';
+      const audience = document.getElementById('reportAudienceMode')?.value || localStorage.getItem('fleet_report_audience') || 'internal';
+      const companyName = (document.getElementById('reportCompanyName')?.value || localStorage.getItem('fleet_report_company') || '').trim().slice(0, 100);
+      const externalFields = {};
+      ['identity','financial','notes','audit'].forEach(key => {
+        const control = document.querySelector(`[data-external-field="${key}"]`);
+        externalFields[key] = !!control?.checked;
+      });
+      return { identity, audience, companyName, externalFields };
+    }
+
+    function applyExternalReportColumnPolicy(bodyHtml, settings) {
+      if (settings.audience !== 'external') return String(bodyHtml || '');
+      const host = document.createElement('div');
+      host.innerHTML = String(bodyHtml || '');
+      const fields = settings.externalFields || {};
+      const rules = [
+        { key: 'identity', re: /(السائق|اسم السائق|رقم الهوية|الهوية الوطنية|الإقامة|رقم الإقامة|الجوال|رقم الجوال|الهاتف|البريد الإلكتروني|driver|email|phone|national.?id|iqama)/i },
+        { key: 'financial', re: /(المبلغ|التكلفة|الرصيد|القيمة المالية|السعر|الغرامة|sar|amount|balance|cost|price|fine)/i },
+        { key: 'notes', re: /(ملاحظات|الوصف|التفاصيل الإضافية|notes|description)/i },
+        { key: 'audit', re: /(المستخدم|الدور|الإجراء|العملية|التوقيت|تفاصيل العملية|actor|user|role|action|created.?at)/i }
+      ];
+
+      host.querySelectorAll('table').forEach(table => {
+        const allRows = [...table.querySelectorAll('tr')];
+        const headerRow = table.querySelector('thead tr') || allRows[0];
+        if (!headerRow) return;
+        const headerLabels = [...headerRow.children].map(cell => (cell.textContent || '').trim());
+        const isKeyValueTable = headerLabels.length >= 2 &&
+          /(البيان|الحقل|البند|المعلومة|field|item|attribute)/i.test(headerLabels[0]) &&
+          /(التفاصيل|القيمة|البيانات|detail|value)/i.test(headerLabels[1]);
+
+        if (isKeyValueTable) {
+          const bodyRows = [...table.querySelectorAll('tbody tr')];
+          bodyRows.forEach(row => {
+            const label = (row.children[0]?.textContent || '').trim();
+            const matched = rules.find(rule => rule.re.test(label));
+            if (matched && fields[matched.key] !== true) row.remove();
+          });
+          return;
+        }
+
+        const removeIndexes = [];
+        headerLabels.forEach((label, index) => {
+          const matched = rules.find(rule => rule.re.test(label));
+          if (matched && fields[matched.key] !== true) removeIndexes.push(index);
+        });
+        if (!removeIndexes.length) return;
+        allRows.forEach(row => {
+          [...removeIndexes].reverse().forEach(index => row.children[index]?.remove());
+        });
+      });
+
+      // Do not disclose the report creator in external report metadata unless explicitly allowed.
+      if (fields.identity !== true) {
+        host.querySelectorAll('p').forEach(paragraph => {
+          if (/(إعداد|أُعد بواسطة|prepared by)\s*[:：]/i.test(paragraph.textContent || '')) paragraph.remove();
+        });
+      }
+      return host.innerHTML;
+    }
+
+    function openReportPrintWindow(reportTitle, bodyHtml, reportOptions = {}) {
+      const settings = { ...getCurrentReportSettings(), ...(reportOptions || {}) };
+      const preparedBody = applyExternalReportColumnPolicy(bodyHtml, settings);
+      const identityIsCompany = settings.identity === 'company';
+      const reportBrandName = identityIsCompany ? settings.companyName : 'إدارة ومتابعة الأسطول';
+      const reportBrandMark = identityIsCompany ? 'CO' : 'FS';
+      const audienceLabel = settings.audience === 'external' ? 'تقرير خارجي' : 'تقرير داخلي';
+      const confidentialityLabel = settings.audience === 'external' ? 'خارجي — للمشاركة حسب الغرض المحدد' : 'داخلي — للاستخدام الإداري';
+      if (identityIsCompany && !settings.companyName) { showSystemBanner('أدخل اسم الشركة في إعدادات التقارير قبل استخدام هوية الشركة.', 'warning'); return; }
       const win = window.open('', '_blank', 'width=1100,height=850');
       if (!win) {
         showSystemBanner('يرجى السماح بالنوافذ المنبثقة لفتح التقرير.', 'warning');
         return;
       }
       const generatedAt = new Date().toLocaleString('ar-SA', { dateStyle: 'medium', timeStyle: 'short' });
-      const userLabel = currentUser?.full_name || currentUser?.email || 'مستخدم النظام';
+      const userLabel = settings.audience === 'external' && settings.externalFields?.identity !== true ? 'إدارة الأسطول' : (currentUser?.full_name || currentUser?.email || 'مستخدم النظام');
       const reportId = `RPT-${new Date().toISOString().replace(/[-:TZ.]/g, '').slice(0, 14)}`;
-      const normalizedBody = String(bodyHtml || '').replace(/<table(?![^>]*class=)/gi, '<table class="report-table"');
+      const normalizedBody = String(preparedBody || '').replace(/<table(?![^>]*class=)/gi, '<table class="report-table"');
       win.document.open();
       win.document.write(`<!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -6598,102 +6763,48 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>${escapeHtml(reportTitle)}</title>
   <style>
-    /* خطوط عربية محلية لضمان عدم الاعتماد على اتصال خارجي أثناء الطباعة */
-    :root { --navy:#10243e; --blue:#1d4ed8; --teal:#0f766e; --line:#d8e1ec; --muted:#64748b; --paper:#fff; }
-    * { box-sizing:border-box; }
-    html { background:#eef2f7; }
-    body { margin:0; padding:26px; color:#172033; background:#eef2f7; font-family:'Segoe UI',Tahoma,'Arial',sans-serif; font-size:12px; line-height:1.85; -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility; }
-    .sheet { max-width:1180px; margin:0 auto; background:var(--paper); padding:28px 30px; border:1px solid #dce4ee; box-shadow:0 12px 36px rgba(15,23,42,.09); }
-    .toolbar { max-width:1180px; margin:0 auto 14px; display:flex; gap:9px; justify-content:flex-start; }
-    .btn { border:0; border-radius:9px; padding:9px 17px; color:#fff; background:var(--navy); font:700 12px 'Segoe UI',Tahoma,Arial,sans-serif; cursor:pointer; }
-    .btn.secondary { color:var(--navy); background:#fff; border:1px solid #cbd5e1; }
-    .brandline { height:6px; margin:-28px -30px 22px; background:linear-gradient(90deg,#0f766e,#2563eb,#10243e); }
-    .masthead { display:flex; align-items:center; justify-content:space-between; gap:20px; padding-bottom:17px; border-bottom:2px solid var(--navy); }
-    .brand { display:flex; align-items:center; gap:12px; }
-    .brand-mark { width:48px; height:48px; border-radius:13px; display:grid; place-items:center; color:#fff; background:linear-gradient(135deg,#1d4ed8,#0f766e); font-weight:900; font-size:17px; letter-spacing:.5px; }
-    .brand-name { color:var(--navy); font-size:14px; font-weight:900; }
-    .brand-sub { color:var(--muted); font-size:10px; }
-    .report-tag { padding:5px 11px; border:1px solid #bfdbfe; border-radius:999px; color:#1e40af; background:#eff6ff; font-size:10px; font-weight:800; white-space:nowrap; }
-    .title-row { display:flex; justify-content:space-between; align-items:flex-start; gap:15px; margin:21px 0 14px; }
-    h1 { margin:0 0 4px; color:var(--navy); font-size:21px; line-height:1.5; font-weight:900; }
-    .subtitle { color:var(--muted); font-size:10px; }
-    .report-code { text-align:left; color:var(--muted); font-size:10px; direction:ltr; }
-    .meta-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:9px; margin:15px 0 20px; }
-    .meta-card { padding:9px 12px; border:1px solid var(--line); border-radius:9px; background:#f8fafc; }
-    .meta-label { color:var(--muted); font-size:9px; }
-    .meta-value { color:var(--navy); font-size:11px; font-weight:800; overflow-wrap:anywhere; }
-    .report-content { min-height:100px; }
-    .report-tools { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin:0 0 12px; padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:#f8fafc; }
-    .report-search { min-width:220px; max-width:420px; flex:1; border:1px solid #cbd5e1; border-radius:8px; padding:8px 10px; font:inherit; background:#fff; color:#172033; }
-    .report-count { color:var(--muted); font-size:10px; font-weight:800; }
-    .report-content table { min-width:100%; }
-    .report-content th { white-space:normal; }
-    .report-content td { max-width:260px; }
-    .report-content .status-pill { line-height:1.6; }
-    .report-footer span { overflow-wrap:anywhere; }
-    .summary-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:9px; margin:14px 0 18px; }
-    .summary-card { border:1px solid var(--line); border-right:4px solid var(--blue); border-radius:10px; padding:10px 12px; background:linear-gradient(135deg,#fff,#f7faff); }
-    .summary-card:nth-child(2) { border-right-color:#0f766e; } .summary-card:nth-child(3) { border-right-color:#d97706; } .summary-card:nth-child(4) { border-right-color:#7c3aed; }
-    .summary-label { color:var(--muted); font-size:9px; font-weight:700; } .summary-value { color:var(--navy); font-size:17px; font-weight:900; line-height:1.5; }
-    .status-pill { display:inline-block; padding:2px 8px; border-radius:999px; font-size:9px; font-weight:800; white-space:nowrap; border:1px solid transparent; }
-    .status-good { color:#166534; background:#dcfce7; border-color:#bbf7d0; } .status-warn { color:#92400e; background:#fef3c7; border-color:#fde68a; } .status-bad { color:#991b1b; background:#fee2e2; border-color:#fecaca; } .status-info { color:#1e40af; background:#dbeafe; border-color:#bfdbfe; }
-    .section-note { padding:9px 12px; margin:12px 0; border-right:3px solid var(--teal); background:#f0fdfa; color:#115e59; border-radius:7px; font-size:10px; }
-    .toolbar .btn.export { background:#0f766e; }
-    .toolbar .btn:focus-visible,.report-search:focus-visible { outline:3px solid #93c5fd; outline-offset:2px; }
-    .report-content p { margin:9px 0 13px; }
-    h2,h3 { color:var(--navy); font-weight:900; page-break-after:avoid; }
-    h3 { font-size:13px; margin:19px 0 8px; padding-right:9px; border-right:4px solid var(--teal); }
-    table,.report-table { width:100%; border-collapse:collapse; margin:10px 0 18px; font-size:10px; table-layout:auto; }
-    thead { display:table-header-group; }
-    tfoot { display:table-footer-group; }
-    tr { page-break-inside:avoid; }
-    th,td { border:1px solid var(--line); padding:7px 8px; text-align:right; vertical-align:middle; overflow-wrap:anywhere; }
-    th { color:#fff; background:var(--navy); font-weight:800; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-    tbody tr:nth-child(even) { background:#f4f7fb; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-    tbody tr:hover { background:#eff6ff; }
-    td[dir="ltr"], [dir="ltr"] { direction:ltr; unicode-bidi:embed; text-align:left; }
-    .empty-state { padding:20px; text-align:center; color:var(--muted); background:#f8fafc; border:1px dashed var(--line); border-radius:10px; }
-    .report-footer { display:flex; justify-content:space-between; gap:12px; margin-top:25px; padding-top:10px; border-top:1px solid var(--line); color:var(--muted); font-size:9px; }
-    .confidential { color:#0f766e; font-weight:800; }
-    @page { size:A4 landscape; margin:12mm 10mm 15mm; @bottom-left { content:'صفحة ' counter(page) ' من ' counter(pages); color:#64748b; font:9px Tahoma,Arial,sans-serif; } }
-    @media print {
-      html,body { background:#fff !important; padding:0; }
-      .toolbar,.report-tools { display:none !important; }
-      .summary-card,.meta-card,.status-pill,.section-note { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-      .report-footer { position:relative; break-inside:avoid; }
-      h1,h2,h3 { break-after:avoid; }
-      table { break-inside:auto; }
-      tr,td,th { break-inside:avoid; }
-      .summary-grid { grid-template-columns:repeat(4,minmax(0,1fr)); }
-      .sheet { max-width:none; margin:0; padding:0; border:0; box-shadow:none; }
-      .report-content { font-size:10pt; }
-      .brandline { margin:0 0 16px; }
-      th { background:#e8eef6 !important; color:#10243e !important; }
-      tbody tr:nth-child(even) { background:#f7f9fc !important; }
-      a { color:inherit; text-decoration:none; }
-    }
-    @media screen and (max-width:700px) {
-      body { padding:8px; } .sheet { padding:17px; } .brandline { margin:-17px -17px 15px; }
-      .meta-grid { grid-template-columns:1fr; } .summary-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .title-row { flex-direction:column; }
-      table { font-size:9px; } th,td { padding:5px; }
-      .report-search { min-width:100%; }
-    }
+    :root{--ink:#172a26;--forest:#17483d;--forest2:#236456;--jade:#dcece5;--copper:#c28b55;--sand:#f5f1e9;--paper:#fffefa;--line:#e4e0d6;--muted:#78827b;--red:#a83f3f;--amber:#a66b20;--blue:#315e78}
+    *{box-sizing:border-box}
+    html{background:#e9e6df}
+    body{margin:0;padding:28px;color:var(--ink);background:linear-gradient(135deg,#e9e6df,#f4f1eb);font-family:"Segoe UI",Tahoma,Arial,sans-serif;font-size:12px;line-height:1.8}
+    .toolbar{max-width:1220px;margin:0 auto 16px;display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-start}
+    .btn{border:0;border-radius:7px;padding:10px 16px;color:#fff;background:var(--forest);font:700 12px inherit;cursor:pointer;box-shadow:0 3px 8px #173d321c;transition:.18s}
+    .btn:hover{background:var(--forest2);transform:translateY(-1px)}.btn.export{background:#a66b35}.btn.secondary{background:#fff;color:var(--ink);border:1px solid var(--line);box-shadow:none}
+    .sheet{max-width:1220px;margin:auto;background:var(--paper);border:1px solid #ded9ce;box-shadow:0 18px 55px #26352d20;position:relative;overflow:hidden}
+    .brandline{height:7px;background:linear-gradient(90deg,var(--copper) 0 18%,var(--forest) 18% 100%);margin:0}
+    .masthead{background:var(--forest);color:#fff;padding:23px 34px;display:flex;justify-content:space-between;align-items:center;gap:18px;position:relative;overflow:hidden}
+    .masthead:after{content:"";position:absolute;width:300px;height:300px;border:1px solid #ffffff20;border-radius:50%;left:-90px;top:-190px;box-shadow:0 0 0 28px #ffffff09,0 0 0 58px #ffffff07}
+    .brand{display:flex;align-items:center;gap:14px;position:relative;z-index:1}.brand-mark{width:52px;height:52px;display:grid;place-items:center;border:1px solid #ffffff75;border-radius:4px;color:#fff;font-size:15px;font-weight:900;letter-spacing:1px;background:#ffffff12}
+    .brand-name{color:#fff;font-size:16px;font-weight:900;letter-spacing:.2px}.brand-sub{color:#d1e1da;font-size:10px;margin-top:2px}.report-tag{position:relative;z-index:1;border:1px solid #d5b48d;color:#f7e4cb;padding:7px 13px;font-size:10px;font-weight:800;letter-spacing:.3px}
+    .title-row{margin:0;padding:28px 34px 20px;display:flex;align-items:flex-end;justify-content:space-between;gap:18px;border-bottom:1px solid var(--line);background:linear-gradient(110deg,#fffefa,#f7f5ef)}
+    h1{margin:0;color:var(--forest);font-size:25px;line-height:1.45;font-weight:900}.subtitle{color:var(--muted);font-size:10px;margin-top:5px}.report-code{direction:ltr;text-align:left;color:var(--forest);font:700 10px Consolas,monospace;border-left:3px solid var(--copper);padding:7px 10px;background:#f2eee5;white-space:nowrap}
+    .meta-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;margin:0 34px;padding:17px 0;border-bottom:1px solid var(--line)}.meta-card{padding:5px 16px;border-right:1px solid var(--line)}.meta-card:first-child{padding-right:0;border-right:0}.meta-label{font-size:9px;color:var(--muted);font-weight:700}.meta-value{font-size:11px;color:var(--ink);font-weight:800;margin-top:3px;overflow-wrap:anywhere}
+    .summary-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px;margin:20px 34px 22px}.summary-card{background:#f6f4ed;border:1px solid #e8e2d5;border-top:3px solid var(--forest);padding:12px 14px;min-height:83px}.summary-card:nth-child(2){border-top-color:var(--copper)}.summary-card:nth-child(3){border-top-color:var(--red)}.summary-card:nth-child(4){border-top-color:var(--blue)}.summary-label{font-size:9px;color:var(--muted);font-weight:700}.summary-value{font-size:23px;line-height:1.4;color:var(--forest);font-weight:900;margin-top:4px}
+    .report-tools{margin:0 34px 14px;padding:9px 12px;background:#f3f1ea;border:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:12px}.report-search{min-width:220px;max-width:440px;flex:1;padding:9px 12px;border:1px solid #d6d1c5;background:#fffefa;border-radius:4px;font:inherit;color:var(--ink)}.report-count{font-size:10px;color:var(--forest);font-weight:800}
+    .report-content{padding:0 34px 28px;min-height:100px}.report-content h2,.report-content h3{color:var(--forest);font-weight:900}.report-content h3{font-size:14px;margin:25px 0 10px;padding:8px 12px;background:#edf3ef;border-right:4px solid var(--copper);border-radius:0}.report-content p{margin:10px 0 15px}.report-content table{width:100%;border-collapse:collapse;margin:12px 0 22px;font-size:10px;border:1px solid var(--line)}.report-content thead{display:table-header-group}.report-content th{padding:10px 9px;background:var(--forest);color:#fff;text-align:right;font-weight:800;border:1px solid #315d52;white-space:normal;-webkit-print-color-adjust:exact;print-color-adjust:exact}.report-content td{padding:8px 9px;border:1px solid var(--line);text-align:right;vertical-align:middle;overflow-wrap:anywhere}.report-content tbody tr:nth-child(even){background:#f5f4ee;-webkit-print-color-adjust:exact;print-color-adjust:exact}.report-content tbody tr:hover{background:#eaf2ed}.report-content td[dir="ltr"],[dir="ltr"]{direction:ltr;unicode-bidi:embed;text-align:left}.report-content tr{break-inside:avoid;page-break-inside:avoid}.report-content section,.report-content .summary-card,.report-content .section-note{break-inside:avoid}.status-pill{display:inline-block;border-radius:3px;padding:3px 8px;font-size:9px;font-weight:800;border:1px solid transparent}.status-good{color:#176044;background:#e3f1e9;border-color:#c3dfce}.status-warn{color:#8a591d;background:#fbf0dc;border-color:#ead7b1}.status-bad{color:#973b3b;background:#f8e7e4;border-color:#eac8c2}.status-info{color:#315e78;background:#e8eff3;border-color:#cbdce5}.status-neutral{color:#626b65;background:#ecece7;border-color:#d9dad2}.section-note{margin:14px 0;padding:11px 14px;background:#f4f0e7;border-right:3px solid var(--copper);color:#6f563c}.empty-state{padding:24px;text-align:center;border:1px dashed #cfc9bc;color:var(--muted);background:#f8f6f0}.report-footer{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:0 34px;padding:14px 0 20px;border-top:1px solid var(--line);color:var(--muted);font-size:9px}.confidential{color:var(--forest);font-weight:900;background:var(--jade);padding:4px 8px}.toolbar .btn:focus-visible,.report-search:focus-visible{outline:3px solid #c28b55;outline-offset:2px}
+    @page{size:A4 landscape;margin:12mm 10mm 15mm;@bottom-left{content:"صفحة " counter(page) " من " counter(pages);color:#78827b;font:9px Tahoma,Arial,sans-serif}}
+    @media print{html,body{background:#fff!important;padding:0}.toolbar,.report-tools{display:none!important}.sheet{max-width:none;margin:0;border:0;box-shadow:none}.masthead{-webkit-print-color-adjust:exact;print-color-adjust:exact}.report-content th,.summary-card,.meta-card,.status-pill,.section-note{print-color-adjust:exact;-webkit-print-color-adjust:exact}.report-content table{break-inside:auto}.report-content thead{display:table-header-group}.report-content tr{break-inside:avoid;page-break-inside:avoid}.report-footer{break-inside:avoid}h1,h2,h3{break-after:avoid}}
+    @media(max-width:760px){body{padding:8px}.masthead,.title-row{padding:18px;align-items:flex-start;flex-direction:column}.meta-grid{grid-template-columns:1fr;margin:0 18px}.meta-card,.meta-card:first-child{padding:8px 0;border:0;border-bottom:1px solid var(--line)}.summary-grid{grid-template-columns:repeat(2,minmax(0,1fr));margin:16px 18px}.report-tools{margin:0 18px 12px;flex-direction:column;align-items:stretch}.report-search{min-width:0;max-width:none}.report-content{padding:0 18px 20px;overflow-x:auto}.report-footer{margin:0 18px;flex-wrap:wrap}.report-content table{min-width:650px}}
   </style>
 </head>
 <body>
   <div class="toolbar">
-    <button class="btn" onclick="window.print()">طباعة التقرير / حفظ PDF</button>
-    <button class="btn export" onclick="exportReportTablesCsv()">تصدير Excel / CSV</button>
+    <button class="btn" onclick="window.print()">طباعة التقرير</button>
+    <button class="btn export" onclick="exportReportPdf()">تنزيل PDF</button>
+    <button class="btn export" onclick="exportReportTablesExcel()">تصدير Excel</button>
+    <button class="btn export" onclick="exportReportTablesCsv()">تصدير CSV</button>
+    <button class="btn export" onclick="exportReportHtml()">تصدير HTML</button>
+    <button class="btn export" onclick="exportReportJson()">تصدير JSON</button>
     <button class="btn secondary" onclick="window.close()">إغلاق</button>
   </div>
   <main class="sheet">
     <div class="brandline"></div>
     <header class="masthead">
-      <div class="brand"><div class="brand-mark">FS</div><div><div class="brand-name">إدارة ومتابعة الأسطول</div><div class="brand-sub">نظام متابعة الوثائق والتفاويض والحوادث والعمليات التشغيلية</div></div></div>
-      <div class="report-tag">تقرير رسمي · للاستخدام الإداري</div>
+      <div class="brand"><div class="brand-mark">${escapeHtml(reportBrandMark)}</div><div><div class="brand-name">${escapeHtml(reportBrandName)}</div><div class="brand-sub">تقارير الأداء والمتابعة التشغيلية</div></div></div>
+      <div class="report-tag">${escapeHtml(audienceLabel)} · نسخة معتمدة للعرض</div>
     </header>
     <section class="title-row">
-      <div><h1>${escapeHtml(reportTitle)}</h1><div class="subtitle">تم إنشاء هذا التقرير آلياً من نظام متابعة الأسطول</div></div>
+      <div><div style="color:#a66b35;font-size:9px;font-weight:900;letter-spacing:1.5px;margin-bottom:5px">REPORT / تقرير رسمي</div><h1>${escapeHtml(reportTitle)}</h1><div class="subtitle">ملخص تنفيذي موثق · نظام متابعة الأسطول</div></div>
       <div class="report-code">${escapeHtml(reportId)}<br/>Generated report</div>
     </section>
     <section class="meta-grid">
@@ -6704,7 +6815,7 @@
     <section class="summary-grid" id="reportSummary"></section>
     <div class="report-tools"><input id="reportSearch" class="report-search" type="search" placeholder="ابحث داخل التقرير..." aria-label="البحث داخل التقرير" /><span class="report-count" id="reportVisibleCount">جارٍ تجهيز التقرير...</span></div>
     <section class="report-content">${normalizedBody || '<div class="empty-state">لا توجد بيانات متاحة للعرض.</div>'}</section>
-    <footer class="report-footer"><span class="confidential">داخلي — للاستخدام الإداري</span><span>نظام متابعة الأسطول · ${escapeHtml(generatedAt)}</span><span>يرجى مراجعة البيانات قبل اعتمادها</span></footer>
+    <footer class="report-footer"><span class="confidential">${escapeHtml(confidentialityLabel)}</span><span>${escapeHtml(reportBrandName)} · ${escapeHtml(generatedAt)}</span><span>يرجى مراجعة البيانات قبل مشاركتها</span></footer>
   </main>
 <script>
   (function(){
@@ -6713,10 +6824,12 @@
     const rowCount=tables.reduce((n,t)=>n+Math.max(0,t.querySelectorAll('tbody tr').length),0);
     const cellText=(el)=>((el?.textContent||'').trim());
     const statusWords=[
-      {re:/(منتهي|مرفوض|راسب|ملغي|غير مسدد|غير مدفوع|متأخر|غير نشط|مغلق|متعطل|مرفوضة)/i,cls:'status-bad'},
-      {re:/(قريب من الانتهاء|قريب|تحذير|معلق|بانتظار|جزئي|قيد المراجعة|تحت الإجراء)/i,cls:'status-warn'},
+      {re:/(ملغي|ملغاة|غير نشط|غير مفعّل|موقوف|معطل)/i,cls:'status-neutral'},
+      {re:/(منتهي|مرفوض|راسب|غير ساري|غير مكتمل|غير مسدد|غير مدفوع|متأخر|مخالفة|مرفوضة|متعثر)/i,cls:'status-bad'},
+      {re:/(قريب من الانتهاء|قريب|تحذير|يحتاج متابعة|بانتظار|جزئي|قيد الاعتراض)/i,cls:'status-warn'},
+      {re:/(قيد الإجراء|قيد الاجراء|قيد المراجعة|تحت الإجراء|تحت الاجراء|جاري التنفيذ|قيد التنفيذ|جديد)/i,cls:'status-info'},
       {re:/(ساري|سليمة|ناجح|مسدد|مدفوع|مكتمل|نشط|معتمد|مفعل|تمت الموافقة)/i,cls:'status-good'},
-      {re:/(غير محدد|لا يوجد|جديد|معلومات|—)/i,cls:'status-info'}
+      {re:/(غير محدد|لا يوجد|معلومات|—)/i,cls:'status-neutral'}
     ];
     tables.forEach(table=>{
       table.classList.add('report-table');
@@ -6729,9 +6842,9 @@
     });
     const summary=document.getElementById('reportSummary');
     const statusCells=[...content.querySelectorAll('tbody td')].map(cellText);
-    const badCount=statusCells.filter(v=>statusWords[0].re.test(v)).length;
-    const warnCount=statusCells.filter(v=>statusWords[1].re.test(v)).length;
-    const goodCount=statusCells.filter(v=>statusWords[2].re.test(v)).length;
+    const badCount=statusCells.filter(v=>statusWords.find(x=>x.re.test(v))?.cls==='status-bad').length;
+    const warnCount=statusCells.filter(v=>statusWords.find(x=>x.re.test(v))?.cls==='status-warn').length;
+    const goodCount=statusCells.filter(v=>statusWords.find(x=>x.re.test(v))?.cls==='status-good').length;
     const cards=[['إجمالي السجلات',rowCount.toLocaleString('ar-SA')],['عدد الجداول',tables.length.toLocaleString('ar-SA')],['حالات تحتاج متابعة',(badCount+warnCount).toLocaleString('ar-SA')],['حالات سليمة',goodCount.toLocaleString('ar-SA')]];
     summary.innerHTML=cards.map(([a,b])=>'<div class="summary-card"><div class="summary-label">'+a+'</div><div class="summary-value">'+b+'</div></div>').join('');
     const search=document.getElementById('reportSearch');
@@ -6739,11 +6852,40 @@
     const updateSearch=()=>{ let visible=0; content.querySelectorAll('tbody tr').forEach(row=>{const show=row.textContent.toLocaleLowerCase().includes((search.value||'').trim().toLocaleLowerCase());row.hidden=!show;if(show)visible++;}); countLabel.textContent='السجلات الظاهرة: '+visible.toLocaleString('ar-SA')+' من '+rowCount.toLocaleString('ar-SA'); };
     search?.addEventListener('input',updateSearch); updateSearch();
   })();
+  function exportReportPdf(){
+    const exporter=window.opener && window.opener.html2pdf;
+    const target=document.querySelector('.sheet');
+    if(!exporter || !target){alert('تعذر العثور على أداة PDF. يمكنك استخدام الطباعة ثم اختيار حفظ بصيغة PDF.');return;}
+    const safeName=(document.title||'fleet-report').replace(/[\\/:*?"<>|]+/g,'-').slice(0,90);
+    exporter().set({
+      margin:8,
+      filename:safeName+'-'+new Date().toISOString().slice(0,10)+'.pdf',
+      image:{type:'jpeg',quality:0.96},
+      html2canvas:{scale:2,useCORS:true,letterRendering:true,scrollY:0},
+      jsPDF:{unit:'mm',format:'a4',orientation:'landscape'}
+    }).from(target).save().catch(()=>alert('تعذر إنشاء PDF. استخدم الطباعة ثم اختر حفظ بصيغة PDF.'));
+  }
+  function exportReportTablesExcel(){
+    const XLSX=window.opener && window.opener.XLSX;
+    const tables=[...document.querySelectorAll('.report-content table')];
+    if(!XLSX || !tables.length){alert('تعذر العثور على أداة Excel أو لا توجد جداول للتصدير.');return;}
+    const workbook=XLSX.utils.book_new();
+    tables.forEach((table,index)=>{
+      const rows=[...table.querySelectorAll('tr')].filter(row=>!row.hidden).map(row=>[...row.querySelectorAll('th,td')].map(cell=>(cell.innerText||'').replace(/\s+/g,' ').trim()));
+      const sheet=XLSX.utils.aoa_to_sheet(rows);
+      sheet['!views']=[{rightToLeft:true}];
+      sheet['!cols']=rows[0]?.map((_,col)=>({wch:Math.min(38,Math.max(12,...rows.map(row=>String(row[col]||'').length)))}))||[];
+      const base=(table.closest('section')?.querySelector('h3')?.textContent||'جدول '+(index+1)).replace(/[\\/?*\[\]:]/g,' ').trim();
+      XLSX.utils.book_append_sheet(workbook,sheet,(base||'جدول '+(index+1)).slice(0,31));
+    });
+    const safeName=(document.title||'fleet-report').replace(/[\\/:*?"<>|]+/g,'-').slice(0,90);
+    XLSX.writeFile(workbook,safeName+'-'+new Date().toISOString().slice(0,10)+'.xlsx');
+  }
   function exportReportTablesCsv(){
     const tables=[...document.querySelectorAll('.report-content table')];
     if(!tables.length){alert('لا توجد جداول لتصديرها.');return;}
     const csv=tables.map((table,index)=>{
-      const rows=[...table.querySelectorAll('tr')].map(tr=>[...tr.querySelectorAll('th,td')].map(td=>'"'+(td.innerText||'').replace(/"/g,'""').replace(/\s+/g,' ').trim()+'"').join(','));
+      const rows=[...table.querySelectorAll('tr')].filter(tr=>!tr.hidden).map(tr=>[...tr.querySelectorAll('th,td')].map(td=>'"'+(td.innerText||'').replace(/"/g,'""').replace(/\s+/g,' ').trim()+'"').join(','));
       return 'جدول '+(index+1)+'\r\n'+rows.join('\r\n');
     }).join('\r\n\r\n');
     const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8;'});
@@ -6751,7 +6893,32 @@
     a.href=url; a.download='fleet-report-'+new Date().toISOString().slice(0,10)+'.csv';
     document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
   }
-<\/script>
+  function reportSafeFileName(ext){
+    return ((document.title||'fleet-report').replace(/[\\\\/:*?"<>|]+/g,'-').trim().slice(0,90)||'fleet-report')+'-'+new Date().toISOString().slice(0,10)+'.'+ext;
+  }
+  function reportVisibleTables(){
+    return [...document.querySelectorAll('.report-content table')].map((table,index)=>{
+      const rows=[...table.querySelectorAll('tr')].filter(row=>!row.hidden).map(row=>[...row.querySelectorAll('th,td')].map(cell=>(cell.innerText||'').replace(/\\s+/g,' ').trim()));
+      return {name:(table.closest('section')?.querySelector('h3')?.textContent||'جدول '+(index+1)).trim(),headers:rows[0]||[],rows:rows.slice(1)};
+    });
+  }
+  function reportDownloadBlob(content,type,filename){
+    const blob=new Blob([content],{type});const url=URL.createObjectURL(blob);const a=document.createElement('a');
+    a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1200);
+  }
+  function exportReportJson(){
+    const payload={reportTitle:document.title,generatedAt:new Date().toISOString(),language:'ar',direction:'rtl',tables:reportVisibleTables()};
+    reportDownloadBlob(JSON.stringify(payload,null,2),'application/json;charset=utf-8',reportSafeFileName('json'));
+  }
+  function exportReportHtml(){
+    const sheet=document.querySelector('.sheet');if(!sheet){alert('لم يتم العثور على معاينة التقرير.');return;}
+    const styles=[...document.querySelectorAll('style')].map(x=>x.textContent).join('\\n');
+    const safeTitle=(document.title||'تقرير').replace(/[<>]/g,'');
+    const interactive='<script>(function(){var input=document.getElementById("reportSearch");var count=document.getElementById("reportVisibleCount");var rows=[].slice.call(document.querySelectorAll(".report-content tbody tr"));function update(){var q=(input&&input.value||"").trim().toLocaleLowerCase();var n=0;rows.forEach(function(row){var show=row.textContent.toLocaleLowerCase().indexOf(q)!==-1;row.hidden=!show;if(show)n++;});if(count)count.textContent="السجلات الظاهرة: "+n.toLocaleString("ar-SA")+" من "+rows.length.toLocaleString("ar-SA");}if(input)input.addEventListener("input",update);update();})();<\\/script>';
+    const html='<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+safeTitle+'</title><style>'+styles+'\\nbody{padding:20px;background:#fff}.sheet{box-shadow:none;margin:0 auto}.report-tools{display:flex}</style></head><body>'+sheet.outerHTML+interactive+'</body></html>';
+    reportDownloadBlob(html,'text/html;charset=utf-8',reportSafeFileName('html'));
+  }
+<\\/script>
 </body>
 </html>`);
       win.document.close();
@@ -7676,7 +7843,137 @@
       }
     }
 
+    function getCentralReportDateRange() {
+      const from = document.getElementById('centralReportFrom')?.value || '';
+      const to = document.getElementById('centralReportTo')?.value || '';
+      if (from && to && from > to) { showSystemBanner('تاريخ البداية يجب أن يسبق تاريخ النهاية.', 'error'); return null; }
+      return { from, to };
+    }
+
+    function centralDateInRange(value, range) {
+      if (!range || (!range.from && !range.to)) return true;
+      if (!value) return false;
+      const raw = String(value).slice(0, 10);
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(raw)) return false;
+      return (!range.from || raw >= range.from) && (!range.to || raw <= range.to);
+    }
+
+    function renderCentralPeriodComparison(period) {
+      const range = getCentralReportDateRange(); if (!range) return;
+      ensureOperationalCollections();
+      const events = [
+        ...(state.violations || []).map(x => ({ date: x.date, kind: 'مخالفة', amount: Number(x.amount || 0) })),
+        ...(state.fuelTransactions || []).map(x => ({ date: x.created_at, kind: 'حركة وقود', amount: Number(x.amount || 0) })),
+        ...(state.logs || []).map(x => ({ date: x.created_at, kind: 'عملية تدقيق', amount: 0 }))
+      ].filter(x => centralDateInRange(x.date, range));
+      const buckets = new Map();
+      for (const e of events) {
+        const d = String(e.date || '').slice(0, 10); if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) continue;
+        const key = period === 'year' ? d.slice(0,4) : d.slice(0,7);
+        if (!buckets.has(key)) buckets.set(key, { violations:0, fuel:0, logs:0, violationAmount:0, fuelAmount:0 });
+        const b = buckets.get(key);
+        if (e.kind === 'مخالفة') { b.violations++; b.violationAmount += e.amount; }
+        else if (e.kind === 'حركة وقود') { b.fuel++; b.fuelAmount += e.amount; }
+        else b.logs++;
+      }
+      const rows = [...buckets.entries()].sort((a,b) => a[0].localeCompare(b[0]));
+      const host = document.getElementById('centralPeriodComparison'); if (!host) return;
+      host.innerHTML = rows.length ? `<table class="w-full text-xs text-right border-collapse bg-white rounded-xl overflow-hidden"><thead><tr class="bg-slate-100"><th class="p-2">الفترة</th><th class="p-2">المخالفات</th><th class="p-2">قيمة المخالفات</th><th class="p-2">حركات الوقود</th><th class="p-2">قيمة الحركات</th><th class="p-2">عمليات التدقيق</th></tr></thead><tbody>${rows.map(([k,b])=>`<tr class="border-t border-slate-100"><td class="p-2 font-bold" dir="ltr">${escapeHtml(k)}</td><td class="p-2">${b.violations}</td><td class="p-2" dir="ltr">${b.violationAmount.toFixed(2)} SAR</td><td class="p-2">${b.fuel}</td><td class="p-2" dir="ltr">${b.fuelAmount.toFixed(2)} SAR</td><td class="p-2">${b.logs}</td></tr>`).join('')}</tbody></table>` : '<p class="text-xs text-slate-500 py-2">لا توجد سجلات مؤرخة ضمن الفترة المحددة.</p>';
+      if (typeof recordActionLog === 'function') recordActionLog(period === 'year' ? 'مقارنة سنوية' : 'مقارنة شهرية', 'مركز التقارير', `عدد الفترات المعروضة: ${rows.length}`).catch(()=>{});
+    }
+
+    function generateEntityDetailReport(kind) {
+      const vehicleId = document.getElementById('centralReportVehicle')?.value || '';
+      const driverName = document.getElementById('centralReportDriver')?.value || '';
+      const permissionSection = kind === 'vehicle' ? 'compliance' : 'drivers';
+      if (!hasPermission(permissionSection, 'view')) return showSystemBanner('ليس لديك صلاحية عرض هذا التقرير.', 'error');
+      if (!hasPermission(permissionSection, 'print') && !hasPermission(permissionSection, 'export')) return showSystemBanner('ليس لديك صلاحية طباعة أو تصدير هذا التقرير.', 'error');
+      if (kind === 'vehicle' && !vehicleId) return showSystemBanner('يرجى اختيار مركبة أولاً.', 'warning');
+      if (kind === 'driver' && !driverName) return showSystemBanner('يرجى اختيار سائق أولاً.', 'warning');
+      let title = '', rows = [], meta = '', extra = '';
+      if (kind === 'vehicle') {
+        const v = (state.vehicles || []).find(x => String(x.id) === String(vehicleId));
+        if (!v) return showSystemBanner('لم يتم العثور على المركبة المحددة.', 'error');
+        const docs = v.docs || {}; title = `الملف التفصيلي للمركبة: ${v.vehicle_name || v.plate_number || v.id}`;
+        rows = [['اسم المركبة',v.vehicle_name],['رقم اللوحة',v.plate_number],['السائق الحالي',v.assigned_driver],['التفويض',docs.authorization],['رخصة السير',docs.registration],['الفحص الدوري',docs.periodic_inspection],['التأمين',docs.insurance],['تاريخ الحادث',v.accidents?.date || docs.accidents],['رقم تقرير الحادث',v.accidents?.reportNumber],['تكلفة الحادث',`${Number(v.accidents?.cost || 0).toFixed(2)} SAR`],['حالة الحادث',evaluateAccidentStatus(v).label],['ملاحظات',stripAccidentPayloadFromNotes(v.notes || '')]];
+        meta = `معرّف المركبة: ${v.id || '—'} | تاريخ التقرير: ${new Date().toLocaleString('ar-SA')}`;
+      } else {
+        const d = buildAggregatedDriversList().find(x => String(x.full_name) === driverName);
+        if (!d) return showSystemBanner('لم يتم العثور على السائق المحدد.', 'error');
+        title = `الملف التفصيلي للسائق: ${d.full_name}`;
+        rows = [['اسم السائق',d.full_name],['رقم الهوية',d.national_id],['رقم الجوال',d.phone],['الفئة',d.category],['الحالة التشغيلية',d.status],['حالة التفويض',d.authorization_status],['انتهاء التفويض',d.authorization_expiry],['انتهاء الهوية',d.id_expiry],['انتهاء الرخصة',d.license_expiry],['رصيد الوقود',`${Number(d.fuel_balance || 0).toFixed(2)} SAR`],['ملاحظات',d.notes]];
+        meta = `عدد المركبات المرتبطة: ${(d.vehicles || []).length} | عدد الحوادث المسجلة: ${(d.incidents || []).length}`;
+        extra = `<h3>المركبات والحوادث المرتبطة</h3><table><thead><tr><th>المركبة</th><th>اللوحة</th><th>تاريخ الحادث</th><th>حالة الحادث</th></tr></thead><tbody>${(d.vehicles || []).map(v=>`<tr><td>${escapeHtml(v.vehicle_name || '—')}</td><td dir="ltr">${escapeHtml(v.plate_number || '—')}</td><td>${escapeHtml(v.accidents?.date || v.docs?.accidents || '—')}</td><td>${escapeHtml(evaluateAccidentStatus(v).label)}</td></tr>`).join('') || '<tr><td colspan="4">لا توجد مركبات مرتبطة</td></tr>'}</tbody></table>`;
+      }
+      const body = `<p><strong>${escapeHtml(meta)}</strong></p><table><thead><tr><th>البيان</th><th>التفاصيل</th></tr></thead><tbody>${rows.map(x=>`<tr><th>${escapeHtml(x[0])}</th><td>${escapeHtml(x[1] || '—')}</td></tr>`).join('')}</tbody></table>${extra}`;
+      openReportPrintWindow(title, body);
+      if (typeof recordActionLog === 'function') recordActionLog('إنشاء تقرير تفصيلي', title, meta).catch(()=>{});
+    }
+
+    function initReportSettingsUI() {
+      const identity = document.getElementById('reportIdentityMode');
+      const audience = document.getElementById('reportAudienceMode');
+      const company = document.getElementById('reportCompanyName');
+      const externalPanel = document.getElementById('externalReportFields');
+      if (!identity || identity.dataset.initialized === '1') return;
+      identity.dataset.initialized = '1';
+      identity.value = localStorage.getItem('fleet_report_identity') || 'system';
+      audience.value = localStorage.getItem('fleet_report_audience') || 'internal';
+      company.value = localStorage.getItem('fleet_report_company') || '';
+      const savedFields = (() => { try { return JSON.parse(localStorage.getItem('fleet_report_external_fields') || '{}'); } catch { return {}; } })();
+      document.querySelectorAll('[data-external-field]').forEach(control => {
+        control.checked = savedFields[control.dataset.externalField] === true;
+        control.addEventListener('change', save);
+      });
+      function save() {
+        localStorage.setItem('fleet_report_identity', identity.value);
+        localStorage.setItem('fleet_report_audience', audience.value);
+        localStorage.setItem('fleet_report_company', company.value.trim().slice(0, 100));
+        const fields = {};
+        document.querySelectorAll('[data-external-field]').forEach(control => fields[control.dataset.externalField] = control.checked);
+        localStorage.setItem('fleet_report_external_fields', JSON.stringify(fields));
+        externalPanel?.classList.toggle('hidden', audience.value !== 'external');
+        const hint = document.getElementById('reportSettingsHint');
+        if (hint) hint.textContent = audience.value === 'external'
+          ? 'وضع خارجي: ستُخفى الأعمدة الحساسة غير المحددة. راجع التقرير النهائي قبل إرساله.'
+          : 'وضع داخلي: يعرض التقرير التفاصيل المتاحة وفق صلاحيات حسابك.';
+      }
+      identity.addEventListener('change', save);
+      audience.addEventListener('change', save);
+      company.addEventListener('input', save);
+      document.getElementById('reportWizardIdentity')?.addEventListener('change', () => { identity.value = document.getElementById('reportWizardIdentity').value; save(); });
+      document.getElementById('reportWizardAudience')?.addEventListener('change', () => { audience.value = document.getElementById('reportWizardAudience').value; save(); });
+      save();
+    }
+
+    function generateReportFromWizard() {
+      const department = document.getElementById('reportWizardDepartment')?.value || 'compliance';
+      const identity = document.getElementById('reportWizardIdentity')?.value || 'system';
+      const audience = document.getElementById('reportWizardAudience')?.value || 'internal';
+      const scope = document.getElementById('reportWizardScope')?.value || 'all';
+      const identityControl = document.getElementById('reportIdentityMode');
+      const audienceControl = document.getElementById('reportAudienceMode');
+      if (identityControl) identityControl.value = identity;
+      if (audienceControl) audienceControl.value = audience;
+      identityControl?.dispatchEvent(new Event('change', { bubbles: true }));
+      audienceControl?.dispatchEvent(new Event('change', { bubbles: true }));
+      if (department === 'compliance') {
+        const docChoice = document.getElementById('centralReportDocSection');
+        if (docChoice) docChoice.value = docChoice.value || 'all';
+      }
+      if (scope === 'filtered' && department === 'compliance') {
+        const docSection = document.getElementById('centralReportDocSection');
+        if (docSection) docSection.value = document.getElementById('activeSectionHint')?.dataset?.section || docSection.value;
+      }
+      generateCentralReport(department, { scope });
+    }
+
     function renderCentralReportCenter() {
+      initReportSettingsUI();
+      const wizardIdentity = document.getElementById('reportWizardIdentity');
+      const wizardAudience = document.getElementById('reportWizardAudience');
+      if (wizardIdentity) wizardIdentity.value = document.getElementById('reportIdentityMode')?.value || 'system';
+      if (wizardAudience) wizardAudience.value = document.getElementById('reportAudienceMode')?.value || 'internal';
       const host = document.getElementById('centralReportStats');
       if (!host) return;
       const drivers = typeof buildAggregatedDriversList === 'function' ? buildAggregatedDriversList() : [];
@@ -7690,9 +7987,14 @@
         { label: 'عمليات التدقيق', value: logs.length, color: 'emerald' }
       ];
       host.innerHTML = cards.map(c => `<div class="rounded-xl border border-${c.color}-100 bg-${c.color}-50/70 p-3"><div class="text-[11px] font-bold text-slate-500">${c.label}</div><div class="text-xl font-extrabold text-slate-900 mt-1" dir="ltr">${Number(c.value).toLocaleString('en-US')}</div></div>`).join('');
+      const vehicleSelect = document.getElementById('centralReportVehicle');
+      if (vehicleSelect) { const selected = vehicleSelect.value; vehicleSelect.innerHTML = '<option value="">اختر المركبة</option>' + vehicles.map(v=>`<option value="${escapeHtml(v.id)}">${escapeHtml(v.vehicle_name || v.plate_number || v.id)} — ${escapeHtml(v.plate_number || '')}</option>`).join(''); vehicleSelect.value = selected; }
+      const driverSelect = document.getElementById('centralReportDriver');
+      if (driverSelect) { const selected = driverSelect.value; driverSelect.innerHTML = '<option value="">اختر السائق</option>' + drivers.map(d=>`<option value="${escapeHtml(d.full_name)}">${escapeHtml(d.full_name)}</option>`).join(''); driverSelect.value = selected; }
     }
 
-    function generateCentralReport(sectionKey) {
+    function generateCentralReport(sectionKey, wizardOptions = {}) {
+      const reportScope = wizardOptions.scope || 'filtered';
       const permissionMap = { drivers: 'drivers', fuel_ops: 'fuel_ops', violations: 'violations', logs: 'logs', compliance: 'compliance' };
       const targetPermission = permissionMap[sectionKey];
       if (!targetPermission || !hasPermission(targetPermission, 'view')) {
@@ -7703,16 +8005,35 @@
         showSystemBanner('ليس لديك صلاحية طباعة أو تصدير تقارير هذا القسم.', 'error');
         return;
       }
+      const range = getCentralReportDateRange();
+      if (!range) return;
       const previousTab = activeMainTab;
       const previousDocSection = activeDocSection;
+      const original = { violations: state.violations, logs: state.logs, fuelTransactions: state.fuelTransactions, vehicles: state.vehicles, driversDirectory: state.driversDirectory };
+      const filterIds = ['searchInput','statusFilterSelect','driverDirectorySearchInput','driverDirectoryFilterSelect','driverCategoryFilterSelect','violationSearchInput','violationTypeFilter','violationStatusFilter'];
+      const savedFilters = Object.fromEntries(filterIds.map(id => [id, document.getElementById(id)?.value]));
+      const hasRange = !!(range.from || range.to);
+      if (hasRange) {
+        state.violations = (original.violations || []).filter(x => centralDateInRange(x.date, range));
+        state.logs = (original.logs || []).filter(x => centralDateInRange(x.created_at, range));
+        state.fuelTransactions = (original.fuelTransactions || []).filter(x => centralDateInRange(x.created_at, range));
+      }
       if (sectionKey === 'compliance') {
         const chosen = document.getElementById('centralReportDocSection')?.value || 'all';
         activeDocSection = chosen;
+        if (hasRange && chosen !== 'all') state.vehicles = (original.vehicles || []).filter(v => centralDateInRange(chosen === 'accidents' ? (v.accidents?.date || v.docs?.accidents) : v.docs?.[chosen], range));
+        else if (hasRange && chosen === 'all') state.vehicles = (original.vehicles || []).filter(v => ['authorization','registration','periodic_inspection','insurance','accidents'].some(k => centralDateInRange(k === 'accidents' ? (v.accidents?.date || v.docs?.accidents) : v.docs?.[k], range)));
       }
+      if (sectionKey === 'drivers' && hasRange) state.driversDirectory = (original.driversDirectory || []).filter(d => centralDateInRange(d.authorization_expiry || d.id_expiry || d.license_expiry, range));
       activeMainTab = sectionKey === 'compliance' ? 'compliance' : sectionKey;
       try {
+        if (reportScope === 'all') {
+          ['searchInput','driverDirectorySearchInput','violationSearchInput'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+          ['statusFilterSelect','driverDirectoryFilterSelect','driverCategoryFilterSelect','violationTypeFilter','violationStatusFilter'].forEach(id => { const el=document.getElementById(id); if(el) el.value='all'; });
+        }
         const report = buildActiveTabScopedReport();
-        const meta = `${report.metaText} | إنشاء من مركز التقارير`;
+        const periodLabel = hasRange ? ` | الفترة: ${range.from || 'البداية'} إلى ${range.to || 'النهاية'}` : ' | الفترة: جميع التواريخ';
+        const meta = `${report.metaText}${periodLabel} | إنشاء من مركز التقارير`;
         openReportPrintWindow(report.title, `<p><strong>${escapeHtml(meta)}</strong></p>${report.tableHtml}`);
         recordActionLog('إنشاء تقرير من مركز التقارير', report.fileName, meta).catch(() => {});
       } catch (err) {
@@ -7721,6 +8042,12 @@
       } finally {
         activeMainTab = previousTab;
         activeDocSection = previousDocSection;
+        state.violations = original.violations;
+        state.logs = original.logs;
+        state.fuelTransactions = original.fuelTransactions;
+        state.vehicles = original.vehicles;
+        state.driversDirectory = original.driversDirectory;
+        filterIds.forEach(id => { const el=document.getElementById(id); if(el && savedFilters[id] !== undefined) el.value=savedFilters[id]; });
       }
     }
 
@@ -7869,6 +8196,7 @@
         });
         if (tabName === 'fuel_ops') renderFuelTransactionsTable();
         if (tabName === 'violations') renderViolationsSection();
+        if (tabName === 'reports') renderCentralReportCenter();
         applyGranularPermissionsToUI();
       };
     }
