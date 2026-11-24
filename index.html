@@ -235,9 +235,13 @@
             class="main-tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
             التفويضات والوثائق
           </button>
-          <button type="button" data-main-tab="fuel_ops" onclick="switchMainTab('fuel_ops')"
+          <!-- <button type="button" data-main-tab="fuel_ops" onclick="switchMainTab('fuel_ops')"
             class="main-tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
             الوقود والرقابة التشغيلية
+          </button> -->
+          <button type="button" data-main-tab="violations" onclick="switchMainTab('violations')"
+            class="main-tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
+            المخالفات والتصاريح
           </button>
           <button type="button" data-main-tab="users" onclick="switchMainTab('users')"
             class="main-tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
@@ -380,6 +384,31 @@
           </div>
           <div class="w-full sm:w-72 h-2.5 rounded-full bg-slate-100 overflow-hidden border border-slate-200/70">
             <div id="complianceRateBar" class="h-full w-0 bg-gradient-to-r from-emerald-500 to-teal-500 transition-all duration-300"></div>
+          </div>
+        </div>
+
+        <!-- لوحة الرسوم البيانية التحليلية -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 no-print">
+          <div class="glass-card rounded-2xl p-4 sm:p-5 space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
+              <div>
+                <h3 class="text-sm font-extrabold text-slate-900">توزيع حالات الوثائق والتفاويض</h3>
+                <p id="chartDocDistSubtitle" class="text-[11px] text-slate-500">حسب القسم الحالي والفلاتر النشطة</p>
+              </div>
+              <span class="px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 text-xs font-extrabold">تحليل الامتثال</span>
+            </div>
+            <div id="docStatusChartContainer" class="space-y-3 text-xs"></div>
+          </div>
+
+          <div class="glass-card rounded-2xl p-4 sm:p-5 space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
+              <div>
+                <h3 class="text-sm font-extrabold text-slate-900">ملخص التكاليف التشغيلية والمخالفات والحوادث</h3>
+                <p class="text-[11px] text-slate-500">مقارنة التكاليف المسجلة بالريال السعودي (SAR)</p>
+              </div>
+              <span class="px-2.5 py-1 rounded-lg bg-amber-50 text-amber-800 text-xs font-extrabold">الرقابة المالية</span>
+            </div>
+            <div id="costBreakdownChartContainer" class="space-y-3 text-xs"></div>
           </div>
         </div>
 
@@ -651,7 +680,7 @@
                   <th class="py-3 px-3 font-bold">انتهاء التفويض</th>
                   <th class="py-3 px-3 font-bold">انتهاء الهوية/الإقامة</th>
                   <th class="py-3 px-3 font-bold">انتهاء الرخصة</th>
-                  <th class="py-3 px-3 font-bold">الإجراء السريع</th>
+                  <!-- <th class="py-3 px-3 font-bold">الإجراء السريع</th> -->
                 </tr>
               </thead>
               <tbody id="complianceMatrixBody" class="divide-y divide-slate-100 text-sm bg-white"></tbody>
@@ -727,6 +756,107 @@
                 <tbody id="fuelControlsTableBody" class="divide-y divide-slate-100 text-xs bg-white"></tbody>
               </table>
             </div>
+          </div>
+        </div>
+      </section>
+
+        <!-- سجل حركات الوقود (PetroApp) والمطابقات
+        <div class="glass-card rounded-2xl p-4 sm:p-5 space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
+            <div>
+              <h3 class="text-sm sm:text-base font-extrabold text-slate-900">سجل حركات الوقود (PetroApp) والمطابقات</h3>
+              <p class="text-xs text-slate-500">توثيق عمليات الشحن والتحويل والتسوية والمطابقة مع حفظ الرصيد قبل وبعد كل حركة.</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2 no-print">
+              <button type="button" id="addFuelTxBtn" onclick="openFuelTxModal()"
+                class="px-3.5 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold transition">
+                + تسجيل حركة / مطابقة وقود
+              </button>
+              <button type="button" onclick="printFuelSectionReport()"
+                class="px-3.5 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold transition">
+                طباعة / PDF الوقود
+              </button>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto rounded-2xl border border-slate-200/90">
+            <table class="w-full text-right border-collapse">
+              <thead>
+                <tr class="border-b border-slate-200 text-slate-600 text-xs bg-slate-50">
+                  <th class="py-2.5 px-3 font-bold">التاريخ والوقت</th>
+                  <th class="py-2.5 px-3 font-bold">السائق / الحساب</th>
+                  <th class="py-2.5 px-3 font-bold">نوع الحركة</th>
+                  <th class="py-2.5 px-3 font-bold">المرجع / المطابقة</th>
+                  <th class="py-2.5 px-3 font-bold">المبلغ (SAR)</th>
+                  <th class="py-2.5 px-3 font-bold">الرصيد بعد الحركة</th>
+                  <th class="py-2.5 px-3 font-bold">ملاحظات</th>
+                </tr>
+              </thead>
+              <tbody id="fuelTransactionsTableBody" class="divide-y divide-slate-100 text-xs bg-white"></tbody>
+            </table>
+          </div>
+        </div> -->
+      </section>
+
+      <!-- قسم المخالفات المرورية والتصاريح التشغيلية (بيان / تصريح / تام) -->
+      <section id="tab-violations" class="hidden space-y-4">
+        <div class="glass-card rounded-2xl p-4 sm:p-5 space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
+            <div>
+              <h2 class="text-base font-extrabold text-slate-900">المخالفات المرورية والتصاريح التشغيلية</h2>
+              <p class="text-xs text-slate-500">متابعة المخالفات المرورية وتصاريح النقل والعمليات (بيان، تصريح، تام) وحالة السداد والغرامات.</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2 no-print">
+              <span id="violationsSummaryBadge" class="px-3 py-1.5 rounded-xl bg-rose-50 text-rose-800 border border-rose-200 text-xs font-extrabold font-mono" dir="ltr">
+                Unpaid: 0.00 SAR | Total: 0.00 SAR
+              </span>
+              <button type="button" id="addViolationBtn" onclick="openViolationModal()"
+                class="px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition">
+                + إضافة مخالفة / تصريح
+              </button>
+              <button type="button" onclick="printViolationsSectionReport()"
+                class="px-3.5 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold transition">
+                طباعة / PDF المخالفات
+              </button>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2 no-print">
+            <input id="violationSearchInput" type="text" oninput="renderViolationsSection()"
+              placeholder="بحث برقم المخالفة/التصريح، اللوحة، السائق، أو الجهة..."
+              class="form-input-pro max-w-sm text-xs" />
+            <select id="violationTypeFilter" onchange="renderViolationsSection()" class="form-input-pro max-w-[180px] text-xs font-bold">
+              <option value="all">جميع الأنواع (مرورية / بيان / تصريح / تام)</option>
+              <option value="مخالفة مرورية">مخالفة مرورية</option>
+              <option value="بيان">تصريح / بيان (TGA Bayan)</option>
+              <option value="تصريح">تصريح تشغيلي (Tasreeh)</option>
+              <option value="تام">تفويض / إشعار تام (Tamm)</option>
+            </select>
+            <select id="violationStatusFilter" onchange="renderViolationsSection()" class="form-input-pro max-w-[160px] text-xs font-bold">
+              <option value="all">جميع الحالات</option>
+              <option value="غير مسددة">غير مسددة</option>
+              <option value="مسددة">مسددة</option>
+              <option value="قيد الاعتراض">قيد الاعتراض</option>
+            </select>
+          </div>
+
+          <div class="overflow-x-auto rounded-2xl border border-slate-200/90">
+            <table class="w-full text-right border-collapse">
+              <thead>
+                <tr class="border-b border-slate-200 text-slate-500 text-xs bg-slate-50">
+                  <th class="py-3 px-3 font-bold">الرقم المرجعي</th>
+                  <th class="py-3 px-3 font-bold">النوع / الجهة</th>
+                  <th class="py-3 px-3 font-bold">التاريخ</th>
+                  <th class="py-3 px-3 font-bold">المركبة / اللوحة</th>
+                  <th class="py-3 px-3 font-bold">السائق</th>
+                  <th class="py-3 px-3 font-bold">المبلغ (SAR)</th>
+                  <th class="py-3 px-3 font-bold">الحالة</th>
+                  <th class="py-3 px-3 font-bold">ملاحظات</th>
+                  <th class="py-3 px-3 font-bold">الإجراءات</th>
+                </tr>
+              </thead>
+              <tbody id="violationsTableBody" class="divide-y divide-slate-100 text-xs sm:text-sm bg-white"></tbody>
+            </table>
           </div>
         </div>
       </section>
@@ -812,9 +942,9 @@
         <div id="drawerDriverBody" class="space-y-4"></div>
       </div>
       <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-        <button type="button" id="drawerRenewAuthBtn" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold">
+        <!-- <button type="button" id="drawerRenewAuthBtn" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold">
           تجديد تفويض (+180 يوم)
-        </button>
+        </button> -->
         <button type="button" onclick="closeDriverDetailsDrawer()" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold">
           إغلاق
         </button>
@@ -1430,9 +1560,164 @@
             حفظ المستخدم
           </button>
         </div>
+      
+        <!-- صلاحيات تفصيلية لكل قسم وكل إجراء -->
+        <div class="rounded-2xl border border-slate-200 bg-slate-50/80 p-3.5 space-y-2.5">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <p class="text-xs font-extrabold text-slate-800">صلاحيات الأقسام والإجراءات (RBAC)</p>
+              <p class="text-[11px] text-slate-500">تحديد صلاحية كل مستخدم على مستوى القسم والإجراء بدقة.</p>
+            </div>
+            <div class="flex flex-wrap gap-1.5">
+              <button type="button" onclick="applyPermissionPreset('admin')" class="px-2.5 py-1 rounded-lg bg-slate-900 text-white text-[11px] font-bold">قالب: مدير</button>
+              <button type="button" onclick="applyPermissionPreset('supervisor')" class="px-2.5 py-1 rounded-lg bg-blue-600 text-white text-[11px] font-bold">قالب: مشرف</button>
+              <button type="button" onclick="applyPermissionPreset('viewer')" class="px-2.5 py-1 rounded-lg bg-slate-200 text-slate-800 text-[11px] font-bold">قالب: مشاهد</button>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+            <table class="w-full text-right border-collapse text-[11px]">
+              <thead>
+                <tr class="border-b border-slate-200 bg-slate-100/80 text-slate-700">
+                  <th class="py-2 px-2.5 font-extrabold">القسم</th>
+                  <th class="py-2 px-2 text-center font-bold">عرض</th>
+                  <th class="py-2 px-2 text-center font-bold">إضافة</th>
+                  <th class="py-2 px-2 text-center font-bold">تعديل</th>
+                  <th class="py-2 px-2 text-center font-bold">حذف</th>
+                  <th class="py-2 px-2 text-center font-bold">استيراد</th>
+                  <th class="py-2 px-2 text-center font-bold">تصدير</th>
+                  <th class="py-2 px-2 text-center font-bold">طباعة</th>
+                </tr>
+              </thead>
+              <tbody id="userPermissionsMatrixBody" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
+        </div>
+</form>
+    </div>
+  </div>
+
+  <!-- نافذة إضافة / تعديل مخالفة أو تصريح تشغيلي -->
+  <div id="violationModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
+    <div class="w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-slate-200 p-6 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 id="violationModalTitle" class="text-lg font-extrabold text-slate-900">إضافة مخالفة / تصريح تشغيلي</h3>
+        <button type="button" onclick="closeViolationModal()" class="w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-500 text-xl font-bold flex items-center justify-center">×</button>
+      </div>
+
+      <form id="violationForm" onsubmit="saveViolationForm(event)" class="space-y-3 text-xs">
+        <input type="hidden" id="violationEditId" />
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">الرقم المرجعي / رقم المخالفة *</label>
+            <input id="vioRefNumber" type="text" required placeholder="مثال: 618920441 أو BYN-2026-01" class="form-input-pro" />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">النوع / الجهة *</label>
+            <select id="vioType" class="form-input-pro font-bold">
+              <option value="مخالفة مرورية">مخالفة مرورية</option>
+              <option value="بيان">تصريح / بيان (TGA Bayan)</option>
+              <option value="تصريح">تصريح تشغيلي (Tasreeh)</option>
+              <option value="تام">تفويض / إشعار تام (Tamm)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">التاريخ *</label>
+            <input id="vioDate" type="date" required class="form-input-pro" />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">المبلغ / الغرامة (SAR) *</label>
+            <input id="vioAmount" type="number" step="0.01" min="0" required placeholder="0.00" class="form-input-pro font-mono" dir="ltr" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">المركبة / اللوحة</label>
+            <input id="vioPlate" type="text" list="vioVehicleOptions" autocomplete="off" oninput="handleViolationPlateInput()" placeholder="اكتب جزءاً من اللوحة أو اختر مركبة" class="form-input-pro" />
+            <datalist id="vioVehicleOptions"></datalist>
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">السائق / المسؤول</label>
+            <input id="vioDriver" type="text" list="vioDriverOptions" autocomplete="off" placeholder="اكتب جزءاً من الاسم أو اختر سائقاً" class="form-input-pro" />
+            <datalist id="vioDriverOptions"></datalist>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">حالة السداد / المتابعة *</label>
+          <select id="vioStatus" class="form-input-pro font-bold">
+            <option value="غير مسددة">غير مسددة</option>
+            <option value="مسددة">مسددة</option>
+            <option value="قيد الاعتراض">قيد الاعتراض</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">تفاصيل وملاحظات</label>
+          <textarea id="vioNotes" rows="2" placeholder="تفاصيل المخالفة أو التصريح أو رقم الإيصال..." class="form-input-pro"></textarea>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+          <button type="button" onclick="closeViolationModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 font-bold hover:bg-slate-50">إلغاء</button>
+          <button type="submit" id="saveViolationBtn" class="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold shadow-sm">حفظ السجل</button>
+        </div>
       </form>
     </div>
   </div>
+
+  <!-- نافذة تسجيل حركة / مطابقة وقود PetroApp -->
+  <div id="fuelTxModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
+    <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-slate-200 p-6 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 class="text-lg font-extrabold text-slate-900">تسجيل حركة / مطابقة وقود (PetroApp)</h3>
+        <button type="button" onclick="closeFuelTxModal()" class="w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-500 text-xl font-bold flex items-center justify-center">×</button>
+      </div>
+
+      <form id="fuelTxForm" onsubmit="saveFuelTxForm(event)" class="space-y-3 text-xs">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">السائق / الحساب *</label>
+          <input id="ftxDriver" type="text" required list="fuelDriversDatalist" placeholder="اسم السائق" class="form-input-pro" />
+          <datalist id="fuelDriversDatalist"></datalist>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">نوع الحركة *</label>
+            <select id="ftxType" class="form-input-pro font-bold">
+              <option value="شحن رصيد">شحن رصيد (+)</option>
+              <option value="تسوية / خصم">تسوية / خصم (-)</option>
+              <option value="مطابقة رصيد">مطابقة رصيد (تثبيت الرصيد)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">المبلغ أو الرصيد المطابق (SAR) *</label>
+            <input id="ftxAmount" type="number" step="0.01" min="0" required placeholder="0.00" class="form-input-pro font-mono" dir="ltr" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">رقم المرجع / كشف المطابقة</label>
+          <input id="ftxRef" type="text" placeholder="مثال: PETRO-2026-11-01" class="form-input-pro" />
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">ملاحظات المطابقة</label>
+          <textarea id="ftxNotes" rows="2" placeholder="تفاصيل الشحن أو المطابقة مع كشف PetroApp..." class="form-input-pro"></textarea>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+          <button type="button" onclick="closeFuelTxModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 font-bold hover:bg-slate-50">إلغاء</button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold shadow-sm">حفظ الحركة</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
 
   <!-- نافذة مركز الإشعارات وتنبيهات الواتساب والإيميل -->
   <div id="alertsCenterModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
@@ -1648,6 +1933,51 @@
 
     function hideSystemBanner() {
       document.getElementById('systemBanner')?.classList.add('hidden');
+    }
+
+    // مشغل موحد للعمليات الحساسة: تأكيد ← تحميل ← تنفيذ ← إشعار.
+    async function runConfirmedOperation({ title, description, confirmText = 'نعم، تنفيذ',
+      loadingText = 'جاري التنفيذ...', successMessage = 'تمت العملية بنجاح.',
+      errorPrefix = 'تعذر تنفيذ العملية', variant = 'info', button = null, busyText = 'جاري التنفيذ...', action }) {
+      const approved = await openSecurityConfirmModal({ title, description, confirmText, variant });
+      if (!approved) return false;
+      const btn = typeof button === 'string' ? document.getElementById(button) : button;
+      const oldText = btn?.textContent;
+      if (btn) { btn.disabled = true; btn.classList.add('opacity-60', 'cursor-not-allowed'); btn.textContent = busyText; }
+      setLoading(true, loadingText);
+      try {
+        await action();
+        showSystemBanner(successMessage, 'success');
+        return true;
+      } catch (error) {
+        console.error(error);
+        showSystemBanner(`${errorPrefix}: ${error?.message || 'خطأ غير معروف'}`, 'error');
+        return false;
+      } finally {
+        setLoading(false);
+        if (btn) { btn.disabled = false; btn.classList.remove('opacity-60', 'cursor-not-allowed'); btn.textContent = oldText || 'تنفيذ'; }
+      }
+    }
+
+    function refreshViolationAutocomplete() {
+      const vehicles = state.vehicles || [];
+      const drivers = buildAggregatedDriversList();
+      const vehicleList = document.getElementById('vioVehicleOptions');
+      const driverList = document.getElementById('vioDriverOptions');
+      if (vehicleList) vehicleList.innerHTML = vehicles.map(v => {
+        const plate = String(v.plate_number || '').trim();
+        const label = `${v.vehicle_name || 'مركبة'} — ${plate}`;
+        return plate ? `<option value="${escapeHtml(plate)}" label="${escapeHtml(label)}"></option>` : '';
+      }).join('');
+      if (driverList) driverList.innerHTML = drivers.map(d => `<option value="${escapeHtml(d.full_name || '')}"></option>`).join('');
+    }
+
+    function handleViolationPlateInput() {
+      const plate = document.getElementById('vioPlate')?.value || '';
+      const key = normalizePlateKey(plate);
+      if (!key) return;
+      const vehicle = (state.vehicles || []).find(v => normalizePlateKey(v.plate_number || '') === key);
+      if (vehicle?.assigned_driver) document.getElementById('vioDriver').value = vehicle.assigned_driver;
     }
 
     function resetTableFilters() {
@@ -5647,16 +5977,16 @@
           <td class="py-3 px-3"><span class="px-2 py-1 rounded-lg text-xs font-bold ${r.authEval.badgeClass}">${escapeHtml(r.authEval.label)}</span></td>
           <td class="py-3 px-3"><span class="px-2 py-1 rounded-lg text-xs font-bold ${r.idEval.badgeClass}">${escapeHtml(r.idEval.label)}</span></td>
           <td class="py-3 px-3"><span class="px-2 py-1 rounded-lg text-xs font-bold ${r.licEval.badgeClass}">${escapeHtml(r.licEval.label)}</span></td>
-          <td class="py-3 px-3">
-            <button type="button" onclick="renewDriverAuthorization('${escapeHtml(r.driver.full_name)}', 180)"
-              class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition ${!canEditRecords() ? 'observer-disabled' : ''}">
-              تجديد (+180 يوم)
-            </button>
-          </td>
+         
         </tr>
       `).join('');
     }
-
+     // <td class="py-3 px-3">
+          //   <button type="button" onclick="renewDriverAuthorization('${escapeHtml(r.driver.full_name)}', 180)"
+          //     class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition ${!canEditRecords() ? 'observer-disabled' : ''}">
+          //     تجديد (+180 يوم)
+          //   </button>
+     // </td>
     // =========================================================================
     // 4. الوقود والرقابة التشغيلية: أرصدة PetroApp + شحن سريع + حدود الجمعة
     // =========================================================================
@@ -6526,6 +6856,859 @@
         document.getElementById('storageModeInput').value = cloudSettings.mode || 'cloud';
       }
     });
-  </script>
+  
+    // =========================================================================
+    // 1. نظام الصلاحيات الدقيق على مستوى كل قسم وكل إجراء (RBAC)
+    // =========================================================================
+    const PERMISSION_SECTIONS = [
+      { key: 'dashboard', label: 'لوحة المتابعة' },
+      { key: 'drivers', label: 'السائقون والمفوّضون' },
+      { key: 'compliance', label: 'التفويضات والوثائق' },
+      { key: 'fuel_ops', label: 'الوقود والرقابة' },
+      { key: 'violations', label: 'المخالفات والتصاريح' },
+      { key: 'users', label: 'المستخدمون والصلاحيات' },
+      { key: 'logs', label: 'سجل العمليات' }
+    ];
+
+    const PERMISSION_ACTIONS = ['view', 'create', 'edit', 'delete', 'import', 'export', 'print'];
+
+    function buildRolePermissionsPreset(role) {
+      const r = String(role || 'viewer').toLowerCase();
+      const perms = {};
+      for (const sec of PERMISSION_SECTIONS) {
+        if (r === 'admin') {
+          perms[sec.key] = {
+            view: true, create: true, edit: true, delete: true,
+            import: true, export: true, print: true
+          };
+        } else if (r === 'supervisor') {
+          const isUsers = sec.key === 'users';
+          const isLogs = sec.key === 'logs';
+          perms[sec.key] = {
+            view: !isUsers,
+            create: !isUsers && !isLogs,
+            edit: !isUsers && !isLogs,
+            delete: false,
+            import: sec.key === 'compliance' || sec.key === 'violations',
+            export: !isUsers,
+            print: !isUsers
+          };
+        } else {
+          const isUsers = sec.key === 'users';
+          const isLogs = sec.key === 'logs';
+          perms[sec.key] = {
+            view: !isUsers && !isLogs,
+            create: false,
+            edit: false,
+            delete: false,
+            import: false,
+            export: !isUsers && !isLogs,
+            print: !isUsers && !isLogs
+          };
+        }
+      }
+      return perms;
+    }
+
+    function normalizeUserPermissions(userObj) {
+      const baseRole = userObj?.role || 'viewer';
+      const preset = buildRolePermissionsPreset(baseRole);
+      const rawPerms = userObj?.permissions && typeof userObj.permissions === 'object' ? userObj.permissions : {};
+      const normalized = {};
+      for (const sec of PERMISSION_SECTIONS) {
+        const srcSec = rawPerms[sec.key] && typeof rawPerms[sec.key] === 'object' ? rawPerms[sec.key] : {};
+        normalized[sec.key] = {};
+        for (const act of PERMISSION_ACTIONS) {
+          normalized[sec.key][act] = typeof srcSec[act] === 'boolean' ? srcSec[act] : Boolean(preset[sec.key][act]);
+        }
+      }
+      return normalized;
+    }
+
+    function hasPermission(sectionKey, actionKey = 'view') {
+      if (!currentUser) return false;
+      if (String(currentUser.role || '').toLowerCase() === 'admin') return true;
+      const perms = normalizeUserPermissions(currentUser);
+      return Boolean(perms[sectionKey]?.[actionKey]);
+    }
+
+    // Override role helpers so legacy callers automatically respect granular permissions
+    const _origCanEditRecords = typeof canEditRecords === 'function' ? canEditRecords : null;
+    function canEditRecords(sectionKey = null) {
+      if (!currentUser) return false;
+      if (String(currentUser.role || '').toLowerCase() === 'admin') return true;
+      const targetSec = sectionKey || (activeMainTab === 'dashboard' ? 'compliance' : activeMainTab);
+      return hasPermission(targetSec, 'create') || hasPermission(targetSec, 'edit');
+    }
+
+    const _origCanDeleteRecords = typeof canDeleteRecords === 'function' ? canDeleteRecords : null;
+    function canDeleteRecords(sectionKey = null) {
+      if (!currentUser) return false;
+      if (String(currentUser.role || '').toLowerCase() === 'admin') return true;
+      const targetSec = sectionKey || (activeMainTab === 'dashboard' ? 'compliance' : activeMainTab);
+      return hasPermission(targetSec, 'delete');
+    }
+
+    function renderPermissionsMatrixUI(userPermissionsObj) {
+      const tbody = document.getElementById('userPermissionsMatrixBody');
+      if (!tbody) return;
+      const perms = normalizeUserPermissions({ permissions: userPermissionsObj, role: document.getElementById('uRole')?.value || 'supervisor' });
+
+      tbody.innerHTML = PERMISSION_SECTIONS.map(sec => {
+        const cells = PERMISSION_ACTIONS.map(act => {
+          const checked = perms[sec.key]?.[act] ? 'checked' : '';
+          return `<td class="py-1.5 px-2 text-center">
+            <input type="checkbox" class="perm-checkbox rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+              data-perm-section="${sec.key}" data-perm-action="${act}" ${checked} />
+          </td>`;
+        }).join('');
+        return `<tr class="hover:bg-slate-50">
+          <td class="py-1.5 px-2.5 font-bold text-slate-800 whitespace-nowrap">${escapeHtml(sec.label)}</td>
+          ${cells}
+        </tr>`;
+      }).join('');
+    }
+
+    function applyPermissionPreset(roleName) {
+      const roleSelect = document.getElementById('uRole');
+      if (roleSelect && ['admin', 'supervisor', 'viewer'].includes(roleName)) {
+        roleSelect.value = roleName;
+      }
+      renderPermissionsMatrixUI(buildRolePermissionsPreset(roleName));
+    }
+
+    function collectPermissionsFromMatrixUI() {
+      const role = document.getElementById('uRole')?.value || 'supervisor';
+      const perms = buildRolePermissionsPreset(role);
+      document.querySelectorAll('#userPermissionsMatrixBody .perm-checkbox').forEach(cb => {
+        const sec = cb.dataset.permSection;
+        const act = cb.dataset.permAction;
+        if (sec && act && perms[sec]) {
+          perms[sec][act] = Boolean(cb.checked);
+        }
+      });
+      return perms;
+    }
+
+    function applyGranularPermissionsToUI() {
+      if (!currentUser) return;
+
+      // Tab buttons visibility
+      document.querySelectorAll('.main-tab-btn').forEach(btn => {
+        const tabKey = btn.dataset.mainTab;
+        if (!tabKey) return;
+        const allowed = hasPermission(tabKey, 'view');
+        btn.classList.toggle('hidden', !allowed);
+      });
+
+      // Action buttons per section
+      const toggleBtn = (id, allowed) => {
+        const el = document.getElementById(id);
+        if (el) el.classList.toggle('hidden', !allowed);
+      };
+
+      toggleBtn('importSectionExcelBtn', hasPermission('compliance', 'import'));
+      toggleBtn('exportSectionExcelBtn', hasPermission('compliance', 'export'));
+      toggleBtn('exportSectionPdfBtn', hasPermission('compliance', 'export') || hasPermission('compliance', 'print'));
+      toggleBtn('addUserBtn', hasPermission('users', 'create'));
+      toggleBtn('addViolationBtn', hasPermission('violations', 'create'));
+      toggleBtn('addFuelTxBtn', hasPermission('fuel_ops', 'create'));
+
+      const badge = document.getElementById('roleCapabilityBadge');
+      if (badge) {
+        if (String(currentUser.role || '').toLowerCase() === 'admin') {
+          badge.textContent = 'صلاحياتك: مدير نظام (كامل الصلاحيات على كل قسم وإجراء)';
+        } else {
+          const allowedSections = PERMISSION_SECTIONS.filter(s => hasPermission(s.key, 'view')).map(s => s.label);
+          badge.textContent = `صلاحياتك (${currentUser.role}): ${allowedSections.join('، ') || 'عرض محدود'}`;
+        }
+      }
+    }
+
+    // Wrap openUserModal and saveUserForm to include granular permissions
+    const _origOpenUserModal = typeof openUserModal === 'function' ? openUserModal : null;
+    if (_origOpenUserModal) {
+      openUserModal = function(userIdentifier = null) {
+        if (!hasPermission('users', userIdentifier ? 'edit' : 'create')) {
+          showSystemBanner('ليس لديك صلاحية إدارة المستخدمين أو صلاحياتهم.', 'error');
+          return;
+        }
+        _origOpenUserModal(userIdentifier);
+        let targetPerms = buildRolePermissionsPreset(document.getElementById('uRole')?.value || 'supervisor');
+        if (userIdentifier) {
+          const u = (state.users || []).find(
+            item => String(item.id) === String(userIdentifier) || String(item.email).toLowerCase() === String(userIdentifier).toLowerCase()
+          );
+          if (u) {
+            targetPerms = normalizeUserPermissions(u);
+          }
+        }
+        renderPermissionsMatrixUI(targetPerms);
+      };
+    }
+
+    const _origSaveUserForm = typeof saveUserForm === 'function' ? saveUserForm : null;
+    if (_origSaveUserForm) {
+      const _origUpsert = sbClient ? null : null;
+      saveUserForm = async function(event) {
+        const collectedPerms = collectPermissionsFromMatrixUI();
+        // Temporarily attach permissions to form dataset so our state/local save captures it cleanly
+        const formEl = document.getElementById('userForm');
+        if (formEl) {
+          formEl.dataset.collectedPermissions = JSON.stringify(collectedPerms);
+        }
+        await _origSaveUserForm(event);
+        const emailVal = (document.getElementById('uEmail')?.value || '').trim().toLowerCase();
+        if (emailVal && Array.isArray(state.users)) {
+          const idx = state.users.findIndex(u => String(u.email || '').toLowerCase() === emailVal);
+          if (idx >= 0) {
+            state.users[idx].permissions = collectedPerms;
+            if (currentUser && String(currentUser.email || '').toLowerCase() === emailVal) {
+              currentUser.permissions = collectedPerms;
+            }
+            saveLocalState();
+            renderUsersTable();
+            applyGranularPermissionsToUI();
+          }
+        }
+      };
+    }
+
+    // =========================================================================
+    // 2. المخالفات المرورية والتصاريح التشغيلية (بيان / تصريح / تام)
+    // =========================================================================
+    function ensureOperationalCollections() {
+      state.violations = Array.isArray(state.violations) ? state.violations : [];
+      state.fuelTransactions = Array.isArray(state.fuelTransactions) ? state.fuelTransactions : [];
+    }
+
+    function getFilteredViolationsList() {
+      ensureOperationalCollections();
+      const q = (document.getElementById('violationSearchInput')?.value || '').trim().toLowerCase();
+      const tFilter = document.getElementById('violationTypeFilter')?.value || 'all';
+      const sFilter = document.getElementById('violationStatusFilter')?.value || 'all';
+
+      return (state.violations || []).filter(item => {
+        const matchType = tFilter === 'all' || String(item.type || '') === tFilter;
+        const matchStatus = sFilter === 'all' || String(item.status || '') === sFilter;
+        const hay = `${item.ref_number || ''} ${item.type || ''} ${item.plate_number || ''} ${item.driver_name || ''} ${item.notes || ''}`.toLowerCase();
+        const matchQuery = !q || hay.includes(q);
+        return matchType && matchStatus && matchQuery;
+      });
+    }
+
+    function renderViolationsSection() {
+      ensureOperationalCollections();
+      const tbody = document.getElementById('violationsTableBody');
+      const badge = document.getElementById('violationsSummaryBadge');
+
+      const allItems = state.violations || [];
+      const totalAmt = allItems.reduce((acc, v) => acc + Number(v.amount || 0), 0);
+      const unpaidAmt = allItems
+        .filter(v => String(v.status || '') === 'غير مسددة')
+        .reduce((acc, v) => acc + Number(v.amount || 0), 0);
+
+      if (badge) {
+        badge.textContent = `Unpaid: ${unpaidAmt.toFixed(2)} SAR | Total: ${totalAmt.toFixed(2)} SAR`;
+      }
+
+      if (!tbody) return;
+      const rows = getFilteredViolationsList();
+      if (!rows.length) {
+        tbody.innerHTML = `<tr><td colspan="9" class="py-6 text-center text-slate-400 font-bold">لا توجد مخالفات أو تصاريح مطابقة للبحث أو الفلتر.</td></tr>`;
+        return;
+      }
+
+      const canEdit = hasPermission('violations', 'edit');
+      const canDel = hasPermission('violations', 'delete');
+
+      tbody.innerHTML = rows.map(item => {
+        const statusCls = item.status === 'مسددة'
+          ? 'bg-emerald-100 text-emerald-700'
+          : item.status === 'قيد الاعتراض'
+            ? 'bg-amber-100 text-amber-800'
+            : 'bg-rose-100 text-rose-700';
+
+        return `<tr class="hover:bg-slate-50">
+          <td class="py-2.5 px-3 font-mono font-bold text-slate-900" dir="ltr">${escapeHtml(item.ref_number || '—')}</td>
+          <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded-lg bg-slate-100 text-slate-800 text-xs font-bold">${escapeHtml(item.type || 'مخالفة مرورية')}</span></td>
+          <td class="py-2.5 px-3 font-mono text-xs text-slate-600" dir="ltr">${escapeHtml(item.date || '—')}</td>
+          <td class="py-2.5 px-3 font-mono text-xs text-slate-800" dir="ltr">${escapeHtml(item.plate_number || '—')}</td>
+          <td class="py-2.5 px-3 text-slate-800 font-semibold">${escapeHtml(item.driver_name || '—')}</td>
+          <td class="py-2.5 px-3 font-mono font-extrabold text-rose-700" dir="ltr">${Number(item.amount || 0).toFixed(2)} SAR</td>
+          <td class="py-2.5 px-3"><span class="px-2.5 py-0.5 rounded-lg text-xs font-bold ${statusCls}">${escapeHtml(item.status || 'غير مسددة')}</span></td>
+          <td class="py-2.5 px-3 text-xs text-slate-600 max-w-xs truncate">${escapeHtml(item.notes || '—')}</td>
+          <td class="py-2.5 px-3 whitespace-nowrap space-x-1 space-x-reverse">
+            ${canEdit ? `<button type="button" onclick="toggleViolationPaidStatus('${escapeHtml(String(item.id))}')" class="px-2 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold">تبديل الحالة</button>` : ''}
+            ${canEdit ? `<button type="button" onclick="openViolationModal('${escapeHtml(String(item.id))}')" class="px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold">تعديل</button>` : ''}
+            ${canDel ? `<button type="button" onclick="deleteViolationRecord('${escapeHtml(String(item.id))}')" class="px-2 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold">حذف</button>` : ''}
+          </td>
+        </tr>`;
+      }).join('');
+    }
+
+    function openViolationModal(editId = null) {
+      ensureOperationalCollections();
+      if (!hasPermission('violations', editId ? 'edit' : 'create')) {
+        showSystemBanner('ليس لديك صلاحية إضافة أو تعديل المخالفات والتصاريح.', 'error');
+        return;
+      }
+      const form = document.getElementById('violationForm');
+      if (form) form.reset();
+      document.getElementById('violationEditId').value = '';
+      document.getElementById('vioDate').value = new Date().toISOString().slice(0, 10);
+      document.getElementById('vioStatus').value = 'غير مسددة';
+      document.getElementById('vioType').value = 'مخالفة مرورية';
+      refreshViolationAutocomplete();
+
+      if (editId) {
+        const item = state.violations.find(v => String(v.id) === String(editId));
+        if (item) {
+          document.getElementById('violationModalTitle').textContent = 'تعديل مخالفة / تصريح تشغيلي';
+          document.getElementById('violationEditId').value = item.id;
+          document.getElementById('vioRefNumber').value = item.ref_number || '';
+          document.getElementById('vioType').value = item.type || 'مخالفة مرورية';
+          document.getElementById('vioDate').value = item.date || '';
+          document.getElementById('vioAmount').value = String(item.amount ?? 0);
+          document.getElementById('vioPlate').value = item.plate_number || '';
+          document.getElementById('vioDriver').value = item.driver_name || '';
+          document.getElementById('vioStatus').value = item.status || 'غير مسددة';
+          document.getElementById('vioNotes').value = item.notes || '';
+        }
+      } else {
+        document.getElementById('violationModalTitle').textContent = 'إضافة مخالفة / تصريح تشغيلي';
+      }
+
+      document.getElementById('violationModal').classList.remove('hidden');
+    }
+
+    function closeViolationModal() {
+      document.getElementById('violationModal')?.classList.add('hidden');
+    }
+
+    async function saveViolationForm(event) {
+      event.preventDefault();
+      ensureOperationalCollections();
+      const editId = document.getElementById('violationEditId').value.trim();
+      if (!hasPermission('violations', editId ? 'edit' : 'create')) {
+        showSystemBanner('ليس لديك صلاحية حفظ المخالفات والتصاريح.', 'error');
+        return;
+      }
+      const record = {
+        id: editId || ('vio_' + Date.now()),
+        ref_number: document.getElementById('vioRefNumber').value.trim(),
+        type: document.getElementById('vioType').value,
+        date: document.getElementById('vioDate').value,
+        amount: Number(document.getElementById('vioAmount').value || 0),
+        plate_number: document.getElementById('vioPlate').value.trim(),
+        driver_name: document.getElementById('vioDriver').value.trim(),
+        status: document.getElementById('vioStatus').value,
+        notes: document.getElementById('vioNotes').value.trim(),
+        updated_at: new Date().toISOString()
+      };
+      const isEdit = Boolean(editId);
+      const ok = await runConfirmedOperation({
+        title: isEdit ? 'تأكيد تعديل المخالفة' : 'تأكيد حفظ المخالفة',
+        description: 'هل أنت متأكد من رغبتك في حفظ هذه المخالفة؟',
+        confirmText: 'نعم، حفظ', variant: 'info',
+        loadingText: isEdit ? 'جاري حفظ التعديلات...' : 'جاري الحفظ...',
+        busyText: 'جاري الحفظ...', button: 'saveViolationBtn',
+        successMessage: `تم حفظ سجل (${record.ref_number}) بنجاح.`,
+        errorPrefix: 'تعذر حفظ سجل المخالفة',
+        action: async () => {
+          if (isCloudMode() && sbClient) {
+            const { error } = await sbClient.from('violations').upsert([record], { onConflict: 'id' });
+            if (error) throw error;
+          }
+          const idx = state.violations.findIndex(v => String(v.id) === String(record.id));
+          if (idx >= 0) state.violations[idx] = { ...state.violations[idx], ...record };
+          else state.violations.unshift(record);
+          saveLocalState();
+          await recordActionLog(isEdit ? 'تعديل مخالفة/تصريح' : 'إضافة مخالفة/تصريح', record.ref_number,
+            `${record.type} | ${record.amount.toFixed(2)} SAR | ${record.status}`);
+          closeViolationModal();
+          renderAll();
+        }
+      });
+      return ok;
+    }
+
+    async function toggleViolationPaidStatus(id) {
+      ensureOperationalCollections();
+      if (!hasPermission('violations', 'edit')) {
+        showSystemBanner('ليس لديك صلاحية تعديل حالة السداد.', 'error');
+        return;
+      }
+      const item = state.violations.find(v => String(v.id) === String(id));
+      if (!item) return;
+      item.status = item.status === 'مسددة' ? 'غير مسددة' : 'مسددة';
+      item.updated_at = new Date().toISOString();
+
+      if (isCloudMode() && sbClient) {
+        try {
+          await sbClient.from('violations').upsert([item], { onConflict: 'id' });
+        } catch {}
+      }
+
+      saveLocalState();
+      await recordActionLog('تحديث حالة مخالفة/تصريح', item.ref_number, `الحالة الجديدة: ${item.status}`);
+      renderAll();
+    }
+
+    async function deleteViolationRecord(id) {
+      ensureOperationalCollections();
+      if (!hasPermission('violations', 'delete')) {
+        showSystemBanner('ليس لديك صلاحية حذف سجلات المخالفات والتصاريح.', 'error');
+        return;
+      }
+      const target = state.violations.find(v => String(v.id) === String(id));
+      if (!target) return;
+      await runConfirmedOperation({
+        title: 'تأكيد حذف السجل',
+        description: 'هل أنت متأكد من حذف هذا السجل؟ لا يمكن التراجع عن هذه الخطوة.',
+        confirmText: 'نعم، حذف السجل', variant: 'danger',
+        loadingText: 'جاري الحذف...', busyText: 'جاري الحذف...',
+        successMessage: 'تم حذف السجل بنجاح.', errorPrefix: 'تعذر حذف السجل',
+        action: async () => {
+          if (isCloudMode() && sbClient) {
+            const { error } = await sbClient.from('violations').delete().eq('id', target.id);
+            if (error) throw error;
+          }
+          state.violations = state.violations.filter(v => String(v.id) !== String(id));
+          saveLocalState();
+          await recordActionLog('حذف مخالفة/تصريح', target.ref_number || id, 'تم حذف السجل');
+          renderAll();
+        }
+      });
+    }
+
+    // =========================================================================
+    // 3. سجل حركات الوقود (PetroApp) والمطابقات
+    // =========================================================================
+    function recordFuelTransactionEntry({ driverName, txType, amount, balanceAfter, refCode = '', notes = '' }) {
+      ensureOperationalCollections();
+      const entry = {
+        id: 'ftx_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+        created_at: new Date().toISOString(),
+        driver_name: driverName,
+        tx_type: txType,
+        amount: Number(amount || 0),
+        balance_after: Number(balanceAfter || 0),
+        ref_code: refCode,
+        notes,
+        actor: currentUser?.email || 'system'
+      };
+      state.fuelTransactions.unshift(entry);
+      if (isCloudMode() && sbClient) {
+        sbClient.from('fuel_transactions').insert([entry]).then(() => {}).catch(() => {});
+      }
+      return entry;
+    }
+
+    function openFuelTxModal() {
+      if (!hasPermission('fuel_ops', 'create') && !hasPermission('fuel_ops', 'edit')) {
+        showSystemBanner('ليس لديك صلاحية تسجيل حركات أو مطابقات الوقود.', 'error');
+        return;
+      }
+      const form = document.getElementById('fuelTxForm');
+      if (form) form.reset();
+      document.getElementById('ftxType').value = 'شحن رصيد';
+
+      const dl = document.getElementById('fuelDriversDatalist');
+      if (dl) {
+        const names = buildAggregatedDriversList().map(d => d.full_name).filter(Boolean);
+        dl.innerHTML = [...new Set(names)].map(n => `<option value="${escapeHtml(n)}"></option>`).join('');
+      }
+
+      document.getElementById('fuelTxModal').classList.remove('hidden');
+    }
+
+    function closeFuelTxModal() {
+      document.getElementById('fuelTxModal')?.classList.add('hidden');
+    }
+
+    async function saveFuelTxForm(event) {
+      event.preventDefault();
+      if (!hasPermission('fuel_ops', 'create') && !hasPermission('fuel_ops', 'edit')) {
+        showSystemBanner('ليس لديك صلاحية حفظ حركات الوقود.', 'error');
+        return;
+      }
+      const driverName = document.getElementById('ftxDriver').value.trim();
+      const txType = document.getElementById('ftxType').value;
+      const amt = Math.max(0, Number(document.getElementById('ftxAmount').value || 0));
+      const refCode = document.getElementById('ftxRef').value.trim();
+      const notes = document.getElementById('ftxNotes').value.trim();
+
+      state.driversDirectory = state.driversDirectory || [];
+      let idx = state.driversDirectory.findIndex(d => String(d.full_name).toLowerCase() === driverName.toLowerCase());
+      const prevBal = idx >= 0 ? Number(state.driversDirectory[idx].fuel_balance || 0) : 0;
+
+      let nextBal = prevBal;
+      if (txType === 'شحن رصيد') nextBal = prevBal + amt;
+      else if (txType === 'تسوية / خصم') nextBal = Math.max(0, prevBal - amt);
+      else if (txType === 'مطابقة رصيد') nextBal = amt;
+
+      if (idx >= 0) {
+        state.driversDirectory[idx].fuel_balance = nextBal;
+      } else {
+        state.driversDirectory.unshift({
+          id: 'drv_fuel_' + Date.now(),
+          full_name: driverName,
+          category: 'مندوب مبيعات',
+          authorization_status: 'ساري',
+          status: 'نشط',
+          fuel_balance: nextBal
+        });
+      }
+
+      recordFuelTransactionEntry({
+        driverName,
+        txType,
+        amount: txType === 'مطابقة رصيد' ? (nextBal - prevBal) : amt,
+        balanceAfter: nextBal,
+        refCode,
+        notes
+      });
+
+      saveLocalState();
+      await recordActionLog(`وقود PetroApp (${txType})`, driverName, `الرصيد الجديد: ${nextBal.toFixed(2)} SAR | مرجع: ${refCode || '—'}`);
+      closeFuelTxModal();
+      renderAll();
+      showSystemBanner(`تم تسجيل (${txType}) لحساب (${driverName}) — الرصيد الحالي: ${nextBal.toFixed(2)} SAR.`, 'success');
+    }
+
+    // Hook into topUpDriverFuel to also record a fuel transaction entry
+    const _origTopUpDriverFuel = typeof topUpDriverFuel === 'function' ? topUpDriverFuel : null;
+    if (_origTopUpDriverFuel) {
+      topUpDriverFuel = async function(driverName, amountSar) {
+        if (!hasPermission('fuel_ops', 'edit') && !hasPermission('fuel_ops', 'create')) {
+          showSystemBanner('ليس لديك صلاحية شحن رصيد الوقود.', 'error');
+          return;
+        }
+        await _origTopUpDriverFuel(driverName, amountSar);
+        const drv = (state.driversDirectory || []).find(d => String(d.full_name).toLowerCase() === String(driverName).toLowerCase());
+        const balAfter = drv ? Number(drv.fuel_balance || 0) : Number(amountSar || 0);
+        recordFuelTransactionEntry({
+          driverName,
+          txType: 'شحن رصيد',
+          amount: Number(amountSar || 0),
+          balanceAfter: balAfter,
+          refCode: 'QUICK-TOPUP',
+          notes: `شحن سريع (+${amountSar} SAR)`
+        });
+        saveLocalState();
+        renderFuelTransactionsTable();
+      };
+    }
+
+    function renderFuelTransactionsTable() {
+      ensureOperationalCollections();
+      const tbody = document.getElementById('fuelTransactionsTableBody');
+      if (!tbody) return;
+      const rows = state.fuelTransactions || [];
+      if (!rows.length) {
+        tbody.innerHTML = `<tr><td colspan="7" class="py-5 text-center text-slate-400 font-bold">لا توجد حركات أو مطابقات وقود مسجلة بعد.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = rows.slice(0, 100).map(tx => {
+        const amtNum = Number(tx.amount || 0);
+        const amtColor = amtNum >= 0 ? 'text-emerald-700' : 'text-rose-700';
+        return `<tr class="hover:bg-slate-50">
+          <td class="py-2 px-3 font-mono text-slate-600" dir="ltr">${escapeHtml(new Date(tx.created_at || Date.now()).toLocaleString('ar-SA'))}</td>
+          <td class="py-2 px-3 font-bold text-slate-900">${escapeHtml(tx.driver_name || '—')}</td>
+          <td class="py-2 px-3"><span class="px-2 py-0.5 rounded-lg bg-teal-50 text-teal-800 font-bold">${escapeHtml(tx.tx_type || 'حركة')}</span></td>
+          <td class="py-2 px-3 font-mono text-slate-700" dir="ltr">${escapeHtml(tx.ref_code || '—')}</td>
+          <td class="py-2 px-3 font-mono font-extrabold ${amtColor}" dir="ltr">${amtNum >= 0 ? '+' : ''}${amtNum.toFixed(2)} SAR</td>
+          <td class="py-2 px-3 font-mono font-extrabold text-slate-900" dir="ltr">${Number(tx.balance_after || 0).toFixed(2)} SAR</td>
+          <td class="py-2 px-3 text-slate-600">${escapeHtml(tx.notes || '—')}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    // =========================================================================
+    // 4. الرسوم البيانية التحليلية في لوحة المتابعة
+    // =========================================================================
+    function renderDashboardAnalyticsCharts() {
+      const docContainer = document.getElementById('docStatusChartContainer');
+      const costContainer = document.getElementById('costBreakdownChartContainer');
+      const subtitle = document.getElementById('chartDocDistSubtitle');
+
+      if (docContainer) {
+        const cfg = DOC_SECTION_CONFIG[activeDocSection] || DOC_SECTION_CONFIG.authorization;
+        if (subtitle) subtitle.textContent = `القسم النشط: ${cfg.label}`;
+
+        const rows = getFilteredSectionRowsForReport();
+        let validCount = 0;
+        let soonCount = 0;
+        let expiredCount = 0;
+
+        for (const v of rows) {
+          const st = getVehicleSectionStatus(v, activeDocSection);
+          if (st === 'expired') expiredCount++;
+          else if (st === 'expiring_soon') soonCount++;
+          else validCount++;
+        }
+
+        const total = Math.max(1, rows.length);
+        const bars = [
+          { label: 'سارية / منتظمة', count: validCount, pct: Math.round((validCount / total) * 100), color: 'bg-emerald-500', badge: 'bg-emerald-50 text-emerald-700' },
+          { label: 'قريبة الانتهاء (≤ 15 يوم)', count: soonCount, pct: Math.round((soonCount / total) * 100), color: 'bg-amber-500', badge: 'bg-amber-50 text-amber-800' },
+          { label: 'منتهية / تحتاج إجراء', count: expiredCount, pct: Math.round((expiredCount / total) * 100), color: 'bg-rose-500', badge: 'bg-rose-50 text-rose-700' }
+        ];
+
+        docContainer.innerHTML = bars.map(b => `
+          <div class="space-y-1">
+            <div class="flex items-center justify-between font-bold">
+              <span class="text-slate-700">${escapeHtml(b.label)}</span>
+              <span class="px-2 py-0.5 rounded-md font-mono ${b.badge}" dir="ltr">${b.count} (${b.pct}%)</span>
+            </div>
+            <div class="w-full h-2.5 rounded-full bg-slate-100 overflow-hidden">
+              <div class="${b.color} h-full transition-all duration-300" style="width:${b.pct}%"></div>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      if (costContainer) {
+        ensureOperationalCollections();
+        const accidentsCost = (state.vehicles || []).reduce((s, v) => s + Number(v.accidents?.cost || 0), 0);
+        const violationsCost = (state.violations || []).reduce((s, v) => s + Number(v.amount || 0), 0);
+        const fuelBalanceTotal = buildAggregatedDriversList().reduce((s, d) => s + Number(d.fuel_balance || 0), 0);
+        const maxVal = Math.max(1, accidentsCost, violationsCost, fuelBalanceTotal);
+
+        const items = [
+          { label: 'إجمالي أرصدة الوقود (PetroApp)', val: fuelBalanceTotal, color: 'bg-teal-600', badge: 'bg-teal-50 text-teal-800' },
+          { label: 'إجمالي المخالفات والتصاريح المسجلة', val: violationsCost, color: 'bg-rose-600', badge: 'bg-rose-50 text-rose-800' },
+          { label: 'إجمالي تكاليف الحوادث المسجلة', val: accidentsCost, color: 'bg-amber-600', badge: 'bg-amber-50 text-amber-900' }
+        ];
+
+        costContainer.innerHTML = items.map(it => {
+          const pct = Math.min(100, Math.round((it.val / maxVal) * 100));
+          return `
+            <div class="space-y-1">
+              <div class="flex items-center justify-between font-bold">
+                <span class="text-slate-700">${escapeHtml(it.label)}</span>
+                <span class="px-2 py-0.5 rounded-md font-mono ${it.badge}" dir="ltr">${it.val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} SAR</span>
+              </div>
+              <div class="w-full h-2.5 rounded-full bg-slate-100 overflow-hidden">
+                <div class="${it.color} h-full transition-all duration-300" style="width:${pct}%"></div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    // =========================================================================
+    // 5. حصر الطباعة وتصدير PDF على القسم النشط والفلاتر الحالية فقط
+    // =========================================================================
+    function buildActiveTabScopedReport() {
+      const generatedAt = new Date().toLocaleString('ar-SA');
+      const actor = currentUser?.full_name || currentUser?.email || 'مستخدم النظام';
+
+      if (activeMainTab === 'drivers') {
+        const list = typeof getFilteredDriversDirectoryList === 'function' ? getFilteredDriversDirectoryList() : buildAggregatedDriversList();
+        return {
+          title: 'تقرير السائقين والمفوّضين',
+          fileName: `drivers-report-${new Date().toISOString().slice(0, 10)}.pdf`,
+          metaText: `القسم: السائقون والمفوّضون | عدد السجلات: ${list.length} | إعداد: ${actor}`,
+          tableHtml: `<table><thead><tr><th>السائق</th><th>الفئة</th><th>المركبة</th><th>اللوحة</th><th>حد الجمعة</th><th>رصيد الوقود</th><th>الحالة</th></tr></thead><tbody>${
+            list.map(d => {
+              const fri = getFridayDistanceLimitByCategory(d.category);
+              return `<tr><td>${escapeHtml(d.full_name)}</td><td>${escapeHtml(d.category || '—')}</td><td>${escapeHtml(d.vehicle_name || '—')}</td><td dir="ltr">${escapeHtml(d.plate_number || '—')}</td><td dir="ltr">${escapeHtml(fri.label)}</td><td dir="ltr">${Number(d.fuel_balance || 0).toFixed(2)} SAR</td><td>${escapeHtml(d.status || '—')}</td></tr>`;
+            }).join('')
+          }</tbody></table>`
+        };
+      }
+
+      if (activeMainTab === 'fuel_ops') {
+        ensureOperationalCollections();
+        const drivers = buildAggregatedDriversList();
+        const txs = state.fuelTransactions || [];
+        return {
+          title: 'تقرير الوقود (PetroApp) وحركات المطابقة',
+          fileName: `fuel-ops-report-${new Date().toISOString().slice(0, 10)}.pdf`,
+          metaText: `القسم: الوقود والرقابة التشغيلية | عدد الحسابات: ${drivers.length} | عدد الحركات: ${txs.length} | إعداد: ${actor}`,
+          tableHtml: `
+            <h3>أرصدة السائقين (PetroApp)</h3>
+            <table><thead><tr><th>السائق</th><th>الفئة</th><th>حد الجمعة</th><th>الرصيد الحالي</th></tr></thead><tbody>${
+              drivers.map(d => `<tr><td>${escapeHtml(d.full_name)}</td><td>${escapeHtml(d.category || '—')}</td><td dir="ltr">${escapeHtml(getFridayDistanceLimitByCategory(d.category).label)}</td><td dir="ltr">${Number(d.fuel_balance || 0).toFixed(2)} SAR</td></tr>`).join('')
+            }</tbody></table>
+            <h3 style="margin-top:16px;">سجل حركات الوقود والمطابقات</h3>
+            <table><thead><tr><th>التاريخ</th><th>السائق</th><th>النوع</th><th>المرجع</th><th>المبلغ</th><th>الرصيد بعد الحركة</th><th>ملاحظات</th></tr></thead><tbody>${
+              txs.map(t => `<tr><td dir="ltr">${escapeHtml(new Date(t.created_at || Date.now()).toLocaleString('ar-SA'))}</td><td>${escapeHtml(t.driver_name)}</td><td>${escapeHtml(t.tx_type)}</td><td dir="ltr">${escapeHtml(t.ref_code || '—')}</td><td dir="ltr">${Number(t.amount || 0).toFixed(2)} SAR</td><td dir="ltr">${Number(t.balance_after || 0).toFixed(2)} SAR</td><td>${escapeHtml(t.notes || '—')}</td></tr>`).join('')
+            }</tbody></table>`
+        };
+      }
+
+      if (activeMainTab === 'violations') {
+        const list = getFilteredViolationsList();
+        return {
+          title: 'تقرير المخالفات المرورية والتصاريح التشغيلية',
+          fileName: `violations-report-${new Date().toISOString().slice(0, 10)}.pdf`,
+          metaText: `القسم: المخالفات والتصاريح | عدد السجلات: ${list.length} | إعداد: ${actor}`,
+          tableHtml: `<table><thead><tr><th>الرقم المرجعي</th><th>النوع</th><th>التاريخ</th><th>اللوحة</th><th>السائق</th><th>المبلغ</th><th>الحالة</th><th>ملاحظات</th></tr></thead><tbody>${
+            list.map(v => `<tr><td dir="ltr">${escapeHtml(v.ref_number)}</td><td>${escapeHtml(v.type)}</td><td dir="ltr">${escapeHtml(v.date || '—')}</td><td dir="ltr">${escapeHtml(v.plate_number || '—')}</td><td>${escapeHtml(v.driver_name || '—')}</td><td dir="ltr">${Number(v.amount || 0).toFixed(2)} SAR</td><td>${escapeHtml(v.status)}</td><td>${escapeHtml(v.notes || '—')}</td></tr>`).join('')
+          }</tbody></table>`
+        };
+      }
+
+      if (activeMainTab === 'logs') {
+        const logs = state.logs || [];
+        return {
+          title: 'تقرير سجل العمليات والتدقيق',
+          fileName: `audit-logs-report-${new Date().toISOString().slice(0, 10)}.pdf`,
+          metaText: `القسم: سجل العمليات | عدد العمليات: ${logs.length} | إعداد: ${actor}`,
+          tableHtml: `<table><thead><tr><th>الوقت</th><th>المستخدم</th><th>الدور</th><th>العملية</th><th>العنصر</th><th>التفاصيل</th></tr></thead><tbody>${
+            logs.map(l => `<tr><td>${escapeHtml(new Date(l.created_at).toLocaleString('ar-SA'))}</td><td>${escapeHtml(l.actor_email || '')}</td><td>${escapeHtml(l.actor_role || '')}</td><td>${escapeHtml(l.action_type || '')}</td><td>${escapeHtml(l.target_label || '')}</td><td>${escapeHtml(l.details || '')}</td></tr>`).join('')
+          }</tbody></table>`
+        };
+      }
+
+      // Default / Dashboard / Compliance: strictly activeDocSection + active filters
+      const cfg = DOC_SECTION_CONFIG[activeDocSection] || DOC_SECTION_CONFIG.authorization;
+      const rows = getFilteredSectionRowsForReport();
+      const isAccidents = activeDocSection === 'accidents';
+      let tableHtml = '';
+
+      if (activeDocSection === 'all') {
+        tableHtml = `<table><thead><tr><th>المركبة</th><th>اللوحة</th><th>السائق</th><th>التفويض</th><th>رخصة السير</th><th>الفحص الدوري</th><th>التأمين</th><th>الحوادث</th></tr></thead><tbody>${
+          rows.map(v => `<tr><td>${escapeHtml(v.vehicle_name)}</td><td dir="ltr">${escapeHtml(v.plate_number)}</td><td>${escapeHtml(v.assigned_driver)}</td><td>${escapeHtml(evaluateDocDate(v.docs?.authorization).label)}</td><td>${escapeHtml(evaluateDocDate(v.docs?.registration).label)}</td><td>${escapeHtml(evaluateDocDate(v.docs?.periodic_inspection).label)}</td><td>${escapeHtml(evaluateDocDate(v.docs?.insurance).label)}</td><td>${escapeHtml(evaluateAccidentStatus(v).label)}</td></tr>`).join('')
+        }</tbody></table>`;
+      } else if (isAccidents) {
+        tableHtml = `<table><thead><tr><th>المركبة</th><th>اللوحة</th><th>السائق</th><th>التاريخ</th><th>رقم التقرير</th><th>التكلفة</th><th>الحالة</th></tr></thead><tbody>${
+          rows.map(v => `<tr><td>${escapeHtml(v.vehicle_name)}</td><td dir="ltr">${escapeHtml(v.plate_number)}</td><td>${escapeHtml(v.assigned_driver)}</td><td dir="ltr">${escapeHtml(v.accidents?.date || v.docs?.accidents || '—')}</td><td dir="ltr">${escapeHtml(v.accidents?.reportNumber || '—')}</td><td dir="ltr">${Number(v.accidents?.cost || 0).toLocaleString('en-US')} SAR</td><td>${escapeHtml(evaluateAccidentStatus(v).label)}</td></tr>`).join('')
+        }</tbody></table>`;
+      } else {
+        tableHtml = `<table><thead><tr><th>المركبة</th><th>اللوحة</th><th>السائق</th><th>تاريخ انتهاء ${escapeHtml(cfg.shortLabel)}</th><th>الحالة</th></tr></thead><tbody>${
+          rows.map(v => {
+            const dt = v.docs?.[activeDocSection] || '';
+            return `<tr><td>${escapeHtml(v.vehicle_name)}</td><td dir="ltr">${escapeHtml(v.plate_number)}</td><td>${escapeHtml(v.assigned_driver)}</td><td dir="ltr">${escapeHtml(dt || 'غير محدد')}</td><td>${escapeHtml(evaluateDocDate(dt).label)}</td></tr>`;
+          }).join('')
+        }</tbody></table>`;
+      }
+
+      return {
+        title: `تقرير قسم ${cfg.label} فقط`,
+        fileName: `${activeDocSection}-section-report-${new Date().toISOString().slice(0, 10)}.pdf`,
+        metaText: `القسم النشط: ${cfg.label} | عدد السجلات المفلترة: ${rows.length} | إعداد: ${actor}`,
+        tableHtml
+      };
+    }
+
+    // Override section print/PDF functions so they strictly scope to the active section
+    printSectionTableReport = function() {
+      const rep = buildActiveTabScopedReport();
+      openReportPrintWindow(rep.title, `<p><strong>${escapeHtml(rep.metaText)}</strong></p>${rep.tableHtml}`);
+    };
+
+    downloadPrintableFleetReport = function() {
+      printSectionTableReport();
+    };
+
+    exportCurrentSectionPdf = async function() {
+      const rep = buildActiveTabScopedReport();
+      if (window.html2pdf) {
+        setLoading(true, `جاري إنشاء ملف PDF (${rep.title})...`);
+        try {
+          const container = document.createElement('div');
+          container.innerHTML = `<div dir="rtl" style="font-family:'Cairo',sans-serif;padding:16px;color:#0f172a;background:#fff;">
+            <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #0f172a;padding-bottom:8px;margin-bottom:12px;">
+              <div>
+                <h2 style="margin:0;font-size:16px;font-weight:800;">${escapeHtml(rep.title)}</h2>
+                <div style="font-size:11px;color:#475569;">${escapeHtml(rep.metaText)}</div>
+              </div>
+              <div style="font-size:11px;color:#475569;">${escapeHtml(new Date().toLocaleString('ar-SA'))}</div>
+            </div>
+            ${rep.tableHtml}
+          </div>`;
+          document.body.appendChild(container);
+          await window.html2pdf()
+            .set({
+              margin: 8,
+              filename: rep.fileName,
+              image: { type: 'jpeg', quality: 0.96 },
+              html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+              jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+            })
+            .from(container.firstElementChild)
+            .save();
+          container.remove();
+          await recordActionLog('تصدير PDF (القسم النشط)', rep.fileName, rep.metaText);
+          showSystemBanner(`تم تنزيل ملف PDF (${rep.fileName}) للقسم المحدد فقط.`, 'success');
+          return;
+        } catch {
+          showSystemBanner('تعذر التوليد المباشر لملف PDF؛ سيتم فتح نافذة الطباعة للقسم المحدد.', 'warning');
+        } finally {
+          setLoading(false);
+        }
+      }
+      printSectionTableReport();
+    };
+
+    function printFuelSectionReport() {
+      const prevTab = activeMainTab;
+      activeMainTab = 'fuel_ops';
+      printSectionTableReport();
+      activeMainTab = prevTab;
+    }
+
+    function printViolationsSectionReport() {
+      const prevTab = activeMainTab;
+      activeMainTab = 'violations';
+      printSectionTableReport();
+      activeMainTab = prevTab;
+    }
+
+    // =========================================================================
+    // 6. ربط التبويبات الجديدة، التخزين المحلي، والتحديث الشامل (renderAll)
+    // =========================================================================
+    const _origSwitchMainTab = typeof switchMainTab === 'function' ? switchMainTab : null;
+    if (_origSwitchMainTab) {
+      switchMainTab = function(tabName) {
+        if (currentUser && !hasPermission(tabName, 'view')) {
+          showSystemBanner('ليس لديك صلاحية الدخول إلى هذا القسم.', 'error');
+          return;
+        }
+        _origSwitchMainTab(tabName);
+        ['violations'].forEach(t => {
+          document.getElementById(`tab-${t}`)?.classList.toggle('hidden', tabName !== t);
+        });
+        if (tabName === 'fuel_ops') renderFuelTransactionsTable();
+        if (tabName === 'violations') renderViolationsSection();
+        applyGranularPermissionsToUI();
+      };
+    }
+
+    const _origRenderAll = typeof renderAll === 'function' ? renderAll : null;
+    if (_origRenderAll) {
+      renderAll = function() {
+        ensureOperationalCollections();
+        _origRenderAll();
+        renderFuelTransactionsTable();
+        renderViolationsSection();
+        renderDashboardAnalyticsCharts();
+        applyGranularPermissionsToUI();
+      };
+    }
+
+    const _origLoadLocalState = typeof loadLocalState === 'function' ? loadLocalState : null;
+    if (_origLoadLocalState) {
+      loadLocalState = function() {
+        const base = _origLoadLocalState();
+        try {
+          const raw = localStorage.getItem(LOCAL_STATE_KEY);
+          if (raw) {
+            const p = JSON.parse(raw);
+            base.violations = Array.isArray(p.violations) ? p.violations : [];
+            base.fuelTransactions = Array.isArray(p.fuelTransactions) ? p.fuelTransactions : [];
+            base.driversDirectory = Array.isArray(p.driversDirectory) ? p.driversDirectory : (base.driversDirectory || []);
+          }
+        } catch {}
+        return base;
+      };
+    }
+</script>
 </body>
 </html>
