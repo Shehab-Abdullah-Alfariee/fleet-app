@@ -218,6 +218,10 @@
             class="main-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-blue-600 text-white shadow-sm shadow-blue-600/20 transition">
             لوحة المتابعة
           </button>
+          <button type="button" data-main-tab="drivers" onclick="switchMainTab('drivers')"
+            class="main-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
+            السائقون والمفوّضون
+          </button>
           <button type="button" data-main-tab="users" onclick="switchMainTab('users')"
             class="main-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
             المستخدمون والصلاحيات
@@ -449,6 +453,72 @@
         </div>
       </section>
 
+      <!-- تبويب السائقون والمفوّضون -->
+      <section id="tab-drivers" class="hidden space-y-4">
+        <div class="glass-card rounded-2xl p-4 sm:p-5 space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3.5">
+            <div>
+              <h2 class="text-base sm:text-lg font-extrabold text-slate-900">دليل السائقين والمفوّضين</h2>
+              <p class="text-xs text-slate-500">عرض المركبات المستلمة، سجل الحوادث، حالة التفويض، والملاحظات الإدارية لكل سائق في مكان واحد.</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <button type="button" id="driverAddBtn" onclick="openDriverDirectoryModal()"
+                class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold shadow-sm transition">
+                + إضافة سائق
+              </button>
+              <button type="button" id="driverLinkVehicleBtn" onclick="openDriverVehicleLinkModal()"
+                class="px-3.5 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs sm:text-sm font-bold shadow-sm transition">
+                + ربط / إضافة مركبة
+              </button>
+              <button type="button" id="driverLogIncidentBtn" onclick="openDriverIncidentModal()"
+                class="px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs sm:text-sm font-bold shadow-sm transition">
+                + تسجيل حادث
+              </button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+            <!-- قائمة السائقين والبحث والفرز -->
+            <div class="lg:col-span-5 bg-slate-50/75 border border-slate-200/90 rounded-2xl p-4 space-y-3">
+              <div>
+                <label for="driverDirectorySearchInput" class="block text-xs font-extrabold text-slate-700 mb-1.5">بحث بالاسم، الهوية، أو اللوحة</label>
+                <input id="driverDirectorySearchInput" type="text" oninput="renderDriversDirectory()"
+                  placeholder="ابحث باسم السائق، رقم الهوية، أو رقم اللوحة..."
+                  class="form-input-pro bg-white" />
+              </div>
+
+              <div class="grid grid-cols-2 gap-2">
+                <select id="driverDirectoryFilterSelect" onchange="renderDriversDirectory()"
+                  class="form-input-pro bg-white text-xs font-bold">
+                  <option value="all">كل السائقين</option>
+                  <option value="with_incidents">لديهم حوادث</option>
+                  <option value="open_incidents">حوادث تحت المتابعة</option>
+                  <option value="auth_issue">تفويض قريب / منتهي</option>
+                  <option value="with_vehicles">مستلمون لمركبات</option>
+                </select>
+
+                <select id="driverDirectorySortSelect" onchange="renderDriversDirectory()"
+                  class="form-input-pro bg-white text-xs font-bold">
+                  <option value="incidents_desc">فرز: الأكثر حوادث</option>
+                  <option value="vehicles_desc">فرز: الأكثر مركبات</option>
+                  <option value="name_asc">فرز: أبجدي (أ - ي)</option>
+                </select>
+              </div>
+
+              <div class="flex items-center justify-between text-[11px] font-bold text-slate-500 px-1">
+                <span id="driverDirectoryCountLabel">عدد السائقين: 0</span>
+                <button type="button" onclick="resetDriverDirectoryFilters()" class="text-blue-600 hover:underline">إعادة ضبط</button>
+              </div>
+
+              <div id="driversDirectoryList" class="space-y-2.5 max-h-[62vh] overflow-y-auto pr-0.5"></div>
+            </div>
+
+            <!-- ملف السائق التفصيلي -->
+            <div id="driverProfileDetailPanel" class="lg:col-span-7 bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 space-y-4"></div>
+          </div>
+        </div>
+      </section>
+
       <!-- تبويب المستخدمون والصلاحيات -->
       <section id="tab-users" class="hidden space-y-4">
         <div class="glass-card rounded-2xl p-5">
@@ -514,6 +584,116 @@
       </section>
 
     </main>
+  </div>
+
+  <!-- نافذة إضافة / تعديل سائق في دليل السائقين -->
+  <div id="driverDirectoryModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
+    <div class="w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-slate-200 p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 id="driverDirModalTitle" class="text-lg font-extrabold text-slate-900">إضافة سائق / مفوّض جديد</h3>
+        <button type="button" onclick="closeDriverDirectoryModal()" class="w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-500 text-xl font-bold flex items-center justify-center">×</button>
+      </div>
+
+      <form id="driverDirectoryForm" onsubmit="saveDriverDirectoryForm(event)" class="space-y-3.5">
+        <input type="hidden" id="driverDirEditId" />
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">اسم السائق / المفوّض الكامل *</label>
+          <input id="ddFullName" type="text" required placeholder="مثال: احمد يحيى الاحمر" class="form-input-pro" />
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">رقم الهوية / الإقامة</label>
+            <input id="ddNationalId" type="text" dir="ltr" placeholder="10XXXXXXXX" class="form-input-pro font-mono" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">رقم الجوال</label>
+            <input id="ddPhone" type="tel" dir="ltr" placeholder="05XXXXXXXX" class="form-input-pro font-mono" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">حالة التفويض</label>
+            <select id="ddAuthStatus" class="form-input-pro font-semibold">
+              <option value="ساري">ساري</option>
+              <option value="قريب الانتهاء">قريب الانتهاء</option>
+              <option value="منتهي">منتهي</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">انتهاء التفويض</label>
+            <input id="ddAuthExpiry" type="date" lang="en-CA" dir="ltr" class="form-input-pro font-mono" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">حالة السائق</label>
+            <select id="ddDriverStatus" class="form-input-pro font-semibold">
+              <option value="نشط">نشط</option>
+              <option value="متوقف">متوقف</option>
+              <option value="إجازة">إجازة</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">ملاحظات إدارية</label>
+          <textarea id="ddNotes" rows="2" placeholder="ملاحظات حول التزام السائق، العهدة، أو التفويض..." class="form-input-pro"></textarea>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+          <button type="button" onclick="closeDriverDirectoryModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-sm font-bold text-slate-700 hover:bg-slate-50">إلغاء</button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-sm font-bold text-white shadow-sm">حفظ السائق</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- نافذة إضافة / تحديث مركبة وربطها بسائق مع منع تكرار اللوحة -->
+  <div id="driverVehicleLinkModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
+    <div class="w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-slate-200 p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div>
+          <h3 class="text-lg font-extrabold text-slate-900">إضافة / تحديث مركبة وربطها بسائق</h3>
+          <p class="text-xs text-slate-500">يتم منع تكرار رقم اللوحة وتحديث المركبة تلقائياً إذا كانت مسجلة مسبقاً.</p>
+        </div>
+        <button type="button" onclick="closeDriverVehicleLinkModal()" class="w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-500 text-xl font-bold flex items-center justify-center">×</button>
+      </div>
+
+      <form id="driverVehicleLinkForm" onsubmit="saveDriverVehicleLinkForm(event)" class="space-y-3.5">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">السائق / المفوّض *</label>
+          <select id="dvlDriverSelect" required class="form-input-pro font-semibold"></select>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">رقم اللوحة *</label>
+            <input id="dvlPlateNumber" type="text" required oninput="prefillVehicleByPlate(this.value)" placeholder="مثال: أ ب ج 1234" class="form-input-pro" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">اسم / نوع المركبة *</label>
+            <input id="dvlVehicleName" type="text" required placeholder="مثال: تويوتا هايلوكس 2025" class="form-input-pro" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">تاريخ انتهاء التفويض</label>
+            <input id="dvlAuthExpiry" type="date" lang="en-CA" dir="ltr" class="form-input-pro font-mono" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">ملاحظات إضافية</label>
+            <input id="dvlNotes" type="text" placeholder="حالة الاستلام أو الملاحظات" class="form-input-pro" />
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+          <button type="button" onclick="closeDriverVehicleLinkModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-sm font-bold text-slate-700 hover:bg-slate-50">إلغاء</button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-sm font-bold text-white shadow-sm">حفظ وربط المركبة</button>
+        </div>
+      </form>
+    </div>
   </div>
 
   <!-- نافذة تأكيد أمنية احترافية (بديل آمن لـ confirm) -->
@@ -1664,11 +1844,12 @@
           return;
         }
 
-        const [vRes, dRes, uRes, lRes] = await Promise.all([
+        const [vRes, dRes, uRes, lRes, drvRes] = await Promise.all([
           fetchAllRowsFromTable('vehicles', 'created_at', false),
           fetchAllRowsFromTable('vehicle_documents', 'id', true),
           sbClient.from('app_users').select('*').order('created_at', { ascending: true }),
-          sbClient.from('audit_logs').select('*').order('created_at', { ascending: false }).limit(100)
+          sbClient.from('audit_logs').select('*').order('created_at', { ascending: false }).limit(100),
+          sbClient.from('drivers').select('*').order('created_at', { ascending: false })
         ]);
 
         await syncNotifiedExpiredFromCloud();
@@ -1726,6 +1907,10 @@
           state.logs = lRes.data;
         }
 
+        if (drvRes && !drvRes.error && Array.isArray(drvRes.data)) {
+          state.driversDirectory = drvRes.data;
+        }
+
         renderAll();
         if (showBanner) {
           const sectionCount = getSectionVehiclesList(activeDocSection).length;
@@ -1765,8 +1950,12 @@
     function switchMainTab(tabName) {
       activeMainTab = tabName;
       document.getElementById('tab-dashboard').classList.toggle('hidden', tabName !== 'dashboard');
+      document.getElementById('tab-drivers')?.classList.toggle('hidden', tabName !== 'drivers');
       document.getElementById('tab-users').classList.toggle('hidden', tabName !== 'users');
       document.getElementById('tab-logs').classList.toggle('hidden', tabName !== 'logs');
+      if (tabName === 'drivers') {
+        renderDriversDirectory();
+      }
 
       document.querySelectorAll('.main-tab-btn').forEach(btn => {
         const selected = btn.dataset.mainTab === tabName;
@@ -2411,6 +2600,7 @@
       renderComplianceAlertsBanner();
       renderStats();
       renderVehiclesTable();
+      renderDriversDirectory();
       renderUsersTable();
       renderLogsTable();
     }
@@ -3353,6 +3543,7 @@
       if (!ok) return;
       await deleteVehiclesBatch(ids);
     }
+
     function openUserModal(userIdentifier = null) {
       const form = document.getElementById('userForm');
       form.reset();
@@ -4788,6 +4979,8 @@
         closeCloudSettingsModal();
         closeVehicleModal();
         closeAccidentModal();
+        closeDriverDirectoryModal();
+        closeDriverVehicleLinkModal();
         closeUserModal();
         closeAlertsCenterModal();
       }
@@ -4812,6 +5005,613 @@
         navigator.serviceWorker.register('./sw.js').catch(() => {});
       });
     }
+
+    // =========================================================================
+    // قسم السائقين والمفوّضين: القائمة، البحث، الفرز، الملف التفصيلي، والربط
+    // =========================================================================
+    const DRIVERS_DIR_STORAGE_KEY = 'fleet_drivers_directory_v1';
+    let selectedDriverDirectoryKey = '';
+
+    function loadDriversDirectoryLocal() {
+      try {
+        const raw = localStorage.getItem(DRIVERS_DIR_STORAGE_KEY);
+        const parsed = raw ? JSON.parse(raw) : [];
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function saveDriversDirectoryLocal() {
+      try {
+        localStorage.setItem(DRIVERS_DIR_STORAGE_KEY, JSON.stringify(state.driversDirectory || []));
+      } catch {}
+    }
+
+    if (!Array.isArray(state.driversDirectory)) {
+      state.driversDirectory = loadDriversDirectoryLocal();
+    }
+
+    function normalizeDriverNameKey(name) {
+      return toWesternDigits(String(name || ''))
+        .trim()
+        .toLowerCase()
+        .replace(/[أإآ]/g, 'ا')
+        .replace(/ى/g, 'ي')
+        .replace(/ة/g, 'ه')
+        .replace(/\s+/g, ' ');
+    }
+
+    function getDriverAuthBadgeMeta(statusText, expiryDate) {
+      if (expiryDate) {
+        const ev = evaluateDocDate(expiryDate);
+        if (ev.code === 'expired') {
+          return { label: `منتهي (${expiryDate})`, cls: 'bg-rose-100 text-rose-700 border border-rose-200', hasIssue: true };
+        }
+        if (ev.code === 'expiring_soon') {
+          return { label: `قريب الانتهاء (${expiryDate})`, cls: 'bg-amber-100 text-amber-800 border border-amber-200', hasIssue: true };
+        }
+        return { label: `ساري (${expiryDate})`, cls: 'bg-emerald-100 text-emerald-700 border border-emerald-200', hasIssue: false };
+      }
+
+      const st = String(statusText || 'ساري').trim();
+      if (st.includes('منته')) {
+        return { label: st, cls: 'bg-rose-100 text-rose-700 border border-rose-200', hasIssue: true };
+      }
+      if (st.includes('قريب')) {
+        return { label: st, cls: 'bg-amber-100 text-amber-800 border border-amber-200', hasIssue: true };
+      }
+      return { label: st || 'ساري', cls: 'bg-emerald-100 text-emerald-700 border border-emerald-200', hasIssue: false };
+    }
+
+    function buildAggregatedDriversList() {
+      const map = new Map();
+
+      const ensureEntry = (name, extra = null) => {
+        const cleanName = String(name || '').trim();
+        if (!cleanName || cleanName === 'غير محدد') return null;
+        const key = extra?.id ? `id:${extra.id}` : `name:${normalizeDriverNameKey(cleanName)}`;
+        const nameKey = normalizeDriverNameKey(cleanName);
+
+        let existing = map.get(key);
+        if (!existing) {
+          for (const item of map.values()) {
+            if (normalizeDriverNameKey(item.full_name) === nameKey) {
+              existing = item;
+              break;
+            }
+          }
+        }
+
+        if (!existing) {
+          existing = {
+            key,
+            id: extra?.id || '',
+            full_name: cleanName,
+            national_id: extra?.national_id || '',
+            phone: extra?.phone || '',
+            authorization_status: extra?.authorization_status || 'ساري',
+            authorization_expiry: extra?.authorization_expiry || '',
+            status: extra?.status || 'نشط',
+            notes: extra?.notes || '',
+            vehicles: [],
+            incidents: [],
+            openIncidentsCount: 0,
+            totalCost: 0
+          };
+          map.set(key, existing);
+        } else if (extra) {
+          if (extra.id && !existing.id) existing.id = extra.id;
+          if (extra.national_id) existing.national_id = extra.national_id;
+          if (extra.phone) existing.phone = extra.phone;
+          if (extra.authorization_status) existing.authorization_status = extra.authorization_status;
+          if (extra.authorization_expiry) existing.authorization_expiry = extra.authorization_expiry;
+          if (extra.status) existing.status = extra.status;
+          if (extra.notes) existing.notes = extra.notes;
+        }
+        return existing;
+      };
+
+      for (const drv of (state.driversDirectory || [])) {
+        if (drv && drv.full_name) {
+          ensureEntry(drv.full_name, drv);
+        }
+      }
+
+      for (const v of (state.vehicles || [])) {
+        const drvName = String(v.assigned_driver || '').trim();
+        const entry = drvName && drvName !== 'غير محدد' ? ensureEntry(drvName) : null;
+
+        if (entry) {
+          entry.vehicles.push(v);
+          if (!entry.authorization_expiry && v.docs?.authorization) {
+            entry.authorization_expiry = v.docs.authorization;
+          }
+        }
+
+        const hasAccident = Boolean(v.accidents || v.docs?.accidents);
+        if (hasAccident && entry) {
+          const acc = v.accidents || {};
+          const accDate = acc.date || v.docs?.accidents || '—';
+          const accEv = evaluateAccidentStatus(v);
+          const isOpen = accEv.code !== 'valid';
+          const costVal = Number(acc.cost || 0);
+          entry.incidents.push({
+            vehicleId: v.id,
+            plate_number: v.plate_number || '—',
+            vehicle_name: v.vehicle_name || 'مركبة',
+            date: accDate,
+            reportNumber: acc.reportNumber || 'بدون رقم',
+            faultPercent: acc.faultPercent || 'غير محدد',
+            cost: costVal,
+            statusLabel: accEv.label,
+            isOpen,
+            description: stripAccidentPayloadFromNotes(v.notes || '')
+          });
+          if (isOpen) entry.openIncidentsCount += 1;
+          entry.totalCost += costVal;
+        }
+      }
+
+      return Array.from(map.values());
+    }
+
+    function resetDriverDirectoryFilters() {
+      const searchEl = document.getElementById('driverDirectorySearchInput');
+      const filterEl = document.getElementById('driverDirectoryFilterSelect');
+      const sortEl = document.getElementById('driverDirectorySortSelect');
+      if (searchEl) searchEl.value = '';
+      if (filterEl) filterEl.value = 'all';
+      if (sortEl) sortEl.value = 'incidents_desc';
+      renderDriversDirectory();
+    }
+
+    function selectDriverInDirectory(driverKey) {
+      selectedDriverDirectoryKey = driverKey;
+      renderDriversDirectory();
+    }
+
+    function renderDriversDirectory() {
+      const listEl = document.getElementById('driversDirectoryList');
+      const detailEl = document.getElementById('driverProfileDetailPanel');
+      const countEl = document.getElementById('driverDirectoryCountLabel');
+      if (!listEl || !detailEl) return;
+
+      const q = (document.getElementById('driverDirectorySearchInput')?.value || '').trim().toLowerCase();
+      const filterMode = document.getElementById('driverDirectoryFilterSelect')?.value || 'all';
+      const sortMode = document.getElementById('driverDirectorySortSelect')?.value || 'incidents_desc';
+
+      const allDrivers = buildAggregatedDriversList();
+
+      const filtered = allDrivers
+        .filter(d => {
+          const matchesPlate = d.vehicles.some(v => String(v.plate_number || '').toLowerCase().includes(q)) ||
+                               d.incidents.some(i => String(i.plate_number || '').toLowerCase().includes(q));
+          const matchesQuery = !q ||
+            String(d.full_name || '').toLowerCase().includes(q) ||
+            String(d.national_id || '').toLowerCase().includes(q) ||
+            String(d.phone || '').toLowerCase().includes(q) ||
+            matchesPlate;
+
+          if (!matchesQuery) return false;
+
+          const authMeta = getDriverAuthBadgeMeta(d.authorization_status, d.authorization_expiry);
+          if (filterMode === 'with_incidents') return d.incidents.length > 0;
+          if (filterMode === 'open_incidents') return d.openIncidentsCount > 0;
+          if (filterMode === 'auth_issue') return authMeta.hasIssue;
+          if (filterMode === 'with_vehicles') return d.vehicles.length > 0;
+          return true;
+        })
+        .sort((a, b) => {
+          if (sortMode === 'vehicles_desc') return b.vehicles.length - a.vehicles.length || b.incidents.length - a.incidents.length;
+          if (sortMode === 'name_asc') return a.full_name.localeCompare(b.full_name, 'ar');
+          return b.incidents.length - a.incidents.length || b.openIncidentsCount - a.openIncidentsCount || b.vehicles.length - a.vehicles.length;
+        });
+
+      if (countEl) {
+        countEl.textContent = `عدد السائقين: ${filtered.length} من أصل ${allDrivers.length}`;
+      }
+
+      if (!filtered.length) {
+        listEl.innerHTML = `<div class="text-center text-slate-400 text-xs font-bold py-10 bg-white rounded-2xl border border-dashed border-slate-200">لا توجد سجلات سائقين مطابقة للبحث أو الفلتر.</div>`;
+        detailEl.innerHTML = `<div class="text-center text-slate-400 text-sm font-bold py-16">اختر سائقاً من القائمة أو أضف سائقاً جديداً لعرض ملفه التفصيلي.</div>`;
+        return;
+      }
+
+      if (!selectedDriverDirectoryKey || !filtered.some(d => d.key === selectedDriverDirectoryKey)) {
+        selectedDriverDirectoryKey = filtered[0].key;
+      }
+
+      listEl.innerHTML = filtered.map(d => {
+        const isSelected = d.key === selectedDriverDirectoryKey;
+        const authMeta = getDriverAuthBadgeMeta(d.authorization_status, d.authorization_expiry);
+        return `
+          <button type="button" onclick="selectDriverInDirectory('${escapeHtml(d.key)}')"
+            class="w-full text-right p-3.5 rounded-2xl border transition ${
+              isSelected
+                ? 'bg-blue-50/80 border-blue-500 shadow-sm'
+                : 'bg-white border-slate-200/90 hover:border-slate-300'
+            }">
+            <div class="flex items-center justify-between gap-2 mb-1.5">
+              <span class="font-extrabold text-sm text-slate-900">${escapeHtml(d.full_name)}</span>
+              <span class="text-[11px] font-bold px-2 py-0.5 rounded-lg ${authMeta.cls}">${escapeHtml(authMeta.label)}</span>
+            </div>
+            <div class="flex flex-wrap items-center gap-3 text-xs text-slate-600 font-semibold">
+              <span>المركبات: <strong class="text-slate-900">${d.vehicles.length}</strong></span>
+              <span>الحوادث: <strong class="${d.incidents.length > 0 ? 'text-rose-600' : 'text-slate-900'}">${d.incidents.length}</strong></span>
+              <span>تحت المتابعة: <strong class="${d.openIncidentsCount > 0 ? 'text-amber-600' : 'text-slate-900'}">${d.openIncidentsCount}</strong></span>
+            </div>
+          </button>`;
+      }).join('');
+
+      const activeDriver = filtered.find(d => d.key === selectedDriverDirectoryKey) || filtered[0];
+      renderDriverProfileDetail(activeDriver, detailEl);
+    }
+
+    function renderDriverProfileDetail(driver, container) {
+      if (!driver || !container) return;
+      const authMeta = getDriverAuthBadgeMeta(driver.authorization_status, driver.authorization_expiry);
+      const canEdit = canEditRecords();
+
+      const vehiclesHtml = driver.vehicles.length
+        ? driver.vehicles.map(v => {
+            const authSt = evaluateDocDate(v.docs?.authorization);
+            return `
+              <div class="p-3 rounded-xl border border-slate-200 bg-slate-50/70 flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <div class="font-bold text-xs sm:text-sm text-slate-900">${escapeHtml(v.vehicle_name || 'مركبة')}</div>
+                  <div class="text-xs font-mono text-slate-500" dir="ltr">لوحة: ${escapeHtml(v.plate_number || '—')}</div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="px-2.5 py-1 rounded-lg text-[11px] font-bold ${authSt.badgeClass}">التفويض: ${escapeHtml(authSt.label)}</span>
+                  <button type="button" onclick="openVehicleDetailsModal('${escapeHtml(v.id)}')" class="px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold">ملف المركبة</button>
+                </div>
+              </div>`;
+          }).join('')
+        : `<div class="text-xs text-slate-400 font-semibold p-4 rounded-xl border border-dashed border-slate-200 text-center">لا توجد مركبات مستلمة حالياً لهذا السائق.</div>`;
+
+      const incidentsHtml = driver.incidents.length
+        ? driver.incidents.map(inc => `
+            <div class="p-3.5 rounded-xl border border-slate-200 bg-white space-y-1.5">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <div class="font-bold text-xs sm:text-sm text-slate-900">
+                  ${escapeHtml(inc.vehicle_name)} <span class="font-mono text-xs text-slate-500" dir="ltr">(${escapeHtml(inc.plate_number)})</span>
+                </div>
+                <span class="px-2.5 py-0.5 rounded-lg text-[11px] font-bold ${inc.isOpen ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-700'}">${escapeHtml(inc.statusLabel)}</span>
+              </div>
+              <div class="flex flex-wrap gap-3 text-xs text-slate-600">
+                <span>التاريخ: <strong class="font-mono" dir="ltr">${escapeHtml(inc.date)}</strong></span>
+                <span>التقرير: <strong class="font-mono" dir="ltr">${escapeHtml(inc.reportNumber)}</strong></span>
+                <span>المسؤولية: <strong>${escapeHtml(inc.faultPercent)}</strong></span>
+                <span>التكلفة: <strong class="font-mono" dir="ltr">${Number(inc.cost || 0).toLocaleString('en-US')} ر.س</strong></span>
+              </div>
+              ${inc.description ? `<p class="text-xs text-slate-600 pt-1 border-t border-slate-100">${escapeHtml(inc.description)}</p>` : ''}
+            </div>`).join('')
+        : `<div class="text-xs text-emerald-700 font-bold p-4 rounded-xl border border-emerald-200 bg-emerald-50/60 text-center">سجل نظيف — لا توجد حوادث مسجلة على هذا السائق.</div>`;
+
+      container.innerHTML = `
+        <div class="flex flex-wrap items-start justify-between gap-3 pb-4 border-b border-slate-100">
+          <div>
+            <div class="flex flex-wrap items-center gap-2">
+              <h3 class="text-lg sm:text-xl font-extrabold text-slate-900">${escapeHtml(driver.full_name)}</h3>
+              <span class="text-xs font-bold px-2.5 py-1 rounded-lg ${authMeta.cls}">التفويض: ${escapeHtml(authMeta.label)}</span>
+              <span class="text-xs font-bold px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700">الحالة: ${escapeHtml(driver.status || 'نشط')}</span>
+            </div>
+            <p class="text-xs text-slate-500 mt-1">
+              رقم الهوية: <span class="font-mono font-bold text-slate-700" dir="ltr">${escapeHtml(driver.national_id || 'غير مسجل')}</span>
+              &nbsp;•&nbsp; الجوال: <span class="font-mono font-bold text-slate-700" dir="ltr">${escapeHtml(driver.phone || 'غير مسجل')}</span>
+            </p>
+          </div>
+
+          ${canEdit ? `
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="openDriverDirectoryModal('${escapeHtml(driver.key)}')" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition">تعديل بيانات السائق</button>
+              <button type="button" onclick="openDriverIncidentModal('${escapeHtml(driver.full_name)}')" class="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition">+ حادث للسائق</button>
+            </div>` : ''}
+        </div>
+
+        <div class="grid grid-cols-3 gap-3">
+          <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80">
+            <div class="text-xs font-bold text-slate-500">إجمالي الحوادث</div>
+            <div class="text-2xl font-extrabold text-rose-600 mt-1">${driver.incidents.length}</div>
+          </div>
+          <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80">
+            <div class="text-xs font-bold text-slate-500">حوادث تحت المتابعة</div>
+            <div class="text-2xl font-extrabold text-amber-600 mt-1">${driver.openIncidentsCount}</div>
+          </div>
+          <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80">
+            <div class="text-xs font-bold text-slate-500">المركبات المستلمة</div>
+            <div class="text-2xl font-extrabold text-emerald-700 mt-1">${driver.vehicles.length}</div>
+          </div>
+        </div>
+
+        <div class="space-y-2.5">
+          <h4 class="text-xs sm:text-sm font-extrabold text-slate-800">المركبات المستلمة (${driver.vehicles.length})</h4>
+          <div class="space-y-2">${vehiclesHtml}</div>
+        </div>
+
+        <div class="space-y-2.5">
+          <h4 class="text-xs sm:text-sm font-extrabold text-slate-800">سجل الحوادث المرتبطة (${driver.incidents.length})</h4>
+          <div class="space-y-2.5">${incidentsHtml}</div>
+        </div>
+
+        <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-1">
+          <div class="text-xs font-extrabold text-slate-700">ملاحظات إدارية</div>
+          <p class="text-xs text-slate-600 whitespace-pre-line">${driver.notes ? escapeHtml(driver.notes) : 'لا توجد ملاحظات إدارية مسجلة لهذا السائق.'}</p>
+        </div>
+      `;
+    }
+
+    function openDriverDirectoryModal(driverKey = '') {
+      if (!canEditRecords()) {
+        showSystemBanner('ليس لديك صلاحية إضافة أو تعديل السائقين.', 'error');
+        return;
+      }
+      const form = document.getElementById('driverDirectoryForm');
+      form.reset();
+      document.getElementById('driverDirEditId').value = '';
+      document.getElementById('ddAuthStatus').value = 'ساري';
+      document.getElementById('ddDriverStatus').value = 'نشط';
+
+      if (driverKey) {
+        const list = buildAggregatedDriversList();
+        const drv = list.find(d => d.key === driverKey);
+        if (drv) {
+          document.getElementById('driverDirModalTitle').textContent = 'تعديل بيانات السائق / المفوّض';
+          document.getElementById('driverDirEditId').value = drv.id || drv.full_name;
+          document.getElementById('ddFullName').value = drv.full_name || '';
+          document.getElementById('ddNationalId').value = drv.national_id || '';
+          document.getElementById('ddPhone').value = drv.phone || '';
+          document.getElementById('ddAuthStatus').value = drv.authorization_status || 'ساري';
+          document.getElementById('ddAuthExpiry').value = drv.authorization_expiry || '';
+          document.getElementById('ddDriverStatus').value = drv.status || 'نشط';
+          document.getElementById('ddNotes').value = drv.notes || '';
+        }
+      } else {
+        document.getElementById('driverDirModalTitle').textContent = 'إضافة سائق / مفوّض جديد';
+      }
+
+      document.getElementById('driverDirectoryModal').classList.remove('hidden');
+    }
+
+    function closeDriverDirectoryModal() {
+      document.getElementById('driverDirectoryModal').classList.add('hidden');
+    }
+
+    async function saveDriverDirectoryForm(event) {
+      event.preventDefault();
+      if (!canEditRecords()) {
+        showSystemBanner('ليس لديك صلاحية حفظ بيانات السائقين.', 'error');
+        return;
+      }
+
+      const editRef = document.getElementById('driverDirEditId').value.trim();
+      const full_name = document.getElementById('ddFullName').value.trim();
+      const national_id = toWesternDigits(document.getElementById('ddNationalId').value || '').trim();
+      const phone = toWesternDigits(document.getElementById('ddPhone').value || '').trim();
+      const authorization_status = document.getElementById('ddAuthStatus').value;
+      const authorization_expiry = document.getElementById('ddAuthExpiry').value || '';
+      const status = document.getElementById('ddDriverStatus').value;
+      const notes = document.getElementById('ddNotes').value.trim();
+
+      if (!full_name) return;
+
+      setLoading(true, 'جاري حفظ بيانات السائق...');
+      try {
+        const recordPayload = {
+          full_name,
+          national_id: national_id || null,
+          phone: phone || null,
+          authorization_status,
+          authorization_expiry: authorization_expiry || null,
+          status,
+          notes: notes || null
+        };
+
+        let savedId = editRef;
+        if (isCloudMode() && sbClient) {
+          try {
+            if (editRef && !editRef.includes(' ')) {
+              const { data, error } = await sbClient
+                .from('drivers')
+                .update(recordPayload)
+                .eq('id', editRef)
+                .select()
+                .single();
+              if (!error && data) savedId = data.id;
+            } else {
+              const { data, error } = await sbClient
+                .from('drivers')
+                .insert([recordPayload])
+                .select()
+                .single();
+              if (!error && data) savedId = data.id;
+            }
+          } catch {}
+        }
+
+        const dirList = Array.isArray(state.driversDirectory) ? state.driversDirectory : [];
+        const existingIdx = dirList.findIndex(
+          item => (editRef && (String(item.id) === editRef || normalizeDriverNameKey(item.full_name) === normalizeDriverNameKey(editRef))) ||
+                  normalizeDriverNameKey(item.full_name) === normalizeDriverNameKey(full_name)
+        );
+
+        const localEntry = {
+          id: savedId || ('drv_' + Date.now()),
+          full_name,
+          national_id: national_id || '',
+          phone: phone || '',
+          authorization_status,
+          authorization_expiry,
+          status,
+          notes
+        };
+
+        if (existingIdx >= 0) {
+          dirList[existingIdx] = { ...dirList[existingIdx], ...localEntry };
+        } else {
+          dirList.unshift(localEntry);
+        }
+        state.driversDirectory = dirList;
+        saveDriversDirectoryLocal();
+
+        selectedDriverDirectoryKey = localEntry.id ? `id:${localEntry.id}` : `name:${normalizeDriverNameKey(full_name)}`;
+        await recordActionLog('حفظ بيانات سائق', full_name, `التفويض: ${authorization_status}`);
+        closeDriverDirectoryModal();
+        renderDriversDirectory();
+        showSystemBanner(`تم حفظ بيانات السائق (${full_name}) بنجاح.`, 'success');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    function openDriverVehicleLinkModal() {
+      if (!canEditRecords()) {
+        showSystemBanner('ليس لديك صلاحية إضافة أو ربط المركبات.', 'error');
+        return;
+      }
+
+      const sel = document.getElementById('dvlDriverSelect');
+      const drivers = buildAggregatedDriversList();
+      if (!drivers.length) {
+        showSystemBanner('يرجى إضافة سائق أولاً قبل ربط مركبة به.', 'warning');
+        return;
+      }
+
+      const currentSelected = drivers.find(d => d.key === selectedDriverDirectoryKey) || drivers[0];
+      sel.innerHTML = drivers
+        .map(d => `<option value="${escapeHtml(d.full_name)}" ${d.key === currentSelected.key ? 'selected' : ''}>${escapeHtml(d.full_name)}</option>`)
+        .join('');
+
+      document.getElementById('dvlPlateNumber').value = '';
+      document.getElementById('dvlVehicleName').value = '';
+      document.getElementById('dvlAuthExpiry').value = '';
+      document.getElementById('dvlNotes').value = '';
+      document.getElementById('driverVehicleLinkModal').classList.remove('hidden');
+    }
+
+    function closeDriverVehicleLinkModal() {
+      document.getElementById('driverVehicleLinkModal').classList.add('hidden');
+    }
+
+    function prefillVehicleByPlate(rawPlate) {
+      const key = normalizePlateKey(rawPlate);
+      if (!key) return;
+      const found = (state.vehicles || []).find(v => normalizePlateKey(v.plate_number) === key);
+      if (found) {
+        document.getElementById('dvlVehicleName').value = found.vehicle_name || '';
+        document.getElementById('dvlAuthExpiry').value = found.docs?.authorization || '';
+        document.getElementById('dvlNotes').value = stripAccidentPayloadFromNotes(found.notes || '');
+      }
+    }
+
+    async function saveDriverVehicleLinkForm(event) {
+      event.preventDefault();
+      if (!canEditRecords()) {
+        showSystemBanner('ليس لديك صلاحية ربط المركبات.', 'error');
+        return;
+      }
+
+      const assigned_driver = document.getElementById('dvlDriverSelect').value.trim();
+      const plate_number = toWesternDigits(document.getElementById('dvlPlateNumber').value || '').trim();
+      const vehicle_name = document.getElementById('dvlVehicleName').value.trim();
+      const authExpiry = document.getElementById('dvlAuthExpiry').value || '';
+      const extraNotes = document.getElementById('dvlNotes').value.trim();
+
+      if (!assigned_driver || !plate_number || !vehicle_name) return;
+
+      const plateKey = normalizePlateKey(plate_number);
+      const existingVehicle = (state.vehicles || []).find(v => normalizePlateKey(v.plate_number) === plateKey);
+      const notesWithAcc = composeNotesWithAccident(
+        extraNotes || stripAccidentPayloadFromNotes(existingVehicle?.notes || ''),
+        existingVehicle?.accidents || null
+      );
+
+      setLoading(true, 'جاري ربط المركبة بالسائق ومنع التكرار...');
+      try {
+        if (isCloudMode() && sbClient) {
+          let targetId = existingVehicle?.id || '';
+          if (targetId) {
+            const { error } = await sbClient
+              .from('vehicles')
+              .update({ plate_number, vehicle_name, assigned_driver, notes: notesWithAcc, updated_at: new Date().toISOString() })
+              .eq('id', targetId);
+            if (error) {
+              showSystemBanner(`تعذر تحديث المركبة: ${error.message}`, 'error');
+              return;
+            }
+          } else {
+            const { data: created, error } = await sbClient
+              .from('vehicles')
+              .insert([{ plate_number, vehicle_name, assigned_driver, notes: notesWithAcc }])
+              .select()
+              .single();
+            if (error || !created) {
+              showSystemBanner(`تعذر إضافة المركبة: ${error?.message || ''}`, 'error');
+              return;
+            }
+            targetId = created.id;
+          }
+
+          if (authExpiry && targetId) {
+            await sbClient
+              .from('vehicle_documents')
+              .upsert([{ vehicle_id: targetId, doc_type: 'authorization', expiry_date: authExpiry }], { onConflict: 'vehicle_id,doc_type' });
+          }
+
+          await recordActionLog('ربط مركبة بسائق', `${vehicle_name} (${plate_number})`, `السائق: ${assigned_driver}`);
+          await refreshCloudData(false, false);
+        } else {
+          if (existingVehicle) {
+            existingVehicle.plate_number = plate_number;
+            existingVehicle.vehicle_name = vehicle_name;
+            existingVehicle.assigned_driver = assigned_driver;
+            existingVehicle.notes = extraNotes || stripAccidentPayloadFromNotes(existingVehicle.notes || '');
+            if (authExpiry) {
+              existingVehicle.docs = { ...(existingVehicle.docs || {}), authorization: authExpiry };
+            }
+          } else {
+            state.vehicles.unshift({
+              id: 'v_' + Date.now(),
+              plate_number,
+              vehicle_name,
+              assigned_driver,
+              notes: extraNotes,
+              docs: authExpiry ? { authorization: authExpiry } : {},
+              accidents: null
+            });
+          }
+          saveLocalState();
+          await recordActionLog('ربط مركبة بسائق', `${vehicle_name} (${plate_number})`, `السائق: ${assigned_driver}`);
+          renderAll();
+        }
+
+        selectedDriverDirectoryKey = `name:${normalizeDriverNameKey(assigned_driver)}`;
+        closeDriverVehicleLinkModal();
+        renderDriversDirectory();
+        showSystemBanner(`تم ربط المركبة (${plate_number}) بالسائق (${assigned_driver}) بدون تكرار.`, 'success');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    function openDriverIncidentModal(driverName = '') {
+      openAccidentModal(null);
+      const targetName = driverName || (buildAggregatedDriversList().find(d => d.key === selectedDriverDirectoryKey)?.full_name || '');
+      if (targetName) {
+        document.getElementById('accAssignedDriver').value = targetName;
+        const driverVehicle = (state.vehicles || []).find(
+          v => normalizeDriverNameKey(v.assigned_driver) === normalizeDriverNameKey(targetName)
+        );
+        if (driverVehicle) {
+          document.getElementById('accPlateNumber').value = driverVehicle.plate_number || '';
+          document.getElementById('accVehicleName').value = driverVehicle.vehicle_name || '';
+          document.getElementById('accVehicleSearchInput').value = buildVehicleLookupLabel(driverVehicle);
+          document.getElementById('accMatchedHint').textContent = `تم اختيار مركبة السائق تلقائياً: ${driverVehicle.vehicle_name} (${driverVehicle.plate_number}).`;
+        }
+      }
+    }
+
   </script>
 </body>
 </html>
