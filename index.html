@@ -1268,7 +1268,11 @@
           <label class="block text-xs font-bold text-slate-700 mb-1">ملاحظات إدارية</label>
           <textarea id="ddNotes" rows="2" placeholder="ملاحظات حول التزام السائق، العهدة، أو التفويض..." class="form-input-pro"></textarea>
         </div>
-
+        <div id="accidentValidationMessage"
+            class="hidden rounded-xl border border-rose-200 bg-rose-50
+                    text-rose-700 text-sm font-bold p-3"
+            role="alert">
+        </div>
         <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
           <button type="button" onclick="closeDriverDirectoryModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-sm font-bold text-slate-700 hover:bg-slate-50">إلغاء</button>
           <button type="submit" class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-sm font-bold text-white shadow-sm">حفظ السائق</button>
@@ -1326,7 +1330,7 @@
 
   <!-- نافذة تأكيد أمنية احترافية -->
   <div id="securityConfirmModal" class="hidden fixed inset-0 z-[80] modal-backdrop flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
-    <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-slate-200 p-6 space-y-4">
+    <div class="w-full max-w-5xl max-h-[92vh] overflow-y-auto bg-white rounded-3xl shadow-2xl border border-slate-200 p-6 space-y-4">
       <div class="flex items-start gap-3.5">
         <div id="confirmIconBox" class="w-11 h-11 rounded-2xl bg-rose-100 text-rose-700 flex items-center justify-center font-extrabold text-xl shrink-0">
           !
@@ -1571,8 +1575,12 @@
             <select id="accStatus" required
               class="form-input-pro font-semibold">
               <option value="تحت المعالجة">تحت المعالجة</option>
+              <option value="بانتظار تقييم الورشة">بانتظار تقييم الورشة</option>
               <option value="قيد الإصلاح بالورشة">قيد الإصلاح بالورشة</option>
+              <option value="بانتظار قطع الغيار">بانتظار قطع الغيار</option>
+              <option value="تم الإصلاح">تم الإصلاح</option>
               <option value="مطالبة تأمينية">مطالبة تأمينية</option>
+              <option value="بانتظار رد شركة التأمين">بانتظار رد شركة التأمين</option>
               <option value="مغلق">مغلق</option>
             </select>
           </div>
@@ -1591,12 +1599,64 @@
           </div>
         </div>
 
+        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4 space-y-3">
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-extrabold text-slate-800">بيانات الإصلاح والمطالبة التأمينية</span>
+            <span class="text-[10px] font-semibold text-slate-500">حقول اختيارية</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">تاريخ بدء الإصلاح</label>
+              <input id="accRepairStartDate" type="date" lang="en-CA"
+                class="form-input-pro font-mono" dir="ltr" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">تاريخ انتهاء الإصلاح</label>
+              <input id="accRepairEndDate" type="date" lang="en-CA"
+                class="form-input-pro font-mono" dir="ltr" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">شركة التأمين</label>
+              <input id="accInsuranceCompany" type="text" list="accInsuranceCompaniesList"
+                placeholder="اسم شركة التأمين" class="form-input-pro" />
+              <datalist id="accInsuranceCompaniesList">
+                <option value="التعاونية للتأمين"></option>
+                <option value="تكافل الراجحي"></option>
+                <option value="ميدغلف"></option>
+                <option value="ولاء للتأمين"></option>
+                <option value="بروج للتأمين"></option>
+                <option value="سلامة للتأمين"></option>
+                <option value="الاتحاد للتأمين التعاوني"></option>
+                <option value="أسيج"></option>
+              </datalist>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">تاريخ تقديم المطالبة</label>
+              <input id="accClaimSubmissionDate" type="date" lang="en-CA"
+                class="form-input-pro font-mono" dir="ltr" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">رقم المطالبة التأمينية</label>
+              <input id="accInsuranceClaimNumber" type="text" placeholder="رقم المطالبة"
+                class="form-input-pro" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">مبلغ المطالبة (ر.س)</label>
+              <input id="accClaimAmount" type="number" step="0.01" min="0" placeholder="0.00"
+                class="form-input-pro font-mono" dir="ltr" />
+            </div>
+          </div>
+        </div>
+
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">وصف الحادث / ملاحظات</label>
           <textarea id="accNotes" rows="2" placeholder="تفاصيل موقع الحادث، الأضرار، الورشة، أو حالة المطالبة..."
             class="form-input-pro"></textarea>
         </div>
-
+        <div id="accidentValidationMessage"
+          class="hidden rounded-xl border border-rose-200 bg-rose-50 text-rose-700 text-sm font-bold p-3 mb-3"
+          role="alert">
+        </div>
         <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
           <button type="button" onclick="closeAccidentModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-sm font-bold text-slate-700 hover:bg-slate-50">
             إلغاء
@@ -1684,7 +1744,7 @@
           <div class="flex flex-wrap items-center justify-between gap-2">
             <div>
               <p class="text-xs font-extrabold text-slate-800">صلاحيات الأقسام والإجراءات (RBAC)</p>
-              <p class="text-[11px] text-slate-500">تحديد صلاحية كل مستخدم على مستوى القسم والإجراء بدقة.</p>
+              <p class="text-[11px] text-slate-500">صلاحيات مستقلة لكل وحدة وإجراء، ويمكن تخصيصها دون التقيد بالدور الوظيفي.</p>
             </div>
             <div class="flex flex-wrap gap-1.5">
               <button type="button" onclick="applyPermissionPreset('admin')" class="px-2.5 py-1 rounded-lg bg-slate-900 text-white text-[11px] font-bold">قالب: مدير</button>
@@ -1693,18 +1753,35 @@
             </div>
           </div>
 
+          <div class="flex flex-wrap items-center gap-1.5 text-[10px]">
+            <span class="font-bold text-slate-600 ml-1">تحديد إجراء في جميع الأقسام:</span>
+            <button type="button" onclick="setAllPermissionsForAction('view',true)" class="px-2 py-1 rounded bg-slate-100">كل العرض</button>
+            <button type="button" onclick="setAllPermissionsForAction('create',true)" class="px-2 py-1 rounded bg-slate-100">كل الإضافة</button>
+            <button type="button" onclick="setAllPermissionsForAction('edit',true)" class="px-2 py-1 rounded bg-slate-100">كل التعديل</button>
+            <button type="button" onclick="setAllPermissionsForAction('delete',true)" class="px-2 py-1 rounded bg-slate-100">كل الحذف</button>
+            <button type="button" onclick="setAllPermissionsForAction('import',true)" class="px-2 py-1 rounded bg-slate-100">كل الاستيراد</button>
+            <button type="button" onclick="setAllPermissionsForAction('export',true)" class="px-2 py-1 rounded bg-slate-100">كل التصدير</button>
+            <button type="button" onclick="setAllPermissionsForAction('print',true)" class="px-2 py-1 rounded bg-slate-100">كل الطباعة</button>
+            <button type="button" onclick="setAllPermissionsForAction('assign',true)" class="px-2 py-1 rounded bg-slate-100">كل الإسناد</button>
+            <button type="button" onclick="setAllPermissionsForAction('approve',true)" class="px-2 py-1 rounded bg-slate-100">كل الاعتماد</button>
+            <button type="button" onclick="setAllPermissionsForAction('send',true)" class="px-2 py-1 rounded bg-slate-100">كل الإرسال</button>
+            <button type="button" onclick="document.querySelectorAll('#userPermissionsMatrixBody .perm-checkbox').forEach(cb=>cb.checked=false)" class="px-2 py-1 rounded bg-rose-50 text-rose-700">إلغاء الكل</button>
+          </div>
           <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
             <table class="w-full text-right border-collapse text-[11px]">
               <thead>
                 <tr class="border-b border-slate-200 bg-slate-100/80 text-slate-700">
                   <th class="py-2 px-2.5 font-extrabold">القسم</th>
-                  <th class="py-2 px-2 text-center font-bold">عرض</th>
-                  <th class="py-2 px-2 text-center font-bold">إضافة</th>
-                  <th class="py-2 px-2 text-center font-bold">تعديل</th>
-                  <th class="py-2 px-2 text-center font-bold">حذف</th>
-                  <th class="py-2 px-2 text-center font-bold">استيراد</th>
-                  <th class="py-2 px-2 text-center font-bold">تصدير</th>
-                  <th class="py-2 px-2 text-center font-bold">طباعة</th>
+                  <th class="py-2 px-1 text-center font-bold">عرض</th>
+                  <th class="py-2 px-1 text-center font-bold">إضافة</th>
+                  <th class="py-2 px-1 text-center font-bold">تعديل</th>
+                  <th class="py-2 px-1 text-center font-bold">حذف</th>
+                  <th class="py-2 px-1 text-center font-bold">استيراد</th>
+                  <th class="py-2 px-1 text-center font-bold">تصدير</th>
+                  <th class="py-2 px-1 text-center font-bold">طباعة</th>
+                  <th class="py-2 px-1 text-center font-bold">إسناد</th>
+                  <th class="py-2 px-1 text-center font-bold">اعتماد</th>
+                  <th class="py-2 px-1 text-center font-bold">إرسال</th>
                 </tr>
               </thead>
               <tbody id="userPermissionsMatrixBody" class="divide-y divide-slate-100"></tbody>
@@ -1983,19 +2060,29 @@
 
     function handleQuickRoleSwitch(presetKey) {
       if (!currentUser) return;
-      const prevRole = currentUser.role;
-      if (presetKey === 'ops_manager') {
-        currentUser.role = 'admin';
-        currentUser.displayRolePreset = 'مدير عمليات';
-      } else if (presetKey === 'fleet_supervisor') {
-        currentUser.role = 'supervisor';
-        currentUser.displayRolePreset = 'مشرف أسطول';
-      } else {
-        currentUser.role = 'viewer';
-        currentUser.displayRolePreset = 'مراقب (قراءة فقط)';
+      // This switch only changes the local UI mode; database authorization is enforced by Supabase RLS.
+      const authenticatedRole = String(currentUser.authenticatedRole || currentUser.role || 'viewer').toLowerCase();
+      const requestedRole = presetKey === 'ops_manager' ? 'admin'
+        : presetKey === 'fleet_supervisor' ? 'supervisor' : 'viewer';
+      const roleRank = { viewer: 0, supervisor: 1, admin: 2 };
+
+      // تبديل الواجهة لا يمنح صلاحيات أعلى من الدور الممنوح للمستخدم في قاعدة البيانات.
+      if (!(requestedRole in roleRank) || roleRank[requestedRole] > (roleRank[authenticatedRole] ?? 0)) {
+        const switcher = document.getElementById('quickRoleSwitcher');
+        if (switcher) switcher.value = authenticatedRole === 'admin' ? 'ops_manager'
+          : authenticatedRole === 'supervisor' ? 'fleet_supervisor' : 'observer';
+        showSystemBanner('لا يمكن رفع صلاحياتك من خلال مبدّل الأدوار. الصلاحيات الفعلية يحددها حسابك.', 'error');
+        return;
       }
+
+      const prevRole = currentUser.role;
+      currentUser.role = requestedRole;
+      currentUser.displayRolePreset = requestedRole === 'admin' ? 'مدير عمليات'
+        : requestedRole === 'supervisor' ? 'مشرف أسطول' : 'مراقب (قراءة فقط)';
       if (prevRole !== currentUser.role) {
-        recordActionLog('تبديل دور الصلاحية', currentUser.email, `إلى: ${currentUser.displayRolePreset}`).catch(() => {});
+        recordActionLog('تبديل دور الصلاحية', currentUser.email, `إلى: ${currentUser.displayRolePreset}`).catch(err =>
+          console.error('تعذر تسجيل تبديل الدور:', err)
+        );
       }
       renderAll();
       showSystemBanner(`تم التبديل إلى وضع: ${currentUser.displayRolePreset}.`, 'info');
@@ -2431,7 +2518,7 @@
           return false;
         }
 
-        currentUser = { ...profile, phone: resolveUserPhone(profile) };
+        currentUser = { ...profile, authenticatedRole: String(profile.role || 'viewer').toLowerCase(), phone: resolveUserPhone(profile) };
         await refreshCloudData(false, false);
         enterApp();
         setLoading(false);
@@ -2534,7 +2621,7 @@
           const { data: profile, error: profErr } = await sbClient
             .from('app_users')
             .select('*')
-            .ilike('email', email)
+            .eq('auth_user_id', authData.user.id)
             .maybeSingle();
 
           if (profErr) {
@@ -2552,7 +2639,7 @@
             return;
           }
 
-          currentUser = { ...profile, phone: resolveUserPhone(profile) };
+          currentUser = { ...profile, authenticatedRole: String(profile.role || 'viewer').toLowerCase(), phone: resolveUserPhone(profile) };
           await refreshCloudData(false, false);
           enterApp();
         } finally {
@@ -2566,7 +2653,7 @@
           showLoginError('المستخدم غير موجود في الوضع المحلي.');
           return;
         }
-        currentUser = { ...found, phone: resolveUserPhone(found) };
+        currentUser = { ...found, authenticatedRole: String(found.role || 'viewer').toLowerCase(), phone: resolveUserPhone(found) };
         enterApp();
       }
     }
@@ -2581,6 +2668,7 @@
         email: 'shehab.a.alfariee@gmail.com',
         phone: resolveUserPhone({ email: 'shehab.a.alfariee@gmail.com' }),
         role: 'admin',
+        authenticatedRole: 'admin',
         is_active: true
       };
       enterApp();
@@ -2857,12 +2945,19 @@
 
       try {
         if (isCloudMode() && sbClient) {
-          await sbClient.from('audit_logs').insert([entry]);
+          const { error } = await sbClient.from('audit_logs').insert([entry]);
+          if (error) {
+            console.error('تعذر حفظ سجل التدقيق في Supabase:', error);
+            showSystemBanner(`تعذر حفظ سجل التدقيق: ${error.message || error}`, 'warning');
+          }
         } else {
           state.logs.unshift({ id: 'log_' + Date.now(), ...entry });
           saveLocalState();
         }
-      } catch {}
+      } catch (logError) {
+        console.error('تعذر تسجيل العملية:', logError);
+        if (isCloudMode()) showSystemBanner('تعذر حفظ سجل العملية في قاعدة البيانات.', 'warning');
+      }
       renderLogsTable();
     }
 
@@ -2886,12 +2981,26 @@
     }
 
     function setActiveDocSection(sectionKey) {
+      const docPermissionKeys = { authorization: 'delegations', registration: 'registration', periodic_inspection: 'inspection', insurance: 'insurance', accidents: 'accidents' };
+      if (currentUser && sectionKey !== 'all' && docPermissionKeys[sectionKey] && !hasPermission(docPermissionKeys[sectionKey], 'view')) {
+        showSystemBanner('ليس لديك صلاحية عرض هذا القسم.', 'error');
+        const firstAllowed = Object.entries(docPermissionKeys).find(([, key]) => hasPermission(key, 'view'))?.[0];
+        if (!firstAllowed) return;
+        sectionKey = firstAllowed;
+      }
+      if (currentUser && sectionKey === 'all' && !['vehicles','delegations','registration','inspection','insurance','accidents'].some(key => hasPermission(key, 'view'))) {
+        showSystemBanner('ليس لديك صلاحية عرض بيانات المركبات أو الوثائق.', 'error');
+        return;
+      }
       activeDocSection = DOC_SECTION_CONFIG[sectionKey] ? sectionKey : 'authorization';
       const cfg = DOC_SECTION_CONFIG[activeDocSection];
       const importTarget = activeDocSection === 'all' ? DOC_SECTION_CONFIG.authorization : cfg;
       const isAccidents = activeDocSection === 'accidents';
 
       document.querySelectorAll('.doc-tab-btn').forEach(btn => {
+        const tabKey = btn.dataset.doc;
+        const tabPermissionKey = docPermissionKeys[tabKey];
+        btn.classList.toggle('hidden', Boolean(currentUser && tabKey !== 'all' && tabPermissionKey && !hasPermission(tabPermissionKey, 'view')));
         const active = btn.dataset.doc === activeDocSection;
         btn.className = active
           ? 'doc-tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-blue-600 text-white transition'
@@ -2985,14 +3094,18 @@
       if (!acc && !dateStr) {
         return { code: 'missing', priority: 3, label: 'لا يوجد حادث', badgeClass: 'bg-slate-100 text-slate-500' };
       }
-      const st = String(acc?.status || '').trim();
-      if (st.includes('مغلق') || st.includes('مكتمل') || st.includes('منته')) {
-        return { code: 'valid', priority: 2, label: st || 'مغلق', badgeClass: 'bg-emerald-100 text-emerald-700' };
+
+      const st = String(acc?.status || 'تحت المعالجة').trim();
+      if (st === 'مغلق' || st.includes('مكتمل') || st.includes('منته')) {
+        return { code: 'valid', priority: 2, label: st, badgeClass: 'bg-emerald-100 text-emerald-700' };
+      }
+      if (st === 'تم الإصلاح') {
+        return { code: 'valid', priority: 2, label: st, badgeClass: 'bg-blue-100 text-blue-700' };
       }
       if (st.includes('تأمين') || st.includes('مطالبة')) {
         return { code: 'expiring_soon', priority: 1, label: st, badgeClass: 'bg-amber-100 text-amber-800' };
       }
-      return { code: 'expired', priority: 0, label: st || 'تحت المعالجة', badgeClass: 'bg-rose-100 text-rose-700' };
+      return { code: 'expired', priority: 0, label: st, badgeClass: 'bg-orange-100 text-orange-800' };
     }
 
     function getVehicleSectionStatus(vehicle, sectionKey = activeDocSection) {
@@ -3917,7 +4030,7 @@
     }
 
     function openVehicleModal(vehicleId = null) {
-      if (!canEditRecords()) {
+      if (!hasPermission('vehicles', vehicleId ? 'edit' : 'create')) {
         showSystemBanner('ليس لديك صلاحية إضافة أو تعديل المركبات.', 'error');
         return;
       }
@@ -3953,7 +4066,8 @@
 
     async function saveVehicleForm(event) {
       event.preventDefault();
-      if (!canEditRecords()) {
+      const vehicleEditIdForPermission = document.getElementById('vehicleEditId')?.value.trim();
+      if (!hasPermission('vehicles', vehicleEditIdForPermission ? 'edit' : 'create')) {
         showSystemBanner('ليس لديك صلاحية حفظ بيانات المركبات.', 'error');
         return;
       }
@@ -4143,7 +4257,7 @@
     }
 
     function openAccidentModal(vehicleId = null) {
-      if (!canEditRecords()) {
+      if (!hasPermission('accidents', vehicleId ? 'edit' : 'create')) {
         showSystemBanner('ليس لديك صلاحية إضافة أو تعديل الحوادث.', 'error');
         return;
       }
@@ -4172,6 +4286,12 @@
           document.getElementById('accStatus').value = acc.status || 'تحت المعالجة';
           document.getElementById('accFaultPercent').value = acc.faultPercent || '';
           document.getElementById('accCost').value = acc.cost ? String(acc.cost) : '';
+          document.getElementById('accRepairStartDate').value = acc.repairStartDate || '';
+          document.getElementById('accRepairEndDate').value = acc.repairEndDate || '';
+          document.getElementById('accInsuranceCompany').value = acc.insuranceCompany || '';
+          document.getElementById('accClaimSubmissionDate').value = acc.claimSubmissionDate || '';
+          document.getElementById('accInsuranceClaimNumber').value = acc.insuranceClaimNumber || '';
+          document.getElementById('accClaimAmount').value = acc.claimAmount ? String(acc.claimAmount) : '';
           document.getElementById('accNotes').value = stripAccidentPayloadFromNotes(v.notes || '');
           document.getElementById('accidentModal').classList.remove('hidden');
           return;
@@ -4191,11 +4311,6 @@
 
     async function saveAccidentForm(event) {
       event.preventDefault();
-      if (!canEditRecords()) {
-        showSystemBanner('ليس لديك صلاحية حفظ بيانات الحوادث.', 'error');
-        return;
-      }
-
       const explicitId = document.getElementById('accVehicleId').value.trim();
       const plate_number = document.getElementById('accPlateNumber').value.trim();
       const vehicle_name = document.getElementById('accVehicleName').value.trim();
@@ -4207,13 +4322,59 @@
       const accStatus = document.getElementById('accStatus').value.trim() || 'تحت المعالجة';
       const accFault = document.getElementById('accFaultPercent').value.trim();
       const accCost = parseFloat(toWesternDigits(document.getElementById('accCost').value || '0')) || 0;
+      const repairStartDate = document.getElementById('accRepairStartDate').value;
+      const repairEndDate = document.getElementById('accRepairEndDate').value;
+      const insuranceCompany = document.getElementById('accInsuranceCompany').value.trim();
+      const claimSubmissionDate = document.getElementById('accClaimSubmissionDate').value;
+      const insuranceClaimNumber = document.getElementById('accInsuranceClaimNumber').value.trim();
+      const claimAmount = parseFloat(toWesternDigits(document.getElementById('accClaimAmount').value || '0')) || 0;
+
+      
+const validationBox = document.getElementById('accidentValidationMessage');
+
+function showAccidentValidation(message, fieldId) {
+    validationBox.textContent = message;
+    validationBox.classList.remove('hidden');
+
+    const field = document.getElementById(fieldId);
+    field.focus();
+    field.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+validationBox.classList.add('hidden');
+validationBox.textContent = '';
+
+if (repairStartDate && repairEndDate &&
+    repairEndDate < repairStartDate) {
+
+    showAccidentValidation(
+        'تاريخ انتهاء الإصلاح لا يمكن أن يسبق تاريخ بدء الإصلاح.',
+        'accRepairEndDate'
+    );
+    return;
+}
+
+if (claimSubmissionDate && claimSubmissionDate < accDate) {
+
+    showAccidentValidation(
+        'تاريخ تقديم المطالبة يجب أن يكون في يوم الحادث أو بعده.',
+        'accClaimSubmissionDate'
+    );
+    return;
+}
 
       const accidentObj = {
         date: accDate,
         reportNumber: accReport,
         status: accStatus,
         faultPercent: accFault,
-        cost: accCost
+        cost: accCost,
+        repairStartDate,
+        repairEndDate,
+        insuranceCompany,
+        claimSubmissionDate,
+        insuranceClaimNumber,
+        claimAmount
       };
       const notes = composeNotesWithAccident(baseNotes, accidentObj);
 
@@ -4222,6 +4383,15 @@
         v => (explicitId && String(v.id) === explicitId) ||
              (plateKey && normalizePlateKey(v.plate_number) === plateKey)
       );
+      const accidentAction = matchedVehicle ? 'edit' : 'create';
+      if (!hasPermission('accidents', accidentAction)) {
+        showSystemBanner('ليس لديك صلاحية تسجيل أو تعديل الحوادث.', 'error');
+        return;
+      }
+      if (!matchedVehicle && !hasPermission('vehicles', 'create')) {
+        showSystemBanner('تسجيل حادث لمركبة جديدة يتطلب أيضاً صلاحية إضافة المركبات.', 'error');
+        return;
+      }
 
       const confirmedAcc = await openSecurityConfirmModal({
         title: matchedVehicle ? 'تأكيد تحديث سجل الحادث' : 'تأكيد تسجيل حادث جديد',
@@ -4229,6 +4399,9 @@
         details: [
           `المركبة واللوحة: ${vehicle_name} (${plate_number})`,
           `تاريخ الحادث: ${accDate} | الحالة: ${accStatus}`,
+          `الإصلاح: ${repairStartDate || 'غير محدد'} إلى ${repairEndDate || 'غير محدد'}`,
+          `التأمين: ${insuranceCompany || 'غير محدد'} | المطالبة: ${insuranceClaimNumber || 'غير محدد'}`,
+          `تاريخ المطالبة: ${claimSubmissionDate || 'غير محدد'} | مبلغ المطالبة: ${claimAmount.toLocaleString('en-US')} ر.س`,
           `رقم التقرير: ${accReport || 'بدون رقم'} | التكلفة: ${accCost.toLocaleString('en-US')} ر.س`
         ],
         confirmText: 'حفظ الحادث',
@@ -4272,7 +4445,7 @@
           await recordActionLog(
             matchedVehicle ? 'تعديل حادث' : 'إضافة حادث',
             `${vehicle_name} (${plate_number})`,
-            `تاريخ: ${accDate} | الحالة: ${accStatus}`
+            `تاريخ: ${accDate} | الحالة: ${accStatus} | الإصلاح: ${repairStartDate || "غير محدد"} - ${repairEndDate || "غير محدد"} | المطالبة: ${insuranceClaimNumber || "غير محدد"}`
           );
           await refreshCloudData(false, false);
         } else {
@@ -4298,13 +4471,13 @@
           await recordActionLog(
             matchedVehicle ? 'تعديل حادث' : 'إضافة حادث',
             `${vehicle_name} (${plate_number})`,
-            `تاريخ: ${accDate} | الحالة: ${accStatus}`
+            `تاريخ: ${accDate} | الحالة: ${accStatus} | الإصلاح: ${repairStartDate || "غير محدد"} - ${repairEndDate || "غير محدد"} | المطالبة: ${insuranceClaimNumber || "غير محدد"}`
           );
           renderAll();
         }
 
-        closeAccidentModal();
         showSystemBanner('تم حفظ بيانات الحادث بنجاح.', 'success');
+        closeAccidentModal();
       } catch (err) {
         showSystemBanner(`تعذر حفظ الحادث: ${err.message || err}`, 'error');
       } finally {
@@ -4538,6 +4711,15 @@
       const password = document.getElementById('uPassword').value;
       const role = document.getElementById('uRole').value;
       const is_active = document.getElementById('uActive').value === 'true';
+      let permissions = {};
+      try {
+        permissions = JSON.parse(document.getElementById('userForm')?.dataset.collectedPermissions || '{}');
+        if (!permissions || typeof permissions !== 'object' || Array.isArray(permissions)) permissions = {};
+      } catch (permissionParseError) {
+        console.error('تعذر قراءة صلاحيات المستخدم المحددة:', permissionParseError);
+        showSystemBanner('تعذر قراءة مصفوفة الصلاحيات. راجع الصلاحيات قبل الحفظ.', 'error');
+        return;
+      }
 
       if (!editId && (!password || password.length < 6)) {
         showSystemBanner('يرجى إدخال كلمة مرور لا تقل عن 6 أحرف للمستخدم الجديد.', 'warning');
@@ -4566,7 +4748,7 @@
             }
           }
 
-          const basePayload = { full_name, email, role, is_active };
+          const basePayload = { full_name, email, role, is_active, permissions };
           const payloadWithPhone = { ...basePayload, phone };
           let dbErr = null;
 
@@ -4609,6 +4791,7 @@
                 phone,
                 role,
                 is_active,
+                permissions,
                 ...(password ? { password_hint_set: true } : {})
               };
             }
@@ -4620,6 +4803,7 @@
               phone,
               role,
               is_active,
+              permissions,
               ...(password ? { password_hint_set: true } : {})
             });
           }
@@ -4899,7 +5083,8 @@
         return;
       }
 
-      if (!canEditRecords()) {
+      const importPermissionSection = getDocumentPermissionSection(activeDocSection);
+      if (!hasPermission(importPermissionSection, 'import')) {
         showSystemBanner('ليس لديك صلاحية استيراد البيانات.', 'error');
         inputEl.value = '';
         return;
@@ -5049,24 +5234,27 @@
             return;
           }
 
-          setLoading(true, `جاري تفريغ بيانات قسم (${cfg.label}) السابقة...`);
-
-          for (const v of state.vehicles || []) {
-            if (v.docs && Object.prototype.hasOwnProperty.call(v.docs, targetDocType)) {
-              delete v.docs[targetDocType];
-            }
-            if (isAccidentsImport) {
-              v.accidents = null;
-              v.notes = stripAccidentPayloadFromNotes(v.notes || '');
+          if ((!isCloudMode() || !sbClient) && hasPermission(importPermissionSection, 'delete')) {
+            for (const v of state.vehicles || []) {
+              if (v.docs && Object.prototype.hasOwnProperty.call(v.docs, targetDocType)) {
+                delete v.docs[targetDocType];
+              }
+              if (isAccidentsImport) {
+                v.accidents = null;
+                v.notes = stripAccidentPayloadFromNotes(v.notes || '');
+              }
             }
           }
 
-          if (isCloudMode() && sbClient) {
-            await sbClient
-              .from('vehicle_documents')
-              .delete()
-              .eq('doc_type', targetDocType);
-          }
+          setLoading(true, `جاري تجهيز بيانات قسم (${cfg.label}) للاستبدال...`);
+
+          // لا نحذف السجلات القديمة قبل نجاح تجهيز وحفظ البيانات الجديدة.
+          // في الوضع السحابي يتم تنظيف السجلات القديمة بعد اكتمال عمليات upsert فقط.
+          const importedPlateKeys = new Set(deduplicatedList.map(item => item.plateKey));
+          const staleDocumentVehicleIds = (state.vehicles || [])
+            .filter(v => v.id && v.docs && Object.prototype.hasOwnProperty.call(v.docs, targetDocType)
+              && !importedPlateKeys.has(normalizePlateKey(v.plate_number)))
+            .map(v => v.id);
 
           const plateIndexMap = new Map();
           (state.vehicles || []).forEach((v, idx) => {
@@ -5075,6 +5263,13 @@
               plateIndexMap.set(key, idx);
             }
           });
+
+          const incomingNewVehicleCount = deduplicatedList.filter(item => !plateIndexMap.has(item.plateKey)).length;
+          if (incomingNewVehicleCount > 0 && !hasPermission('vehicles', 'import')) {
+            showSystemBanner('ملف الاستيراد يحتوي على مركبات غير مسجلة. يلزم منح صلاحية استيراد المركبات أيضاً قبل إنشاء سجلات جديدة.', 'error');
+            return;
+          }
+          const canUpdateVehicleMeta = hasPermission('vehicles', 'edit') || hasPermission('vehicles', 'import');
 
           const newVehiclesToInsert = [];
           const newVehiclesMeta = [];
@@ -5099,15 +5294,15 @@
               }
 
               const patchFields = {};
-              if (item.builtName && (!existingV.vehicle_name || existingV.vehicle_name === 'صالحة' || existingV.vehicle_name.startsWith('مركبة '))) {
+              if (canUpdateVehicleMeta && item.builtName && (!existingV.vehicle_name || existingV.vehicle_name === 'صالحة' || existingV.vehicle_name.startsWith('مركبة '))) {
                 existingV.vehicle_name = item.builtName;
                 patchFields.vehicle_name = item.builtName;
               }
-              if (item.assignedDriver && item.assignedDriver !== 'غير محدد' && (!existingV.assigned_driver || existingV.assigned_driver === 'غير محدد')) {
+              if (canUpdateVehicleMeta && item.assignedDriver && item.assignedDriver !== 'غير محدد' && (!existingV.assigned_driver || existingV.assigned_driver === 'غير محدد')) {
                 existingV.assigned_driver = item.assignedDriver;
                 patchFields.assigned_driver = item.assignedDriver;
               }
-              if (isAccidentsImport) {
+              if (isAccidentsImport && canUpdateVehicleMeta) {
                 patchFields.notes = composeNotesWithAccident(existingV.notes, item.accidentMeta);
               }
               if (Object.keys(patchFields).length > 0 && existingV.id) {
@@ -5145,6 +5340,7 @@
             }
           }
 
+          let staleCleanupFailed = false;
           if (isCloudMode() && sbClient) {
             const CHUNK_SIZE = 100;
             const allDocUpserts = [...existingDocUpserts];
@@ -5165,19 +5361,21 @@
                   return;
                 }
 
-                if (Array.isArray(insertedRows) && insertedRows.length === chunk.length) {
-                  insertedRows.forEach((dbRow, idx) => {
-                    const meta = chunkMeta[idx];
-                    if (meta) {
-                      meta.id = dbRow.id;
-                      allDocUpserts.push({
-                        vehicle_id: dbRow.id,
-                        doc_type: targetDocType,
-                        expiry_date: meta.docs[targetDocType]
-                      });
-                    }
-                  });
+                if (!Array.isArray(insertedRows) || insertedRows.length !== chunk.length) {
+                  showSystemBanner('لم يُرجع الخادم جميع المركبات التي أُدرجت؛ أُوقف الاستيراد لحماية ترابط الوثائق. راجع البيانات السحابية قبل إعادة المحاولة.', 'error');
+                  return;
                 }
+                insertedRows.forEach((dbRow, idx) => {
+                  const meta = chunkMeta[idx];
+                  if (meta) {
+                    meta.id = dbRow.id;
+                    allDocUpserts.push({
+                      vehicle_id: dbRow.id,
+                      doc_type: targetDocType,
+                      expiry_date: meta.docs[targetDocType]
+                    });
+                  }
+                });
               }
             }
 
@@ -5185,9 +5383,14 @@
               setLoading(true, `جاري تحديث بيانات ${vehicleMetaUpdates.length} مركبة...`);
               for (let start = 0; start < vehicleMetaUpdates.length; start += CHUNK_SIZE) {
                 const chunkUpdates = vehicleMetaUpdates.slice(start, start + CHUNK_SIZE);
-                await Promise.all(
+                const updateResults = await Promise.all(
                   chunkUpdates.map(u => sbClient.from('vehicles').update(u.fields).eq('id', u.id))
                 );
+                const failedUpdate = updateResults.find(result => result.error);
+                if (failedUpdate) {
+                  showSystemBanner(`تعذر تحديث بيانات بعض المركبات: ${failedUpdate.error.message}`, 'error');
+                  return;
+                }
               }
             }
 
@@ -5206,8 +5409,21 @@
               }
             }
 
+            if (hasPermission(importPermissionSection, 'delete')) for (const vehicleId of staleDocumentVehicleIds) {
+              const { error: staleDeleteError } = await sbClient
+                .from('vehicle_documents')
+                .delete()
+                .eq('vehicle_id', vehicleId)
+                .eq('doc_type', targetDocType);
+              if (staleDeleteError) {
+                staleCleanupFailed = true;
+                console.error('تعذر حذف سجل وثيقة قديم بعد نجاح الاستيراد:', staleDeleteError);
+              }
+            }
+
+            if (staleDocumentVehicleIds.length && !hasPermission(importPermissionSection, 'delete')) staleCleanupFailed = true;
             await recordActionLog(
-              `استبدال واستيراد (${cfg.label})`,
+              `استيراد (${cfg.label})`,
               file.name,
               `لوحات فريدة: ${deduplicatedList.length} | مستبعد مكرر: ${duplicatesRemoved} | محدّث: ${updatedVehicles} | جديد: ${newVehicles}`
             );
@@ -5224,8 +5440,8 @@
           }
 
           showSystemBanner(
-            `تم استبدال بيانات قسم (${cfg.label}) بنجاح: (${deduplicatedList.length}) لوحة فريدة بدون تكرار (استُبعد ${duplicatesRemoved} مكرر، محدّث ${updatedVehicles}، جديد ${newVehicles}).`,
-            'success'
+            `تم استيراد بيانات قسم (${cfg.label}): (${deduplicatedList.length}) لوحة فريدة (استُبعد ${duplicatesRemoved} مكرر، محدّث ${updatedVehicles}، جديد ${newVehicles}).${typeof staleCleanupFailed !== 'undefined' && staleCleanupFailed ? ' تعذر تنظيف بعض السجلات القديمة؛ راجع سجل الأخطاء وأعد المزامنة.' : ''}`,
+            typeof staleCleanupFailed !== 'undefined' && staleCleanupFailed ? 'warning' : 'success'
           );
         } catch (err) {
           showSystemBanner(`تعذر استيراد ملف الإكسيل: ${err.message || err}`, 'error');
@@ -5287,7 +5503,7 @@
     }
 
     function openExcelWizardModal() {
-      if (!canEditRecords()) {
+      if (!hasPermission(getDocumentPermissionSection(activeDocSection), 'import') || !hasPermission('drivers', 'import') || !hasPermission('vehicles', 'import')) {
         showSystemBanner('ليس لديك صلاحية استيراد البيانات (وضع المراقبة أو صلاحية غير كافية).', 'error');
         return;
       }
@@ -5477,7 +5693,7 @@
     }
 
     async function commitWizardImport() {
-      if (!canEditRecords()) {
+      if (!hasPermission(getDocumentPermissionSection(activeDocSection), 'import') || !hasPermission('drivers', 'import') || !hasPermission('vehicles', 'import')) {
         showSystemBanner('ليس لديك صلاحية استيراد البيانات.', 'error');
         return;
       }
@@ -6026,7 +6242,7 @@
     // 3. مصفوفة التفويضات والوثائق + تجديد +180 يوم وتحديث التنبيهات
     // =========================================================================
     async function renewDriverAuthorization(driverName, daysToAdd = 180) {
-      if (!canEditRecords()) {
+      if (!hasPermission('delegations', 'edit')) {
         showSystemBanner('ليس لديك صلاحية تجديد التفويض.', 'error');
         return;
       }
@@ -6136,7 +6352,7 @@
     }
 
     async function topUpDriverFuel(driverName, amountSar) {
-      if (!canEditRecords()) {
+      if (!hasPermission('fuel_ops', 'create') && !hasPermission('fuel_ops', 'edit')) {
         showSystemBanner('ليس لديك صلاحية شحن رصيد الوقود.', 'error');
         return;
       }
@@ -6201,7 +6417,7 @@
     }
 
     function openDriverDirectoryModal(driverId = null) {
-      if (!canEditRecords()) {
+      if (!hasPermission('drivers', driverId ? 'edit' : 'create')) {
         showSystemBanner('ليس لديك صلاحية إضافة أو تعديل السائقين.', 'error');
         return;
       }
@@ -6243,7 +6459,8 @@
 
     async function saveDriverDirectoryForm(event) {
       event.preventDefault();
-      if (!canEditRecords()) return;
+      const driverEditIdForPermission = document.getElementById('driverDirEditId')?.value.trim();
+      if (!hasPermission('drivers', driverEditIdForPermission ? 'edit' : 'create')) return;
 
       const editId = document.getElementById('driverDirEditId').value.trim();
       const full_name = document.getElementById('ddFullName').value.trim();
@@ -6306,7 +6523,7 @@
     }
 
     function openDriverVehicleLinkModal(preselectedDriverName = '') {
-      if (!canEditRecords()) {
+      if (!hasPermission('vehicles', 'assign') && !hasPermission('drivers', 'assign')) {
         showSystemBanner('ليس لديك صلاحية ربط أو إضافة مركبات.', 'error');
         return;
       }
@@ -6337,7 +6554,7 @@
 
     async function saveDriverVehicleLinkForm(event) {
       event.preventDefault();
-      if (!canEditRecords()) return;
+      if (!hasPermission('vehicles', 'assign') && !hasPermission('drivers', 'assign')) return;
 
       const driverName = document.getElementById('dvlDriverSelect').value.trim();
       const plateNumber = toWesternDigits(document.getElementById('dvlPlateNumber').value || '').trim();
@@ -6629,11 +6846,17 @@
       const accSectionHtml = acc || docs.accidents ? `
         <div class="p-4 rounded-2xl border border-rose-200/90 bg-rose-50/40 space-y-1.5 text-xs">
           <div class="font-extrabold text-rose-900">سجل الحادث المرتبط بالمركبة</div>
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
-            <div><span class="text-slate-500">التاريخ:</span> <span class="font-mono font-bold" dir="ltr">${escapeHtml(acc?.date || docs.accidents || '—')}</span></div>
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 pt-1">
+            <div><span class="text-slate-500">تاريخ الحادث:</span> <span class="font-mono font-bold" dir="ltr">${escapeHtml(acc?.date || docs.accidents || '—')}</span></div>
             <div><span class="text-slate-500">رقم التقرير:</span> <span class="font-mono font-bold" dir="ltr">${escapeHtml(acc?.reportNumber || '—')}</span></div>
             <div><span class="text-slate-500">الحالة:</span> <span class="font-bold">${escapeHtml(acc?.status || 'تحت المعالجة')}</span></div>
             <div><span class="text-slate-500">التكلفة:</span> <span class="font-mono font-bold" dir="ltr">${Number(acc?.cost || 0).toLocaleString('en-US')} SAR</span></div>
+            <div><span class="text-slate-500">بدء الإصلاح:</span> <span class="font-mono font-bold" dir="ltr">${escapeHtml(acc?.repairStartDate || '—')}</span></div>
+            <div><span class="text-slate-500">انتهاء الإصلاح:</span> <span class="font-mono font-bold" dir="ltr">${escapeHtml(acc?.repairEndDate || '—')}</span></div>
+            <div><span class="text-slate-500">شركة التأمين:</span> <span class="font-bold">${escapeHtml(acc?.insuranceCompany || '—')}</span></div>
+            <div><span class="text-slate-500">تاريخ المطالبة:</span> <span class="font-mono font-bold" dir="ltr">${escapeHtml(acc?.claimSubmissionDate || '—')}</span></div>
+            <div><span class="text-slate-500">رقم المطالبة:</span> <span class="font-mono font-bold" dir="ltr">${escapeHtml(acc?.insuranceClaimNumber || '—')}</span></div>
+            <div><span class="text-slate-500">مبلغ المطالبة:</span> <span class="font-mono font-bold" dir="ltr">${Number(acc?.claimAmount || 0).toLocaleString('en-US')} SAR</span></div>
           </div>
         </div>` : '';
 
@@ -6789,12 +7012,7 @@
 </head>
 <body>
   <div class="toolbar">
-    <button class="btn" onclick="window.print()">طباعة التقرير</button>
-    <button class="btn export" onclick="exportReportPdf()">تنزيل PDF</button>
-    <button class="btn export" onclick="exportReportTablesExcel()">تصدير Excel</button>
-    <button class="btn export" onclick="exportReportTablesCsv()">تصدير CSV</button>
-    <button class="btn export" onclick="exportReportHtml()">تصدير HTML</button>
-    <button class="btn export" onclick="exportReportJson()">تصدير JSON</button>
+    <button class="btn" onclick="window.print()"> PDF طباعة التقرير</button>
     <button class="btn secondary" onclick="window.close()">إغلاق</button>
   </div>
   <main class="sheet">
@@ -7204,51 +7422,63 @@
     // 1. نظام الصلاحيات الدقيق على مستوى كل قسم وكل إجراء (RBAC)
     // =========================================================================
     const PERMISSION_SECTIONS = [
-      { key: 'dashboard', label: 'لوحة المتابعة' },
-      { key: 'drivers', label: 'السائقون والمفوّضون' },
-      { key: 'compliance', label: 'التفويضات والوثائق' },
-      { key: 'fuel_ops', label: 'الوقود والرقابة' },
-      { key: 'violations', label: 'المخالفات والتصاريح' },
-      { key: 'users', label: 'المستخدمون والصلاحيات' },
-      { key: 'logs', label: 'سجل العمليات' }
+      { key: 'dashboard', label: 'لوحة المتابعة', group: 'عام' },
+      { key: 'vehicles', label: 'إدارة المركبات', group: 'المركبات والوثائق' },
+      { key: 'delegations', label: 'التفاويض', group: 'المركبات والوثائق' },
+      { key: 'registration', label: 'رخص السير', group: 'المركبات والوثائق' },
+      { key: 'inspection', label: 'الفحص الدوري', group: 'المركبات والوثائق' },
+      { key: 'insurance', label: 'التأمين', group: 'المركبات والوثائق' },
+      { key: 'accidents', label: 'الحوادث', group: 'المركبات والوثائق' },
+      { key: 'drivers', label: 'السائقون والمفوّضون', group: 'التشغيل' },
+      { key: 'fuel_ops', label: 'الوقود والرقابة التشغيلية', group: 'التشغيل' },
+      { key: 'violations', label: 'المخالفات', group: 'التشغيل' },
+      { key: 'permits', label: 'التصاريح التشغيلية', group: 'التشغيل' },
+      { key: 'reports', label: 'التقارير والتحليلات', group: 'الإدارة' },
+      { key: 'users', label: 'المستخدمون والصلاحيات', group: 'الإدارة' },
+      { key: 'logs', label: 'سجل العمليات', group: 'الإدارة' },
+      { key: 'settings', label: 'الإعدادات والتنبيهات', group: 'الإدارة' }
     ];
 
-    const PERMISSION_ACTIONS = ['view', 'create', 'edit', 'delete', 'import', 'export', 'print'];
+    const PERMISSION_ACTIONS = ['view', 'create', 'edit', 'delete', 'import', 'export', 'print', 'assign', 'approve', 'send'];
+    const PERMISSION_ACTION_LABELS = {
+      view: 'عرض', create: 'إضافة', edit: 'تعديل', delete: 'حذف', import: 'استيراد',
+      export: 'تصدير', print: 'طباعة', assign: 'إسناد', approve: 'اعتماد', send: 'إرسال'
+    };
+
+    // Map legacy section names to the new independent permission areas.
+    const LEGACY_PERMISSION_MAP = {
+      compliance: ['vehicles', 'delegations', 'registration', 'inspection', 'insurance', 'accidents'],
+      violations: ['violations', 'permits']
+    };
+
+    function getDocumentPermissionSection(docType) {
+      if (docType === 'all' || docType === 'authorization') return 'delegations';
+      if (docType === 'registration') return 'registration';
+      if (docType === 'periodic_inspection') return 'inspection';
+      if (docType === 'insurance') return 'insurance';
+      if (docType === 'accidents') return 'accidents';
+      return 'vehicles';
+    }
 
     function buildRolePermissionsPreset(role) {
       const r = String(role || 'viewer').toLowerCase();
       const perms = {};
       for (const sec of PERMISSION_SECTIONS) {
-        if (r === 'admin') {
-          perms[sec.key] = {
-            view: true, create: true, edit: true, delete: true,
-            import: true, export: true, print: true
-          };
-        } else if (r === 'supervisor') {
-          const isUsers = sec.key === 'users';
-          const isLogs = sec.key === 'logs';
-          perms[sec.key] = {
-            view: !isUsers,
-            create: !isUsers && !isLogs,
-            edit: !isUsers && !isLogs,
-            delete: false,
-            import: sec.key === 'compliance' || sec.key === 'violations',
-            export: !isUsers,
-            print: !isUsers
-          };
-        } else {
-          const isUsers = sec.key === 'users';
-          const isLogs = sec.key === 'logs';
-          perms[sec.key] = {
-            view: !isUsers && !isLogs,
-            create: false,
-            edit: false,
-            delete: false,
-            import: false,
-            export: !isUsers && !isLogs,
-            print: !isUsers && !isLogs
-          };
-        }
+        const isAdmin = r === 'admin';
+        const isViewer = r === 'viewer';
+        const restricted = ['users', 'logs', 'settings'].includes(sec.key);
+        perms[sec.key] = {
+          view: isAdmin || (!restricted && true),
+          create: isAdmin || (!isViewer && !restricted),
+          edit: isAdmin || (!isViewer && !restricted),
+          delete: isAdmin,
+          import: isAdmin || (!isViewer && ['vehicles','delegations','registration','inspection','insurance','drivers','violations','permits'].includes(sec.key)),
+          export: isAdmin || !restricted,
+          print: isAdmin || !restricted,
+          assign: isAdmin || (!isViewer && ['vehicles','drivers','delegations'].includes(sec.key)),
+          approve: isAdmin || (!isViewer && ['accidents','violations','permits'].includes(sec.key)),
+          send: isAdmin || (!isViewer && sec.key === 'settings')
+        };
       }
       return perms;
     }
@@ -7265,6 +7495,17 @@
           normalized[sec.key][act] = typeof srcSec[act] === 'boolean' ? srcSec[act] : Boolean(preset[sec.key][act]);
         }
       }
+      // Migrate old coarse permissions into the new sections only when no new key exists.
+      for (const [legacyKey, childKeys] of Object.entries(LEGACY_PERMISSION_MAP)) {
+        const legacy = rawPerms[legacyKey];
+        if (!legacy || typeof legacy !== 'object') continue;
+        for (const childKey of childKeys) {
+          if (rawPerms[childKey] && typeof rawPerms[childKey] === 'object') continue;
+          for (const act of PERMISSION_ACTIONS) {
+            if (typeof legacy[act] === 'boolean') normalized[childKey][act] = legacy[act];
+          }
+        }
+      }
       return normalized;
     }
 
@@ -7272,15 +7513,34 @@
       if (!currentUser) return false;
       if (String(currentUser.role || '').toLowerCase() === 'admin') return true;
       const perms = normalizeUserPermissions(currentUser);
+      if (LEGACY_PERMISSION_MAP[sectionKey]) {
+        return LEGACY_PERMISSION_MAP[sectionKey].some(key => Boolean(perms[key]?.[actionKey]));
+      }
       return Boolean(perms[sectionKey]?.[actionKey]);
     }
 
     // Override role helpers so legacy callers automatically respect granular permissions
     const _origCanEditRecords = typeof canEditRecords === 'function' ? canEditRecords : null;
+    function getActiveGranularSection() {
+      if (activeMainTab === 'compliance') {
+        if (activeDocSection === 'accidents') return 'accidents';
+        if (activeDocSection === 'registration') return 'registration';
+        if (activeDocSection === 'periodic_inspection') return 'inspection';
+        if (activeDocSection === 'insurance') return 'insurance';
+        if (activeDocSection === 'authorization') return 'delegations';
+        return 'vehicles';
+      }
+      if (activeMainTab === 'violations') {
+        const t = document.getElementById('violationTypeFilter')?.value || 'all';
+        return ['بيان','تصريح','تام'].includes(t) ? 'permits' : 'violations';
+      }
+      return activeMainTab === 'dashboard' ? 'dashboard' : activeMainTab;
+    }
+
     function canEditRecords(sectionKey = null) {
       if (!currentUser) return false;
       if (String(currentUser.role || '').toLowerCase() === 'admin') return true;
-      const targetSec = sectionKey || (activeMainTab === 'dashboard' ? 'compliance' : activeMainTab);
+      const targetSec = sectionKey || getActiveGranularSection();
       return hasPermission(targetSec, 'create') || hasPermission(targetSec, 'edit');
     }
 
@@ -7288,7 +7548,7 @@
     function canDeleteRecords(sectionKey = null) {
       if (!currentUser) return false;
       if (String(currentUser.role || '').toLowerCase() === 'admin') return true;
-      const targetSec = sectionKey || (activeMainTab === 'dashboard' ? 'compliance' : activeMainTab);
+      const targetSec = sectionKey || getActiveGranularSection();
       return hasPermission(targetSec, 'delete');
     }
 
@@ -7296,20 +7556,21 @@
       const tbody = document.getElementById('userPermissionsMatrixBody');
       if (!tbody) return;
       const perms = normalizeUserPermissions({ permissions: userPermissionsObj, role: document.getElementById('uRole')?.value || 'supervisor' });
-
       tbody.innerHTML = PERMISSION_SECTIONS.map(sec => {
         const cells = PERMISSION_ACTIONS.map(act => {
           const checked = perms[sec.key]?.[act] ? 'checked' : '';
-          return `<td class="py-1.5 px-2 text-center">
-            <input type="checkbox" class="perm-checkbox rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-              data-perm-section="${sec.key}" data-perm-action="${act}" ${checked} />
-          </td>`;
+          return `<td class="py-1.5 px-1.5 text-center"><input type="checkbox" aria-label="${escapeHtml(sec.label)} - ${PERMISSION_ACTION_LABELS[act]}" class="perm-checkbox rounded border-slate-300 text-blue-600 focus:ring-blue-500" data-perm-section="${sec.key}" data-perm-action="${act}" ${checked} /></td>`;
         }).join('');
-        return `<tr class="hover:bg-slate-50">
-          <td class="py-1.5 px-2.5 font-bold text-slate-800 whitespace-nowrap">${escapeHtml(sec.label)}</td>
-          ${cells}
-        </tr>`;
+        return `<tr class="hover:bg-slate-50"><td class="py-1.5 px-2.5 font-bold text-slate-800 whitespace-nowrap">${escapeHtml(sec.label)}</td>${cells}</tr>`;
       }).join('');
+    }
+
+    function setAllPermissionsForAction(actionKey, checked) {
+      document.querySelectorAll(`#userPermissionsMatrixBody .perm-checkbox[data-perm-action="${actionKey}"]`).forEach(cb => { cb.checked = Boolean(checked); });
+    }
+
+    function setAllPermissionsForSection(sectionKey, checked) {
+      document.querySelectorAll(`#userPermissionsMatrixBody .perm-checkbox[data-perm-section="${sectionKey}"]`).forEach(cb => { cb.checked = Boolean(checked); });
     }
 
     function applyPermissionPreset(roleName) {
@@ -7440,6 +7701,11 @@
       });
     }
 
+    function getViolationPermissionSection(itemOrType) {
+      const value = typeof itemOrType === 'string' ? itemOrType : (itemOrType?.type || '');
+      return ['بيان','تصريح','تام','permit','bayan','tasreeh','tamm'].includes(String(value).trim().toLowerCase()) ? 'permits' : 'violations';
+    }
+
     function renderViolationsSection() {
       ensureOperationalCollections();
       const tbody = document.getElementById('violationsTableBody');
@@ -7462,10 +7728,10 @@
         return;
       }
 
-      const canEdit = hasPermission('violations', 'edit');
-      const canDel = hasPermission('violations', 'delete');
-
       tbody.innerHTML = rows.map(item => {
+        const itemPermissionSection = getViolationPermissionSection(item);
+        const canEdit = hasPermission(itemPermissionSection, 'edit');
+        const canDel = hasPermission(itemPermissionSection, 'delete');
         const statusCls = item.status === 'مسددة'
           ? 'bg-emerald-100 text-emerald-700'
           : item.status === 'قيد الاعتراض'
@@ -7492,7 +7758,9 @@
 
     function openViolationModal(editId = null) {
       ensureOperationalCollections();
-      if (!hasPermission('violations', editId ? 'edit' : 'create')) {
+      const existingViolation = editId ? state.violations.find(v => String(v.id) === String(editId)) : null;
+      const modalPermissionSection = getViolationPermissionSection(existingViolation || document.getElementById('vioType')?.value || 'مخالفة مرورية');
+      if (!hasPermission(modalPermissionSection, editId ? 'edit' : 'create')) {
         showSystemBanner('ليس لديك صلاحية إضافة أو تعديل المخالفات والتصاريح.', 'error');
         return;
       }
@@ -7501,7 +7769,7 @@
       document.getElementById('violationEditId').value = '';
       document.getElementById('vioDate').value = new Date().toISOString().slice(0, 10);
       document.getElementById('vioStatus').value = 'غير مسددة';
-      document.getElementById('vioType').value = 'مخالفة مرورية';
+      document.getElementById('vioType').value = hasPermission('violations', 'create') ? 'مخالفة مرورية' : 'تصريح';
       refreshViolationAutocomplete();
 
       if (editId) {
@@ -7533,7 +7801,9 @@
       event.preventDefault();
       ensureOperationalCollections();
       const editId = document.getElementById('violationEditId').value.trim();
-      if (!hasPermission('violations', editId ? 'edit' : 'create')) {
+      const targetViolationType = editId ? (state.violations.find(v => String(v.id) === String(editId))?.type || document.getElementById('vioType').value) : document.getElementById('vioType').value;
+      const targetViolationPermission = getViolationPermissionSection(targetViolationType);
+      if (!hasPermission(targetViolationPermission, editId ? 'edit' : 'create')) {
         showSystemBanner('ليس لديك صلاحية حفظ المخالفات والتصاريح.', 'error');
         return;
       }
@@ -7578,7 +7848,8 @@
 
     async function toggleViolationPaidStatus(id) {
       ensureOperationalCollections();
-      if (!hasPermission('violations', 'edit')) {
+      const currentViolation = state.violations.find(v => String(v.id) === String(id));
+      if (!hasPermission(getViolationPermissionSection(currentViolation), 'edit')) {
         showSystemBanner('ليس لديك صلاحية تعديل حالة السداد.', 'error');
         return;
       }
@@ -7600,7 +7871,8 @@
 
     async function deleteViolationRecord(id) {
       ensureOperationalCollections();
-      if (!hasPermission('violations', 'delete')) {
+      const targetViolation = state.violations.find(v => String(v.id) === String(id));
+      if (!hasPermission(getViolationPermissionSection(targetViolation), 'delete')) {
         showSystemBanner('ليس لديك صلاحية حذف سجلات المخالفات والتصاريح.', 'error');
         return;
       }
@@ -7883,6 +8155,7 @@
     }
 
     function generateEntityDetailReport(kind) {
+      if (!hasPermission('reports', 'view')) return showSystemBanner('ليس لديك صلاحية استخدام مركز التقارير.', 'error');
       const vehicleId = document.getElementById('centralReportVehicle')?.value || '';
       const driverName = document.getElementById('centralReportDriver')?.value || '';
       const permissionSection = kind === 'vehicle' ? 'compliance' : 'drivers';
@@ -7947,6 +8220,7 @@
     }
 
     function generateReportFromWizard() {
+      if (!hasPermission('reports', 'view')) return showSystemBanner('ليس لديك صلاحية إنشاء التقارير.', 'error');
       const department = document.getElementById('reportWizardDepartment')?.value || 'compliance';
       const identity = document.getElementById('reportWizardIdentity')?.value || 'system';
       const audience = document.getElementById('reportWizardAudience')?.value || 'internal';
@@ -7994,9 +8268,21 @@
     }
 
     function generateCentralReport(sectionKey, wizardOptions = {}) {
+      if (!hasPermission('reports', 'view')) {
+        showSystemBanner('ليس لديك صلاحية استخدام مركز التقارير.', 'error');
+        return;
+      }
       const reportScope = wizardOptions.scope || 'filtered';
       const permissionMap = { drivers: 'drivers', fuel_ops: 'fuel_ops', violations: 'violations', logs: 'logs', compliance: 'compliance' };
-      const targetPermission = permissionMap[sectionKey];
+      let targetPermission = permissionMap[sectionKey];
+      if (sectionKey === 'compliance') {
+        const chosenDoc = document.getElementById('centralReportDocSection')?.value || 'all';
+        targetPermission = chosenDoc === 'all' ? 'vehicles' : chosenDoc === 'authorization' ? 'delegations' : chosenDoc === 'registration' ? 'registration' : chosenDoc === 'periodic_inspection' ? 'inspection' : chosenDoc === 'insurance' ? 'insurance' : 'accidents';
+      }
+      if (sectionKey === 'violations') {
+        const selectedType = document.getElementById('violationTypeFilter')?.value || 'all';
+        targetPermission = selectedType === 'all' ? 'violations' : getViolationPermissionSection(selectedType);
+      }
       if (!targetPermission || !hasPermission(targetPermission, 'view')) {
         showSystemBanner('ليس لديك صلاحية عرض بيانات هذا التقرير.', 'error');
         return;
