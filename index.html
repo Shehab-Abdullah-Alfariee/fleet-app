@@ -185,6 +185,10 @@
             class="px-3 py-1.5 rounded-full text-xs font-bold bg-indigo-500/20 text-indigo-200 border border-indigo-400/30">
             الفحص اليومي: نشط (06:00 ص)
           </span>
+          <button type="button" id="globalSyncBtn" onclick="syncAllSystemData()"
+            class="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold border border-blue-500 transition">
+            مزامنة البيانات
+          </button>
           <button type="button" onclick="openAlertsCenterModal()"
             class="relative px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 text-xs font-bold border border-amber-400/40 transition flex items-center gap-1.5">
             <span>الإشعارات</span>
@@ -2252,13 +2256,13 @@
 
         await syncNotifiedExpiredFromCloud();
 
-        if (vRes.error) {
-          if (showBanner) showSystemBanner(`خطأ في قراءة المركبات: ${vRes.error.message}`, 'error');
-          return;
+        const readError = [vRes, dRes, uRes, lRes, drvRes].find(result => result?.error);
+        if (readError?.error) {
+          throw new Error(`تعذر قراءة بيانات Supabase: ${readError.error.message}`);
         }
 
         const docsByVehicle = {};
-        if (!dRes.error && Array.isArray(dRes.data)) {
+        if (Array.isArray(dRes.data)) {
           for (const doc of dRes.data) {
             const vId = String(doc.vehicle_id || '').trim();
             const dType = String(doc.doc_type || '').trim();
@@ -2293,7 +2297,7 @@
           });
         }
 
-        if (!uRes.error && Array.isArray(uRes.data)) {
+        if (Array.isArray(uRes.data)) {
           state.users = uRes.data.map(u => {
             const resolvedPhone = resolveUserPhone(u);
             if (u.phone) savePhoneToCache(u.email, u.phone);
@@ -2301,14 +2305,15 @@
           });
         }
 
-        if (!lRes.error && Array.isArray(lRes.data)) {
+        if (Array.isArray(lRes.data)) {
           state.logs = lRes.data;
         }
 
-        if (drvRes && !drvRes.error && Array.isArray(drvRes.data)) {
+        if (Array.isArray(drvRes.data)) {
           state.driversDirectory = drvRes.data;
         }
 
+        saveLocalState();
         renderAll();
         if (showBanner) {
           const sectionCount = getSectionVehiclesList(activeDocSection).length;
@@ -2321,6 +2326,24 @@
         if (btn) {
           btn.disabled = false;
           btn.textContent = 'تحديث البيانات';
+        }
+      }
+    }
+
+    async function syncAllSystemData() {
+      const btn = document.getElementById('globalSyncBtn');
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'جاري المزامنة...';
+        btn.classList.add('opacity-70', 'cursor-wait');
+      }
+      try {
+        await refreshCloudData(true, true);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = 'مزامنة البيانات';
+          btn.classList.remove('opacity-70', 'cursor-wait');
         }
       }
     }
@@ -5241,53 +5264,104 @@
       if (!canEditRecords() || !selectedDriverIds.size) return;
       state.driversDirectory = state.driversDirectory || [];
       const allDrivers = buildAggregatedDriversList();
-      let updated = 0;
+      const records = [];
 
       for (const drv of allDrivers) {
         if (!selectedDriverIds.has(String(drv.id))) continue;
         const idx = state.driversDirectory.findIndex(x => String(x.full_name).toLowerCase() === drv.full_name.toLowerCase());
-        if (idx >= 0) {
-          state.driversDirectory[idx].status = newStatus;
-        } else {
-          state.driversDirectory.unshift({
-            id: 'drv_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
-            full_name: drv.full_name,
-            national_id: drv.national_id || '',
-            phone: drv.phone || '',
-            category: drv.category || 'مندوب مبيعات',
-            authorization_status: drv.authorization_status || 'ساري',
-            authorization_expiry: drv.authorization_expiry || '',
-            status: newStatus,
-            notes: drv.notes || ''
-          });
-        }
-        updated++;
+        const record = idx >= 0 ? { ...state.driversDirectory[idx], status: newStatus } : {
+          id: 'drv_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+          full_name: drv.full_name,
+          national_id: drv.national_id || '',
+          phone: drv.phone || '',
+          category: drv.category || 'مندوب مبيعات',
+          authorization_status: drv.authorization_status || 'ساري',
+          authorization_expiry: drv.authorization_expiry || '',
+          status: newStatus,
+          notes: drv.notes || ''
+        };
+        records.push(record);
       }
+      if (!records.length) return;
 
-      saveLocalState();
-      await recordActionLog('تحديث جماعي لحالة السائقين', `${updated} سائق`, `الحالة الجديدة: ${newStatus}`);
-      renderAll();
-      showSystemBanner(`تم تحديث حالة (${updated}) سائق إلى (${newStatus}).`, 'success');
+      setLoading(true, 'جاري حفظ حالات السائقين في قاعدة البيانات...');
+      try {
+        if (isCloudMode()) {
+          if (!sbClient) throw new Error('اتصال Supabase غير متاح.');
+          const { error } = await sbClient.from('drivers').upsert(records, { onConflict: 'id' });
+          if (error) throw error;
+        }
+        for (const record of records) {
+          const idx = state.driversDirectory.findIndex(x => String(x.full_name).toLowerCase() === record.full_name.toLowerCase());
+          if (idx >= 0) state.driversDirectory[idx] = record;
+          else state.driversDirectory.unshift(record);
+        }
+        saveLocalState();
+        await recordActionLog('تحديث جماعي لحالة السائقين', `${records.length} سائق`, `الحالة الجديدة: ${newStatus}`);
+        renderAll();
+        showSystemBanner(`تم تحديث حالة (${records.length}) سائق وحفظها بنجاح.`, 'success');
+      } catch (error) {
+        showSystemBanner(`تعذر حفظ حالات السائقين: ${error.message || error}`, 'error');
+      } finally {
+        setLoading(false);
+      }
     }
 
     async function bulkDeleteSelectedDrivers() {
       if (!canDeleteRecords() || !selectedDriverIds.size) return;
+      const selectedIds = new Set(Array.from(selectedDriverIds, String));
+      const allDrivers = buildAggregatedDriversList().filter(d => selectedIds.has(String(d.id)));
+      if (!allDrivers.length) return;
       const ok = await openSecurityConfirmModal({
-        title: `تأكيد حذف (${selectedDriverIds.size}) سائق محدد`,
-        description: 'سيتم حذف السائقين المحددين من دليل السائقين.',
+        title: `تأكيد حذف (${allDrivers.length}) سائق محدد`,
+        description: 'سيتم حذف السائقين من قاعدة البيانات، وإلغاء ربط أسمائهم بالمركبات حتى لا يعودوا للظهور تلقائياً.',
         confirmText: 'حذف المحددين',
         variant: 'danger'
       });
       if (!ok) return;
 
-      const allDrivers = buildAggregatedDriversList().filter(d => selectedDriverIds.has(String(d.id)));
-      const namesLower = new Set(allDrivers.map(d => d.full_name.toLowerCase()));
-      state.driversDirectory = (state.driversDirectory || []).filter(d => !namesLower.has(String(d.full_name || '').toLowerCase()));
-      selectedDriverIds.clear();
-      saveLocalState();
-      await recordActionLog('حذف جماعي للسائقين', `${allDrivers.length} سائق`, 'حذف من دليل السائقين');
-      renderAll();
-      showSystemBanner(`تم حذف (${allDrivers.length}) سائق من الدليل.`, 'success');
+      const names = allDrivers.map(d => d.full_name).filter(Boolean);
+      const namesLower = new Set(names.map(name => name.trim().toLowerCase()));
+      const persistedIds = allDrivers
+        .filter(d => !String(d.id).startsWith('drv_auto_'))
+        .map(d => d.id)
+        .filter(Boolean);
+
+      setLoading(true, 'جاري حذف السائقين وحفظ التغييرات...');
+      try {
+        if (isCloudMode()) {
+          if (!sbClient) throw new Error('اتصال Supabase غير متاح.');
+          const linkedNames = [...new Set((state.vehicles || [])
+            .map(vehicle => String(vehicle.assigned_driver || '').trim())
+            .filter(name => namesLower.has(name.toLowerCase())))];
+          if (linkedNames.length) {
+            const { error } = await sbClient.from('vehicles')
+              .update({ assigned_driver: null })
+              .in('assigned_driver', linkedNames);
+            if (error) throw error;
+          }
+          if (persistedIds.length) {
+            const { error } = await sbClient.from('drivers').delete().in('id', persistedIds);
+            if (error) throw error;
+          }
+        }
+
+        state.driversDirectory = (state.driversDirectory || []).filter(d => !namesLower.has(String(d.full_name || '').trim().toLowerCase()));
+        state.vehicles = (state.vehicles || []).map(vehicle =>
+          namesLower.has(String(vehicle.assigned_driver || '').trim().toLowerCase())
+            ? { ...vehicle, assigned_driver: '' }
+            : vehicle
+        );
+        selectedDriverIds.clear();
+        saveLocalState();
+        await recordActionLog('حذف السائقين', `${allDrivers.length} سائق`, 'حذف دائم من دليل السائقين وإلغاء ربط المركبات');
+        renderAll();
+        showSystemBanner(`تم حذف (${allDrivers.length}) سائق وحفظ الحذف في ${isCloudMode() ? 'Supabase' : 'التخزين المحلي'}.`, 'success');
+      } catch (error) {
+        showSystemBanner(`فشل حذف السائقين ولم يتم اعتماد التغيير محلياً: ${error.message || error}`, 'error');
+      } finally {
+        setLoading(false);
+      }
     }
 
     function exportDriversDirectoryExcel(onlySelected = false) {
@@ -5618,17 +5692,13 @@
           notes
         };
 
-        if (isCloudMode() && sbClient) {
+        if (isCloudMode()) {
+          if (!sbClient) throw new Error('اتصال Supabase غير متاح.');
           const { error } = await sbClient.from('drivers').upsert([record], { onConflict: 'id' });
-          if (error) {
-            const idx = state.driversDirectory.findIndex(x => String(x.id) === String(editId) || x.full_name.toLowerCase() === full_name.toLowerCase());
-            if (idx >= 0) state.driversDirectory[idx] = record;
-            else state.driversDirectory.unshift(record);
-          } else {
-            const idx = state.driversDirectory.findIndex(x => String(x.id) === String(editId) || x.full_name.toLowerCase() === full_name.toLowerCase());
-            if (idx >= 0) state.driversDirectory[idx] = record;
-            else state.driversDirectory.unshift(record);
-          }
+          if (error) throw error;
+          const idx = state.driversDirectory.findIndex(x => String(x.id) === String(editId) || x.full_name.toLowerCase() === full_name.toLowerCase());
+          if (idx >= 0) state.driversDirectory[idx] = record;
+          else state.driversDirectory.unshift(record);
         } else {
           const idx = state.driversDirectory.findIndex(x => String(x.id) === String(editId) || x.full_name.toLowerCase() === full_name.toLowerCase());
           if (idx >= 0) state.driversDirectory[idx] = record;
@@ -5640,6 +5710,8 @@
         closeDriverDirectoryModal();
         renderAll();
         showSystemBanner(`تم حفظ بيانات السائق (${full_name}) بنجاح.`, 'success');
+      } catch (error) {
+        showSystemBanner(`تعذر حفظ بيانات السائق: ${error.message || error}`, 'error');
       } finally {
         setLoading(false);
       }
