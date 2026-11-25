@@ -62,7 +62,28 @@
     .loader-spinner {
       animation: spinSlow 0.8s linear infinite;
     }
+    /* معاينة طباعة مستقلة لملف السائق عند تعذر فتح نافذة خارجية */
+    #driverPrintPreviewLayer { position: fixed; inset: 0; z-index: 2147483646; display: none; background: rgba(15,23,42,.72); padding: 20px; overflow: auto; }
+    #driverPrintPreviewLayer.is-open { display: block; }
+    #driverPrintPreviewLayer .driver-print-preview-shell { max-width: 1000px; min-height: 80vh; margin: 0 auto; background: #fff; color: #111827; border-radius: 14px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,.25); }
+    #driverPrintPreviewLayer .driver-print-preview-actions { position: sticky; top: 0; display: flex; gap: 8px; justify-content: flex-start; padding: 12px 18px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
+    #driverPrintPreviewLayer .driver-print-preview-content { direction: rtl; text-align: right; padding: 24px; font-family: Tahoma, Arial, sans-serif; font-size: 12px; line-height: 1.7; }
+    #driverPrintPreviewLayer .driver-print-preview-content table { width: 100%; border-collapse: collapse; }
+    #driverPrintPreviewLayer .driver-print-preview-content th, #driverPrintPreviewLayer .driver-print-preview-content td { border: 1px solid #cbd5e1; padding: 6px; }
+    #driverPrintPreviewLayer .driver-print-preview-content button, #driverPrintPreviewLayer .driver-print-preview-content [role="button"], #driverPrintPreviewLayer .driver-print-preview-content .no-print { display: none !important; }
+    body.driver-print-preview-active > *:not(#driverPrintPreviewLayer) { display: none !important; }
+    body.driver-print-preview-active #driverPrintPreviewLayer { display: block !important; position: static !important; inset: auto !important; padding: 0 !important; overflow: visible !important; background: #fff !important; }
+    body.driver-print-preview-active #driverPrintPreviewLayer .driver-print-preview-shell { max-width: none !important; min-height: 0 !important; margin: 0 !important; border-radius: 0 !important; box-shadow: none !important; }
+    body.driver-print-preview-active #driverPrintPreviewLayer .driver-print-preview-actions { display: none !important; }
+    body.driver-print-preview-active #driverPrintPreviewLayer .driver-print-preview-content { padding: 0 !important; }
     @media print {
+      #driverPrintPreviewLayer .driver-print-preview-actions { display: none !important; }
+      #driverPrintPreviewLayer { display: block !important; position: static !important; padding: 0 !important; background: #fff !important; }
+      #driverPrintPreviewLayer .driver-print-preview-shell { box-shadow: none !important; border-radius: 0 !important; }
+    }
+    @page { size: auto; margin: 12mm; }
+    @media print {
+      html, body { margin: 0 !important; padding: 0 !important; background: #fff !important; }
       header, nav, #systemBanner, #complianceAlertBanner, #scrollProgressBar, .no-print {
         display: none !important;
       }
@@ -73,6 +94,36 @@
         box-shadow: none !important;
         border: 1px solid #cbd5e1 !important;
       }
+      /* عزل ملف السائق بصريًا دون إخفاء أحد العناصر الأب التي تحتوي النافذة */
+      body.driver-profile-print, body.driver-profile-print * {
+        visibility: hidden !important;
+      }
+      body.driver-profile-print #driverDetailsDrawer,
+      body.driver-profile-print #driverDetailsDrawer * {
+        visibility: visible !important;
+      }
+      body.driver-profile-print #driverDetailsDrawer {
+        display: block !important; position: absolute !important; inset: 0 !important;
+        z-index: 2147483000 !important; width: 100% !important; height: auto !important;
+        min-height: 100vh !important; background: #fff !important; padding: 0 !important;
+        overflow: visible !important;
+      }
+      body.driver-profile-print #driverDetailsDrawer > div {
+        width: 100% !important; max-width: none !important; height: auto !important;
+        min-height: 0 !important; max-height: none !important; overflow: visible !important;
+        box-shadow: none !important; border: 0 !important; padding: 12mm !important;
+        display: block !important; background: #fff !important;
+      }
+      body.driver-profile-print #drawerDriverBody { overflow: visible !important; color: #111827 !important; }
+      body.driver-profile-print #driverDetailsDrawer .no-print,
+      body.driver-profile-print #printDriverDetailsBtn,
+      body.driver-profile-print #drawerEditDriverBtn,
+      body.driver-profile-print #driverDetailsDrawer button,
+      body.driver-profile-print #driverDetailsDrawer [role="button"] { display: none !important; }
+      body.driver-profile-print #driverDetailsDrawer { background: #fff !important; backdrop-filter: none !important; }
+      body.driver-profile-print #drawerDriverName { font-size: 20px !important; }
+      body.driver-profile-print #drawerDriverBody * { break-inside: avoid; }
+      body.driver-profile-print #driverDetailsDrawer > div { border-radius: 0 !important; }
     }
     .table-sticky-container {
       max-height: 68vh;
@@ -89,6 +140,46 @@
       opacity: 0.45 !important;
       pointer-events: none !important;
       cursor: not-allowed !important;
+    }
+    
+    /* User Modal: responsive height and contained scrolling */
+    #userModal {
+      overflow-y: auto;
+      align-items: center;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
+    }
+    #userModal > div {
+      max-height: 90vh;
+      max-height: 90dvh;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      min-height: 0;
+      scrollbar-gutter: stable;
+      -webkit-overflow-scrolling: touch;
+    }
+    /* Keep the form action row visible while scrolling the user form */
+    #userModal #userForm > div.flex.justify-end {
+      position: sticky;
+      bottom: 0;
+      z-index: 10;
+      background: #ffffff;
+      padding-top: 12px;
+      padding-bottom: 12px;
+      border-top: 1px solid #e2e8f0;
+    }
+    /* Mobile layout: use dvh where supported, with vh fallback */
+    @media (max-width: 640px) {
+      #userModal {
+        align-items: flex-start;
+        padding: 12px;
+      }
+      #userModal > div {
+        max-height: calc(100vh - 24px);
+        max-height: calc(100dvh - 24px);
+        padding: 16px;
+        border-radius: 20px;
+      }
     }
   </style>
 </head>
@@ -749,14 +840,20 @@
             <h3 id="drawerDriverName" class="text-lg font-extrabold text-slate-900">تفاصيل السائق</h3>
             <p id="drawerDriverSubtitle" class="text-xs text-slate-500 font-semibold"></p>
           </div>
-          <button type="button" onclick="closeDriverDetailsDrawer()" class="w-9 h-9 rounded-xl hover:bg-slate-100 text-slate-600 text-xl font-bold flex items-center justify-center">×</button>
+          <button type="button" onclick="closeDriverDetailsDrawer()" class="no-print w-9 h-9 rounded-xl hover:bg-slate-100 text-slate-600 text-xl font-bold flex items-center justify-center">×</button>
         </div>
         <div id="drawerDriverBody" class="space-y-4"></div>
       </div>
-      <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-        <button type="button" onclick="closeDriverDetailsDrawer()" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold">
-          إغلاق
-        </button>
+      <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2 no-print">
+        <div class="flex items-center gap-2">
+          <button type="button" id="printDriverDetailsBtn" data-action="print-driver-details" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold">طباعة</button>
+          <button type="button" id="drawerEditDriverBtn" onclick="openDriverDirectoryModal(activeDrawerDriverId)" class="hidden px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold">
+            تعديل البيانات
+          </button>
+          <button type="button" onclick="closeDriverDetailsDrawer()" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold">
+            إغلاق
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -885,6 +982,7 @@
       </div>
 
       <form id="driverDirectoryForm" onsubmit="saveDriverDirectoryForm(event)" class="space-y-3.5">
+        <div id="driverDirectorySaveStatus" role="status" aria-live="polite" class="hidden rounded-xl px-3 py-2 text-xs font-bold"></div>
         <input type="hidden" id="driverDirEditId" />
 
         <div>
@@ -958,7 +1056,7 @@
 
         <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
           <button type="button" onclick="closeDriverDirectoryModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-sm font-bold text-slate-700 hover:bg-slate-50">إلغاء</button>
-          <button type="submit" class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-sm font-bold text-white shadow-sm">حفظ السائق</button>
+          <button type="submit" id="saveDriverDirectoryBtn" class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-sm font-bold text-white shadow-sm">حفظ السائق</button>
         </div>
       </form>
     </div>
@@ -1054,13 +1152,35 @@
       </div>
       <div id="detailsModalBody" class="space-y-4"></div>
       <div class="flex justify-between items-center pt-3 border-t border-slate-100">
-        <button type="button" onclick="printCurrentVehicleDetails()" class="px-4 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700">
-          طباعة ملف المركبة / PDF
-        </button>
+        <div class="flex flex-wrap gap-2">
+          <button type="button" onclick="openVehicleAccidentsScreen(currentDetailsVehicleId)" class="px-4 py-2 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-xs font-bold text-rose-700">عرض جميع الحوادث</button>
+          <button type="button" onclick="printCurrentVehicleDetails()" class="px-4 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700">طباعة ملف المركبة / PDF</button>
+        </div>
         <button type="button" onclick="closeVehicleDetailsModal()" class="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-xs font-bold text-white">
           إغلاق
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- شاشة مستقلة لسجل جميع حوادث المركبة -->
+  <div id="vehicleAccidentsScreen" class="hidden fixed inset-0 z-[60] modal-backdrop flex items-center justify-center p-3 sm:p-5" role="dialog" aria-modal="true" aria-labelledby="vehicleAccidentsScreenTitle">
+    <div class="w-full max-w-5xl bg-white rounded-3xl shadow-2xl border border-slate-200 p-4 sm:p-6 space-y-4 max-h-[94vh] overflow-y-auto">
+      <div class="flex flex-wrap items-start justify-between gap-3 border-b border-slate-100 pb-3">
+        <div><h3 id="vehicleAccidentsScreenTitle" class="text-lg font-extrabold text-slate-900">سجل حوادث المركبة</h3><p id="vehicleAccidentsScreenSubtitle" class="text-xs text-slate-500 mt-1"></p></div>
+        <button type="button" onclick="closeVehicleAccidentsScreen()" class="w-9 h-9 rounded-lg hover:bg-slate-100 text-slate-500 text-xl font-bold">×</button>
+      </div>
+      <div id="vehicleAccidentsSummary" class="grid grid-cols-2 md:grid-cols-4 gap-2"></div>
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <div class="flex flex-wrap gap-2" role="group" aria-label="فلترة الحوادث">
+          <button type="button" data-acc-filter="all" onclick="setVehicleAccidentsFilter('all')" class="vehicle-acc-filter px-3 py-2 rounded-lg text-xs font-bold border">الكل</button>
+          <button type="button" data-acc-filter="open" onclick="setVehicleAccidentsFilter('open')" class="vehicle-acc-filter px-3 py-2 rounded-lg text-xs font-bold border">المفتوحة</button>
+          <button type="button" data-acc-filter="closed" onclick="setVehicleAccidentsFilter('closed')" class="vehicle-acc-filter px-3 py-2 rounded-lg text-xs font-bold border">المغلقة</button>
+        </div>
+        <button type="button" onclick="printVehicleAccidentsScreen()" class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold">طباعة سجل الحوادث</button>
+      </div>
+      <div id="vehicleAccidentsScreenList" class="space-y-3"></div>
+      <div class="flex justify-end border-t border-slate-100 pt-3"><button type="button" onclick="closeVehicleAccidentsScreen()" class="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-xs font-bold text-white">إغلاق</button></div>
     </div>
   </div>
 
@@ -1137,6 +1257,8 @@
       <form id="vehicleForm" onsubmit="saveVehicleForm(event)" class="space-y-4">
         <input type="hidden" id="vehicleEditId" />
 
+        <div id="accPreviousOpenWarning" class="hidden rounded-xl border border-amber-300 bg-amber-50 px-3.5 py-3 text-xs text-amber-900" role="status" aria-live="polite"></div>
+
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">رقم اللوحة *</label>
@@ -1205,6 +1327,7 @@
 
       <form id="accidentForm" onsubmit="saveAccidentForm(event)" class="space-y-4">
         <input type="hidden" id="accVehicleId" />
+        <input type="hidden" id="accRecordId" />
 
         <div id="accVehiclePickerBox" class="bg-blue-50/75 border border-blue-200/90 rounded-2xl p-3.5 space-y-1.5">
           <div class="flex items-center justify-between gap-2">
@@ -1215,7 +1338,7 @@
           </div>
           <input id="accVehicleSearchInput" list="accVehiclesDatalist" type="text" autocomplete="off"
             oninput="handleAccidentVehicleLookup(this.value)"
-            onchange="handleAccidentVehicleLookup(this.value)"
+            onchange="handleAccidentVehicleLookup(this.value); updatePreviousOpenAccidentsWarning('', this.value)"
             placeholder="اكتب رقم اللوحة أو اسم السيارة للبحث، أو اكتب سيارة جديدة..."
             class="form-input-pro bg-white" />
           <datalist id="accVehiclesDatalist"></datalist>
@@ -1228,7 +1351,7 @@
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">رقم اللوحة *</label>
             <input id="accPlateNumber" type="text" required placeholder="أ ب ج 1234"
-              class="form-input-pro" />
+              oninput="updatePreviousOpenAccidentsWarning('', this.value)" class="form-input-pro" />
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">اسم / نوع المركبة *</label>
@@ -1237,8 +1360,9 @@
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">السائق / المفوّض *</label>
-            <input id="accAssignedDriver" type="text" required placeholder="اسم السائق"
+            <input id="accAssignedDriver" type="text" list="accDriversDatalist" required placeholder="اختر أو اكتب اسم السائق"
               class="form-input-pro" />
+            <datalist id="accDriversDatalist"></datalist>
           </div>
         </div>
 
@@ -1257,6 +1381,7 @@
             <label class="block text-xs font-bold text-slate-700 mb-1">حالة الحادث / الإصلاح *</label>
             <select id="accStatus" required
               class="form-input-pro font-semibold">
+              <option value="مفتوح — تحت المعالجة">مفتوح — تحت المعالجة</option>
               <option value="تحت المعالجة">تحت المعالجة</option>
               <option value="قيد الإصلاح بالورشة">قيد الإصلاح بالورشة</option>
               <option value="مطالبة تأمينية">مطالبة تأمينية</option>
@@ -1956,6 +2081,7 @@
             vehicles: Array.isArray(p.vehicles) ? p.vehicles.map(v => ({
               ...v,
               docs: v.docs || {},
+              accidentsList: Array.isArray(v.accidentsList) ? v.accidentsList : (v.accidents ? [v.accidents] : []),
               accidents: v.accidents || null
             })) : [],
             users: Array.isArray(p.users) && p.users.length ? p.users : [
@@ -2203,26 +2329,96 @@
 
     function parseAccidentNotesPayload(rawNotes) {
       const str = String(rawNotes || '');
-      const match = str.match(/\[ACCIDENT_JSON:(.*?)\]/);
-      if (!match) return null;
-      try {
-        return JSON.parse(match[1]);
-      } catch {
-        return null;
+      const multi = str.match(/\[ACCIDENTS_JSON:(.*?)\]/);
+      if (multi) {
+        try { const parsed = JSON.parse(decodeURIComponent(multi[1])); return Array.isArray(parsed) ? parsed : []; }
+        catch { return []; }
       }
+      const legacy = str.match(/\[ACCIDENT_JSON:(.*?)\]/);
+      if (legacy) {
+        try { const parsed = JSON.parse(legacy[1]); return parsed ? [parsed] : []; }
+        catch { return []; }
+      }
+      return [];
     }
 
     function stripAccidentPayloadFromNotes(rawNotes) {
-      return String(rawNotes || '').replace(/\s*\[ACCIDENT_JSON:.*?\]\s*/g, '').trim();
+      return String(rawNotes || '').replace(/\s*\[ACCIDENTS?_JSON:.*?\]\s*/g, '').trim();
     }
 
-    function composeNotesWithAccident(baseNotes, accidentObj) {
+    function getVehicleAccidents(vehicle) {
+      if (!vehicle) return [];
+      let list = Array.isArray(vehicle.accidentsList) && vehicle.accidentsList.length ? vehicle.accidentsList :
+        (Array.isArray(vehicle.accidents) ? vehicle.accidents :
+          (vehicle.accidents && typeof vehicle.accidents === 'object' ? [vehicle.accidents] : []));
+      if (!list.length && vehicle.notes) list = parseAccidentNotesPayload(vehicle.notes);
+      if (!list.length && vehicle.docs?.accidents) list = [{ date: vehicle.docs.accidents, status: 'تحت المعالجة', cost: 0, driverName: vehicle.assigned_driver || '' }];
+      return list.map((a, i) => ({
+        id: String(a.id || `legacy_${vehicle.id}_${a.date || i}_${a.reportNumber || ''}`),
+        date: a.date || '', reportNumber: a.reportNumber || '', status: a.status || 'تحت المعالجة',
+        faultPercent: a.faultPercent || '', cost: Number(a.cost || 0), notes: a.notes || '',
+        driverName: a.driverName || a.assigned_driver || vehicle.assigned_driver || '',
+        vehicleId: vehicle.id, vehicleName: vehicle.vehicle_name || '', plateNumber: vehicle.plate_number || ''
+      })).sort((a,b) => String(b.date).localeCompare(String(a.date)));
+    }
+
+    function isAccidentClosed(status) {
+      const value = String(status || '').trim().toLowerCase();
+      return value.includes('مغلق') || value === 'closed' || value === 'resolved' || value === 'completed';
+    }
+
+    function getOpenVehicleAccidents(vehicle, exceptId = '') {
+      return getVehicleAccidents(vehicle).filter(acc => String(acc.id) !== String(exceptId || '') && !isAccidentClosed(acc.status));
+    }
+
+    function updatePreviousOpenAccidentsWarning(vehicleId = '', plateValue = '') {
+      const warning = document.getElementById('accPreviousOpenWarning');
+      if (!warning) return;
+      const plateKey = normalizePlateKey(plateValue || document.getElementById('accPlateNumber')?.value || '');
+      const vehicle = (state.vehicles || []).find(v =>
+        (vehicleId && String(v.id) === String(vehicleId)) ||
+        (plateKey && normalizePlateKey(v.plate_number) === plateKey)
+      );
+      const exceptId = document.getElementById('accRecordId')?.value || '';
+      const open = vehicle ? getOpenVehicleAccidents(vehicle, exceptId) : [];
+      if (!open.length) { warning.classList.add('hidden'); warning.innerHTML = ''; return; }
+      warning.classList.remove('hidden');
+      warning.innerHTML = `<div class="font-extrabold mb-1">تنبيه: توجد ${open.length} حادث/حوادث سابقة غير مغلقة لهذه المركبة.</div><div>يمكنك إكمال تسجيل الحادث الجديد وحفظه بشكل طبيعي؛ لن يتم منع الحفظ بسبب السجلات السابقة.</div><div class="mt-1 text-[11px]">${open.slice(0,3).map(a => `${escapeHtml(a.date || 'تاريخ غير محدد')} — ${escapeHtml(a.status || 'مفتوح')}`).join(' · ')}${open.length > 3 ? ` · و${open.length - 3} أخرى` : ''}</div>`;
+    }
+
+    function getLatestVehicleAccident(vehicle) {
+      return getVehicleAccidents(vehicle)[0] || null;
+    }
+
+    function composeNotesWithAccidents(baseNotes, accidentList) {
       const cleanBase = stripAccidentPayloadFromNotes(baseNotes);
-      if (!accidentObj || (!accidentObj.date && !accidentObj.reportNumber && !accidentObj.status && !accidentObj.cost)) {
-        return cleanBase;
-      }
-      const tag = `[ACCIDENT_JSON:${JSON.stringify(accidentObj)}]`;
+      const valid = Array.isArray(accidentList) ? accidentList : [];
+      if (!valid.length) return cleanBase;
+      const tag = `[ACCIDENTS_JSON:${encodeURIComponent(JSON.stringify(valid))}]`;
       return cleanBase ? `${cleanBase} ${tag}` : tag;
+    }
+
+    // Compatibility adapter for older import paths that still pass one accident object.
+    function composeNotesWithAccident(baseNotes, accidentObj) {
+      const list = parseAccidentNotesPayload(baseNotes);
+      if (accidentObj) {
+        const candidate = { ...accidentObj, id: accidentObj.id || ('acc_import_' + Date.now() + '_' + Math.random().toString(36).slice(2,6)) };
+        const duplicate = list.some(a => String(a.date || '') === String(candidate.date || '') && String(a.reportNumber || '') === String(candidate.reportNumber || ''));
+        if (!duplicate) list.push(candidate);
+      }
+      list.sort((a,b) => String(b.date || '').localeCompare(String(a.date || '')));
+      return composeNotesWithAccidents(stripAccidentPayloadFromNotes(baseNotes), list);
+    }
+
+    function populateAccidentDriversDatalist() {
+      const dl = document.getElementById('accDriversDatalist');
+      if (!dl) return;
+      const names = new Set((state.driversDirectory || []).map(d => String(d.full_name || '').trim()).filter(Boolean));
+      (state.vehicles || []).forEach(v => {
+        if (v.assigned_driver) names.add(String(v.assigned_driver).trim());
+        getVehicleAccidents(v).forEach(a => { if (a.driverName) names.add(String(a.driverName).trim()); });
+      });
+      dl.innerHTML = Array.from(names).sort((a,b) => a.localeCompare(b, 'ar')).map(n => `<option value="${escapeHtml(n)}"></option>`).join('');
     }
 
     async function refreshCloudData(showBanner = false, useLoader = true) {
@@ -2246,9 +2442,10 @@
           return;
         }
 
-        const [vRes, dRes, uRes, lRes, drvRes] = await Promise.all([
+        const [vRes, dRes, aRes, uRes, lRes, drvRes] = await Promise.all([
           fetchAllRowsFromTable('vehicles', 'created_at', false),
           fetchAllRowsFromTable('vehicle_documents', 'id', true),
+          fetchAllRowsFromTable('vehicle_accidents', 'accident_date', true),
           sbClient.from('app_users').select('*').order('created_at', { ascending: true }),
           sbClient.from('audit_logs').select('*').order('created_at', { ascending: false }).limit(150),
           sbClient.from('drivers').select('*').order('created_at', { ascending: false })
@@ -2256,7 +2453,7 @@
 
         await syncNotifiedExpiredFromCloud();
 
-        const readError = [vRes, dRes, uRes, lRes, drvRes].find(result => result?.error);
+        const readError = [vRes, dRes, aRes, uRes, lRes, drvRes].find(result => result?.error);
         if (readError?.error) {
           throw new Error(`تعذر قراءة بيانات Supabase: ${readError.error.message}`);
         }
@@ -2272,28 +2469,43 @@
           }
         }
 
+        const accidentsByVehicle = {};
+        if (Array.isArray(aRes.data)) {
+          for (const row of aRes.data) {
+            const vId = String(row.vehicle_uuid || row.vehicle_id || '').trim();
+            if (!vId) continue;
+            if (!accidentsByVehicle[vId]) accidentsByVehicle[vId] = [];
+            accidentsByVehicle[vId].push({
+              id: String(row.id), date: row.accident_date || '',
+              reportNumber: row.report_number || '', status: row.status || 'تحت المعالجة',
+              faultPercent: row.fault_percent || '', cost: Number(row.estimated_cost || 0),
+              notes: row.notes || '', driverName: row.driver_name || '',
+              vehicleId: vId, vehicleName: row.vehicle_name || '', plateNumber: row.plate_number || ''
+            });
+          }
+        }
+
         if (Array.isArray(vRes.data)) {
           state.vehicles = vRes.data.map(v => {
             const vDocs = docsByVehicle[String(v.id)] || {};
-            const parsedAcc = parseAccidentNotesPayload(v.notes || '');
+            const parsedAccidents = parseAccidentNotesPayload(v.notes || '');
             const cleanNotes = stripAccidentPayloadFromNotes(v.notes || '');
-            const accidentData = parsedAcc || (vDocs.accidents ? {
-              date: vDocs.accidents,
-              reportNumber: '',
-              status: 'تحت المعالجة',
-              faultPercent: '',
-              cost: 0
-            } : null);
-
-            return {
-              id: v.id,
-              plate_number: v.plate_number,
-              vehicle_name: v.vehicle_name,
-              assigned_driver: v.assigned_driver,
-              notes: cleanNotes,
-              docs: vDocs,
-              accidents: accidentData
+            const tableAccidents = accidentsByVehicle[String(v.id)] || [];
+            const mergedAccidents = [...tableAccidents];
+            for (const legacyAccident of parsedAccidents) {
+              if (!mergedAccidents.some(a => String(a.id) === String(legacyAccident.id))) mergedAccidents.push(legacyAccident);
+            }
+            const accidentList = mergedAccidents.length ? mergedAccidents : (vDocs.accidents ? [{
+              id: `legacy_${v.id}_${vDocs.accidents}`, date: vDocs.accidents, reportNumber: '',
+              status: 'تحت المعالجة', faultPercent: '', cost: 0, driverName: v.assigned_driver || ''
+            }] : []);
+            const normalizedVehicle = {
+              id: v.id, plate_number: v.plate_number, vehicle_name: v.vehicle_name,
+              assigned_driver: v.assigned_driver, notes: cleanNotes, docs: vDocs,
+              accidentsList: accidentList
             };
+            normalizedVehicle.accidents = getLatestVehicleAccident(normalizedVehicle);
+            return normalizedVehicle;
           });
         }
 
@@ -2509,19 +2721,25 @@
     }
 
     function evaluateAccidentStatus(vehicle) {
-      const acc = vehicle?.accidents;
-      const dateStr = vehicle?.docs?.accidents || acc?.date || '';
-      if (!acc && !dateStr) {
+      const incidents = getVehicleAccidents(vehicle);
+      const acc = incidents[0] || null;
+      const dateStr = acc?.date || vehicle?.docs?.accidents || '';
+      if (!incidents.length && !dateStr) {
         return { code: 'missing', priority: 3, label: 'لا يوجد حادث', badgeClass: 'bg-slate-100 text-slate-500' };
       }
+      // حالة المركبة في قسم الحوادث تُحسب من جميع السجلات: وجود حادث واحد غير مغلق
+      // يعني أن المركبة ما زالت لديها حادث قيد المتابعة، ولا يُسقط إغلاق أحدث حادث بقية السجلات.
+      const openIncidents = incidents.filter(item => !isAccidentClosed(item.status));
+      if (openIncidents.length) {
+        const latestOpen = openIncidents[0];
+        const st = String(latestOpen.status || '').trim();
+        if (st.includes('تأمين') || st.includes('مطالبة')) {
+          return { code: 'expiring_soon', priority: 1, label: st, badgeClass: 'bg-amber-100 text-amber-800' };
+        }
+        return { code: 'expired', priority: 0, label: st || 'تحت المعالجة', badgeClass: 'bg-rose-100 text-rose-700' };
+      }
       const st = String(acc?.status || '').trim();
-      if (st.includes('مغلق') || st.includes('مكتمل') || st.includes('منته')) {
-        return { code: 'valid', priority: 2, label: st || 'مغلق', badgeClass: 'bg-emerald-100 text-emerald-700' };
-      }
-      if (st.includes('تأمين') || st.includes('مطالبة')) {
-        return { code: 'expiring_soon', priority: 1, label: st, badgeClass: 'bg-amber-100 text-amber-800' };
-      }
-      return { code: 'expired', priority: 0, label: st || 'تحت المعالجة', badgeClass: 'bg-rose-100 text-rose-700' };
+      return { code: 'valid', priority: 2, label: st || 'مغلق', badgeClass: 'bg-emerald-100 text-emerald-700' };
     }
 
     function getVehicleSectionStatus(vehicle, sectionKey = activeDocSection) {
@@ -2554,7 +2772,7 @@
       const vehicles = state.vehicles || [];
       if (sectionKey === 'all') return vehicles;
       if (sectionKey === 'accidents') {
-        return vehicles.filter(v => Boolean(v.accidents || (v.docs && v.docs.accidents)));
+        return vehicles.filter(v => getVehicleAccidents(v).length > 0);
       }
       return vehicles.filter(v => Boolean(v.docs && v.docs[sectionKey]));
     }
@@ -2692,10 +2910,8 @@
 
       const costBadge = document.getElementById('totalAccidentsCostBadge');
       if (costBadge) {
-        const totalCost = (state.vehicles || []).reduce((accSum, v) => {
-          const hasAcc = Boolean(v.accidents || v.docs?.accidents);
-          return accSum + (hasAcc ? Number(v.accidents?.cost || 0) : 0);
-        }, 0);
+        const totalCost = (state.vehicles || []).reduce((sum, v) =>
+          sum + getVehicleAccidents(v).reduce((vehicleSum, incident) => vehicleSum + Number(incident.cost || 0), 0), 0);
         costBadge.textContent = `${totalCost.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} SAR`;
       }
     }
@@ -2709,13 +2925,11 @@
     }
 
     function renderAccidentSummaryCell(vehicle) {
-      const acc = vehicle?.accidents;
-      const dateStr = vehicle?.docs?.accidents || acc?.date || '';
-      if (!acc && !dateStr) {
-        return `<span class="inline-block px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-400">لا يوجد</span>`;
-      }
+      const incidents = getVehicleAccidents(vehicle);
+      if (!incidents.length) return `<span class="inline-block px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-400">لا يوجد</span>`;
+      const latest = incidents[0];
       const ev = evaluateAccidentStatus(vehicle);
-      return `<span class="inline-block px-2.5 py-1 rounded-lg text-xs font-bold ${ev.badgeClass}">${escapeHtml(ev.label)} ${dateStr ? `<span dir="ltr" class="font-mono">(${escapeHtml(dateStr)})</span>` : ''}</span>`;
+      return `<span class="inline-flex flex-col items-start gap-1"><span class="px-2.5 py-1 rounded-lg text-xs font-bold ${ev.badgeClass}">${incidents.length} حوادث</span><span class="text-[10px] text-slate-500 font-mono" dir="ltr">الأحدث: ${escapeHtml(latest.date || '—')}</span></span>`;
     }
 
     function syncSelectedVehiclesUI() {
@@ -2778,6 +2992,7 @@
       const cfg = DOC_SECTION_CONFIG[activeDocSection] || DOC_SECTION_CONFIG.authorization;
       const canEdit = canEditRecords();
       const canDelete = canDeleteRecords();
+      const canCreateAccident = hasPermission('accidents', 'create');
       const isAccidents = activeDocSection === 'accidents';
 
       const checkboxTh = canDelete
@@ -2835,7 +3050,9 @@
             accReport.includes(query);
 
           const stCode = getVehicleSectionStatus(v, activeDocSection);
-          const matchStatus = statusFilter === 'all' || stCode === statusFilter;
+          // قسم الحوادث يعرض كل المركبات التي لها سجلات، سواء كانت مفتوحة أو مغلقة.
+          // تفاصيل/شاشة الحوادث المخصصة تتولى فلترة الحوادث الفردية دون التأثير على الإجمالي.
+          const matchStatus = isAccidents || statusFilter === 'all' || stCode === statusFilter;
           return matchQuery && matchStatus;
         })
         .sort((a, b) => {
@@ -2896,6 +3113,8 @@
           : `openVehicleModal('${escapeHtml(v.id)}')`;
 
         const detailsBtn = `<button type="button" onclick="openVehicleDetailsModal('${escapeHtml(v.id)}')" class="px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold transition">تفاصيل</button>`;
+        const vehicleAccidentCount = getVehicleAccidents(v).length;
+        const accidentCountBtn = vehicleAccidentCount ? `<button type="button" onclick="openVehicleDetailsModal('${escapeHtml(v.id)}')" class="px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition">الحوادث (${vehicleAccidentCount})</button>` : '';
         const editBtn = canEdit
           ? `<button type="button" onclick="${editHandler}" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition">تعديل</button>`
           : '';
@@ -2905,7 +3124,7 @@
 
         const actionsHtml = `
           <td class="py-3 px-3 whitespace-nowrap space-x-1 space-x-reverse">
-            ${detailsBtn}${waBtn}${editBtn}${delBtn}
+            ${detailsBtn}${accidentCountBtn}${waBtn}${isAccidents && canCreateAccident ? `<button type="button" onclick="openAccidentModal('${escapeHtml(v.id)}', true)" class="px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition">تسجيل حادث جديد</button>` : ''}${editBtn}${delBtn}
           </td>`;
 
         const vehicleCell = `
@@ -2914,7 +3133,8 @@
             <div class="text-xs text-slate-500 font-semibold" dir="ltr">${escapeHtml(v.plate_number)}</div>
           </td>`;
 
-        const driverCell = `<td class="py-3 px-3 text-slate-700 font-medium">${escapeHtml(v.assigned_driver)}</td>`;
+        const incidentDriverName = isAccidents ? (getLatestVehicleAccident(v)?.driverName || v.assigned_driver) : v.assigned_driver;
+        const driverCell = `<td class="py-3 px-3 text-slate-700 font-medium">${escapeHtml(incidentDriverName || 'غير محدد')}</td>`;
 
         if (activeDocSection === 'all') {
           return `
@@ -2932,7 +3152,8 @@
         }
 
         if (isAccidents) {
-          const acc = v.accidents || {};
+          const acc = getLatestVehicleAccident(v) || {};
+          const accCount = getVehicleAccidents(v).length;
           const accDate = acc.date || docs.accidents || '';
           const reportNo = acc.reportNumber || 'بدون رقم';
           const faultText = acc.faultPercent ? `مسؤولية: ${acc.faultPercent}` : 'مسؤولية: غير محدد';
@@ -2946,7 +3167,7 @@
               ${vehicleCell}
               ${driverCell}
               <td class="py-3 px-3">
-                <div class="font-mono font-bold text-slate-800" dir="ltr">${escapeHtml(accDate || '—')}</div>
+                <div class="font-mono font-bold text-slate-800" dir="ltr">${escapeHtml(accDate || '—')}</div><div class="text-[10px] font-bold text-rose-700">إجمالي السجلات: ${accCount}</div>
                 <div class="text-xs text-slate-500 font-semibold" dir="ltr">تقرير: ${escapeHtml(reportNo)}</div>
               </td>
               <td class="py-3 px-3">
@@ -3473,8 +3694,7 @@
       const existingVehicle = editId
         ? (state.vehicles || []).find(v => String(v.id) === String(editId))
         : null;
-      const preservedAccident = existingVehicle?.accidents || null;
-      const notes = composeNotesWithAccident(baseNotes, preservedAccident);
+      const notes = composeNotesWithAccidents(baseNotes, existingVehicle ? getVehicleAccidents(existingVehicle) : []);
 
       const docs = {
         authorization: document.getElementById('vDocAuth').value || '',
@@ -3571,7 +3791,7 @@
                 plate_number,
                 vehicle_name,
                 assigned_driver,
-                notes: baseNotes,
+                notes,
                 docs: { ...(state.vehicles[idx].docs || {}), ...cleanDocs }
               };
               for (const k of Object.keys(docs)) {
@@ -3620,6 +3840,7 @@
       document.getElementById('accVehicleName').value = '';
       document.getElementById('accAssignedDriver').value = '';
       document.getElementById('accMatchedHint').textContent = 'اكتب للبحث عن مركبة مسجلة أو أدخل بيانات مركبة جديدة يدوياً.';
+      updatePreviousOpenAccidentsWarning('', '');
     }
 
     function handleAccidentVehicleLookup(rawVal) {
@@ -3627,6 +3848,7 @@
       const hintEl = document.getElementById('accMatchedHint');
       if (!query) {
         if (hintEl) hintEl.textContent = 'اكتب للبحث عن مركبة مسجلة أو أدخل بيانات مركبة جديدة يدوياً.';
+        updatePreviousOpenAccidentsWarning('', '');
         return;
       }
 
@@ -3646,49 +3868,67 @@
       } else if (hintEl) {
         hintEl.textContent = 'مركبة جديدة: سيتم حفظها وإضافة الحادث لها مباشرة.';
       }
+      updatePreviousOpenAccidentsWarning(matched?.id || '', matched?.plate_number || rawVal);
     }
 
-    function openAccidentModal(vehicleId = null) {
-      if (!hasPermission('accidents', vehicleId ? 'edit' : 'create')) {
-        showSystemBanner('ليس لديك صلاحية إضافة أو تعديل الحوادث.', 'error');
-        return;
+    function openAccidentModal(vehicleId = null, addNewForVehicle = false, recordId = null) {
+      const existingVehicle = vehicleId ? (state.vehicles || []).find(item => String(item.id) === String(vehicleId)) : null;
+      const editing = Boolean(existingVehicle && !addNewForVehicle);
+      if (!hasPermission('accidents', editing ? 'edit' : 'create')) {
+        showSystemBanner('ليس لديك صلاحية إضافة أو تعديل الحوادث.', 'error'); return;
       }
-
       const form = document.getElementById('accidentForm');
       form.reset();
-      document.getElementById('accVehicleId').value = '';
+      document.getElementById('accVehicleId').value = existingVehicle?.id || '';
+      document.getElementById('accRecordId').value = '';
       document.getElementById('accDate').value = new Date().toISOString().slice(0, 10);
-      document.getElementById('accStatus').value = 'تحت المعالجة';
-
+      document.getElementById('accStatus').value = 'مفتوح — تحت المعالجة';
       const pickerBox = document.getElementById('accVehiclePickerBox');
-
-      if (vehicleId) {
-        const v = (state.vehicles || []).find(item => String(item.id) === String(vehicleId));
-        if (v) {
-          document.getElementById('accidentModalTitle').textContent = 'تعديل بيانات الحادث';
-          pickerBox.classList.add('hidden');
-          document.getElementById('accVehicleId').value = v.id;
-          document.getElementById('accPlateNumber').value = v.plate_number || '';
-          document.getElementById('accVehicleName').value = v.vehicle_name || '';
-          document.getElementById('accAssignedDriver').value = v.assigned_driver || '';
-
-          const acc = v.accidents || {};
-          document.getElementById('accDate').value = acc.date || v.docs?.accidents || new Date().toISOString().slice(0, 10);
-          document.getElementById('accReportNumber').value = acc.reportNumber || '';
-          document.getElementById('accStatus').value = acc.status || 'تحت المعالجة';
-          document.getElementById('accFaultPercent').value = acc.faultPercent || '';
-          document.getElementById('accCost').value = acc.cost ? String(acc.cost) : '';
-          document.getElementById('accNotes').value = stripAccidentPayloadFromNotes(v.notes || '');
-          document.getElementById('accidentModal').classList.remove('hidden');
-          return;
+      populateAccidentDriversDatalist();
+      if (existingVehicle) {
+        pickerBox.classList.add('hidden');
+        document.getElementById('accPlateNumber').value = existingVehicle.plate_number || '';
+        document.getElementById('accVehicleName').value = existingVehicle.vehicle_name || '';
+        const list = getVehicleAccidents(existingVehicle);
+        const selected = recordId ? list.find(a => String(a.id) === String(recordId)) : (editing ? list[0] : null);
+        document.getElementById('accidentModalTitle').textContent = selected ? 'تعديل بيانات الحادث' : 'تسجيل حادث جديد للمركبة';
+        document.getElementById('accAssignedDriver').value = selected?.driverName || existingVehicle.assigned_driver || '';
+        if (selected) {
+          document.getElementById('accRecordId').value = selected.id;
+          document.getElementById('accDate').value = selected.date || '';
+          document.getElementById('accReportNumber').value = selected.reportNumber || '';
+          document.getElementById('accStatus').value = selected.status || 'مفتوح — تحت المعالجة';
+          document.getElementById('accFaultPercent').value = selected.faultPercent || '';
+          document.getElementById('accCost').value = selected.cost ? String(selected.cost) : '';
+          document.getElementById('accNotes').value = selected.notes || '';
         }
+      } else {
+        document.getElementById('accidentModalTitle').textContent = 'إضافة حادث جديد';
+        pickerBox.classList.remove('hidden');
+        populateAccidentVehiclesDatalist();
+        document.getElementById('accMatchedHint').textContent = 'ابحث باللوحة أو اسم السيارة من القائمة، أو اكتب بيانات مركبة جديدة مباشرة.';
       }
-
-      document.getElementById('accidentModalTitle').textContent = 'إضافة حادث جديد';
-      pickerBox.classList.remove('hidden');
-      populateAccidentVehiclesDatalist();
-      document.getElementById('accMatchedHint').textContent = 'ابحث باللوحة أو اسم السيارة من القائمة، أو اكتب بيانات مركبة جديدة مباشرة.';
       document.getElementById('accidentModal').classList.remove('hidden');
+      updatePreviousOpenAccidentsWarning(existingVehicle?.id || '', existingVehicle?.plate_number || '');
+    }
+
+    function editAccidentRecord(vehicleId, accidentId) {
+      if (!hasPermission('accidents', 'edit')) {
+        showSystemBanner('ليس لديك صلاحية تعديل سجلات الحوادث.', 'error');
+        return;
+      }
+      const vehicle = (state.vehicles || []).find(v => String(v.id) === String(vehicleId));
+      if (!vehicle) {
+        showSystemBanner('تعذر العثور على المركبة المرتبطة بالحادث.', 'warning');
+        return;
+      }
+      const incident = getVehicleAccidents(vehicle).find(a => String(a.id) === String(accidentId));
+      if (!incident) {
+        showSystemBanner('تعذر العثور على سجل الحادث المطلوب تعديله.', 'warning');
+        return;
+      }
+      // تمرير معرف الحادث صراحةً يمنع اختيار حادث أحدث بالخطأ.
+      openAccidentModal(vehicle.id, false, incident.id);
     }
 
     function closeAccidentModal() {
@@ -3698,303 +3938,130 @@
     async function saveAccidentForm(event) {
       event.preventDefault();
       const explicitId = document.getElementById('accVehicleId').value.trim();
+      const recordId = document.getElementById('accRecordId').value.trim();
       const plate_number = document.getElementById('accPlateNumber').value.trim();
       const vehicle_name = document.getElementById('accVehicleName').value.trim();
       const assigned_driver = document.getElementById('accAssignedDriver').value.trim();
-      const baseNotes = stripAccidentPayloadFromNotes(document.getElementById('accNotes').value.trim());
-
+      const baseNotes = document.getElementById('accNotes').value.trim();
       const accDate = document.getElementById('accDate').value || new Date().toISOString().slice(0, 10);
       const accReport = document.getElementById('accReportNumber').value.trim();
       const accStatus = document.getElementById('accStatus').value.trim() || 'تحت المعالجة';
       const accFault = document.getElementById('accFaultPercent').value.trim();
       const accCost = parseFloat(toWesternDigits(document.getElementById('accCost').value || '0')) || 0;
-
-      const accidentObj = {
-        date: accDate,
-        reportNumber: accReport,
-        status: accStatus,
-        faultPercent: accFault,
-        cost: accCost
-      };
-      const notes = composeNotesWithAccident(baseNotes, accidentObj);
-
       const plateKey = normalizePlateKey(plate_number);
-      const matchedVehicle = (state.vehicles || []).find(
-        v => (explicitId && String(v.id) === explicitId) ||
-             (plateKey && normalizePlateKey(v.plate_number) === plateKey)
-      );
-      const accidentAction = matchedVehicle ? 'edit' : 'create';
-      if (!hasPermission('accidents', accidentAction)) {
-        showSystemBanner('ليس لديك صلاحية تسجيل أو تعديل الحوادث.', 'error');
-        return;
-      }
-      if (!matchedVehicle && !hasPermission('vehicles', 'create')) {
-        showSystemBanner('تسجيل حادث لمركبة جديدة يتطلب أيضاً صلاحية إضافة المركبات.', 'error');
-        return;
-      }
-
+      const matchedVehicle = (state.vehicles || []).find(v => (explicitId && String(v.id) === explicitId) || (plateKey && normalizePlateKey(v.plate_number) === plateKey));
+      const accidentAction = recordId ? 'edit' : 'create';
+      if (!hasPermission('accidents', accidentAction)) { showSystemBanner('ليس لديك صلاحية تسجيل أو تعديل الحوادث.', 'error'); return; }
+      if (!matchedVehicle && !hasPermission('vehicles', 'create')) { showSystemBanner('تسجيل حادث لمركبة جديدة يتطلب أيضاً صلاحية إضافة المركبات.', 'error'); return; }
+      const incident = { id: recordId || ('acc_' + Date.now() + '_' + Math.random().toString(36).slice(2,8)), date: accDate,
+        reportNumber: accReport, status: accStatus, faultPercent: accFault, cost: accCost, notes: baseNotes,
+        driverName: assigned_driver || matchedVehicle?.assigned_driver || '' };
       const confirmedAcc = await openSecurityConfirmModal({
-        title: matchedVehicle ? 'تأكيد تحديث سجل الحادث' : 'تأكيد تسجيل حادث جديد',
-        description: 'يرجى مراجعة بيانات الحادث والتكلفة قبل الاعتماد.',
-        details: [
-          `المركبة واللوحة: ${vehicle_name} (${plate_number})`,
-          `تاريخ الحادث: ${accDate} | الحالة: ${accStatus}`,
-          `رقم التقرير: ${accReport || 'بدون رقم'} | التكلفة: ${accCost.toLocaleString('en-US')} ر.س`
-        ],
-        confirmText: 'حفظ الحادث',
-        variant: 'warning'
+        title: recordId ? 'تأكيد تعديل سجل الحادث' : 'تأكيد تسجيل حادث جديد',
+        description: 'سيتم حفظ الحادث كسجل مستقل مع الاحتفاظ بجميع السجلات السابقة.',
+        details: [`المركبة واللوحة: ${vehicle_name} (${plate_number})`, `السائق وقت الحادث: ${incident.driverName || 'غير محدد'}`,
+          `تاريخ الحادث: ${accDate} | الحالة: ${accStatus}`, `رقم التقرير: ${accReport || 'بدون رقم'} | التكلفة: ${accCost.toLocaleString('en-US')} ر.س`],
+        confirmText: recordId ? 'حفظ التعديل' : 'حفظ الحادث', variant: 'warning'
       });
       if (!confirmedAcc) return;
-
-      setLoading(true, 'جاري حفظ بيانات الحادث...');
+      setLoading(true, 'جاري حفظ سجل الحادث...');
       try {
+        let targetId = matchedVehicle?.id || '';
+        let incidents = matchedVehicle ? getVehicleAccidents(matchedVehicle) : [];
+        if (recordId) incidents = incidents.map(a => String(a.id) === recordId ? incident : a);
+        else incidents.push(incident);
+        incidents.sort((a,b) => String(b.date).localeCompare(String(a.date)));
+        const cleanVehicleNotes = matchedVehicle ? stripAccidentPayloadFromNotes(matchedVehicle.notes || '') : '';
+        const storedNotes = isCloudMode() ? cleanVehicleNotes : composeNotesWithAccidents(cleanVehicleNotes, incidents);
         if (isCloudMode() && sbClient) {
-          let targetId = matchedVehicle?.id || '';
-
           if (targetId) {
-            const { error } = await sbClient
-              .from('vehicles')
-              .update({ plate_number, vehicle_name, assigned_driver, notes })
-              .eq('id', targetId);
-            if (error) {
-              showSystemBanner(`تعذر تحديث سجل الحادث: ${error.message}`, 'error');
-              return;
-            }
+            const { error } = await sbClient.from('vehicles').update({ plate_number, vehicle_name, assigned_driver: matchedVehicle.assigned_driver || assigned_driver, notes: storedNotes }).eq('id', targetId);
+            if (error) throw new Error(error.message);
           } else {
-            const { data: inserted, error } = await sbClient
-              .from('vehicles')
-              .insert([{ plate_number, vehicle_name, assigned_driver, notes }])
-              .select()
-              .single();
-            if (error || !inserted) {
-              showSystemBanner(`تعذر إضافة سجل الحادث: ${error?.message || ''}`, 'error');
-              return;
-            }
+            const { data: inserted, error } = await sbClient.from('vehicles').insert([{ plate_number, vehicle_name, assigned_driver, notes: storedNotes }]).select().single();
+            if (error || !inserted) throw new Error(error?.message || 'تعذر إنشاء المركبة.');
             targetId = inserted.id;
           }
-
-          try {
-            await sbClient
-              .from('vehicle_documents')
-              .upsert([{ vehicle_id: targetId, doc_type: 'accidents', expiry_date: accDate }], { onConflict: 'vehicle_id,doc_type' });
-          } catch {}
-
-          await recordActionLog(
-            matchedVehicle ? 'تعديل حادث' : 'إضافة حادث',
-            `${vehicle_name} (${plate_number})`,
-            `تاريخ: ${accDate} | الحالة: ${accStatus}`
-          );
+          const accidentRow = {
+            id: incident.id,
+            vehicle_id: String(targetId),
+            vehicle_uuid: targetId,
+            vehicle_name,
+            plate_number,
+            driver_name: incident.driverName || '',
+            accident_date: incident.date,
+            report_number: incident.reportNumber || '',
+            status: incident.status || 'تحت المعالجة',
+            fault_percent: incident.faultPercent || '',
+            estimated_cost: Number(incident.cost || 0),
+            notes: incident.notes || '',
+            updated_at: new Date().toISOString()
+          };
+          const { error: accidentError } = await sbClient
+            .from('vehicle_accidents')
+            .upsert([accidentRow], { onConflict: 'id' });
+          if (accidentError) throw new Error(`تعذر حفظ سجل الحادث في vehicle_accidents: ${accidentError.message}`);
+          await recordActionLog(recordId ? 'تعديل سجل حادث' : 'إضافة سجل حادث', `${vehicle_name} (${plate_number})`, `السائق: ${incident.driverName} | تاريخ: ${accDate} | التكلفة: ${accCost}`);
           await refreshCloudData(false, false);
         } else {
-          if (matchedVehicle) {
-            matchedVehicle.plate_number = plate_number;
-            matchedVehicle.vehicle_name = vehicle_name;
-            matchedVehicle.assigned_driver = assigned_driver;
-            matchedVehicle.notes = baseNotes;
-            matchedVehicle.docs = { ...(matchedVehicle.docs || {}), accidents: accDate };
-            matchedVehicle.accidents = accidentObj;
-          } else {
-            state.vehicles.unshift({
-              id: 'v_' + Date.now(),
-              plate_number,
-              vehicle_name,
-              assigned_driver,
-              notes: baseNotes,
-              docs: { accidents: accDate },
-              accidents: accidentObj
-            });
+          let vehicle = matchedVehicle;
+          if (!vehicle) {
+            vehicle = { id: 'v_' + Date.now(), plate_number, vehicle_name, assigned_driver, notes: '', docs: {}, accidentsList: [] };
+            state.vehicles.unshift(vehicle);
           }
+          vehicle.plate_number = plate_number; vehicle.vehicle_name = vehicle_name;
+          if (!vehicle.assigned_driver) vehicle.assigned_driver = assigned_driver;
+          vehicle.accidentsList = incidents;
+          vehicle.accidents = incidents[0] || null;
+          vehicle.docs = { ...(vehicle.docs || {}), accidents: incidents[0]?.date || accDate };
+          vehicle.notes = storedNotes;
           saveLocalState();
-          await recordActionLog(
-            matchedVehicle ? 'تعديل حادث' : 'إضافة حادث',
-            `${vehicle_name} (${plate_number})`,
-            `تاريخ: ${accDate} | الحالة: ${accStatus}`
-          );
+          await recordActionLog(recordId ? 'تعديل سجل حادث' : 'إضافة سجل حادث', `${vehicle_name} (${plate_number})`, `السائق: ${incident.driverName} | تاريخ: ${accDate} | التكلفة: ${accCost}`);
           renderAll();
         }
-
         closeAccidentModal();
-        showSystemBanner('تم حفظ بيانات الحادث بنجاح.', 'success');
+        if (activeDrawerDriverId) {
+          const activeDrawer = document.getElementById('driverDetailsDrawer');
+          if (activeDrawer && !activeDrawer.classList.contains('hidden')) openDriverDetailsDrawer(activeDrawerDriverId);
+        }
+        if (currentDetailsVehicleId) openVehicleDetailsModal(currentDetailsVehicleId);
+        if (currentVehicleAccidentsScreenId && String(currentVehicleAccidentsScreenId) === String(targetId)) renderVehicleAccidentsScreen();
+        showSystemBanner(recordId ? 'تم تحديث سجل الحادث بنجاح.' : `تم تسجيل الحادث كسجل مستقل. إجمالي حوادث المركبة: ${incidents.length}.`, 'success');
       } catch (err) {
-        showSystemBanner(`تعذر حفظ الحادث: ${err.message || err}`, 'error');
-      } finally {
-        setLoading(false);
-      }
+        showSystemBanner(`تعذر حفظ بيانات الحادث: ${err.message || err}`, 'error');
+      } finally { setLoading(false); }
     }
 
-    async function deleteVehiclesBatch(idsList) {
-      if (!canDeleteRecords()) {
-        showSystemBanner('ليس لديك صلاحية حذف السجلات؛ هذا الحساب بصلاحية مشاهد (Viewer) فقط.', 'error');
-        return;
-      }
-
-      const uniqueIds = Array.from(new Set((idsList || []).map(String)));
-      if (!uniqueIds.length) return;
-
-      const cfg = DOC_SECTION_CONFIG[activeDocSection] || DOC_SECTION_CONFIG.all;
-      const isAccidentsSection = activeDocSection === 'accidents';
-      const isSectionOnly = activeDocSection !== 'all';
-
-      setLoading(
-        true,
-        isAccidentsSection
-          ? `جاري حذف (${uniqueIds.length}) سجل حادث فقط مع الإبقاء على المركبات...`
-          : isSectionOnly
-            ? `جاري حذف (${uniqueIds.length}) سجل من قسم (${cfg.label})...`
-            : `جاري حذف (${uniqueIds.length}) مركبة...`
-      );
-
+    async function deleteAccidentRecord(vehicleId, accidentId) {
+      if (!hasPermission('accidents', 'delete')) { showSystemBanner('ليس لديك صلاحية حذف سجلات الحوادث.', 'error'); return; }
+      const vehicle = (state.vehicles || []).find(v => String(v.id) === String(vehicleId));
+      if (!vehicle) return;
+      const incident = getVehicleAccidents(vehicle).find(a => String(a.id) === String(accidentId));
+      if (!incident) { showSystemBanner('لم يتم العثور على سجل الحادث المطلوب.', 'warning'); return; }
+      const confirmed = await openSecurityConfirmModal({ title: 'تأكيد حذف سجل الحادث', description: 'سيتم حذف سجل الحادث المحدد فقط وإعادة احتساب الأعداد للمركبة والسائق.', details: [`المركبة: ${vehicle.vehicle_name || '—'} (${vehicle.plate_number || '—'})`, `التاريخ: ${incident.date || '—'}`, `السائق: ${incident.driverName || 'غير محدد'}`], confirmText: 'حذف الحادث', variant: 'danger' });
+      if (!confirmed) return;
+      setLoading(true, 'جاري حذف سجل الحادث...');
       try {
-        if (isCloudMode() && sbClient) {
-          const CHUNK_SIZE = 100;
-          for (let start = 0; start < uniqueIds.length; start += CHUNK_SIZE) {
-            const chunkIds = uniqueIds.slice(start, start + CHUNK_SIZE);
-
-            if (isSectionOnly) {
-              const { error: dErr } = await sbClient
-                .from('vehicle_documents')
-                .delete()
-                .in('vehicle_id', chunkIds)
-                .eq('doc_type', activeDocSection);
-
-              if (dErr) {
-                showSystemBanner(`تعذر حذف السجلات من القسم: ${dErr.message}`, 'error');
-                return;
-              }
-
-              if (isAccidentsSection) {
-                for (const id of chunkIds) {
-                  const vObj = (state.vehicles || []).find(item => String(item.id) === String(id));
-                  const cleanedNotes = stripAccidentPayloadFromNotes(vObj?.notes || '');
-                  const { error: nErr } = await sbClient
-                    .from('vehicles')
-                    .update({ notes: cleanedNotes, updated_at: new Date().toISOString() })
-                    .eq('id', id);
-                  if (nErr) {
-                    showSystemBanner(`تعذر إزالة بيانات الحادث من ملاحظات المركبة: ${nErr.message}`, 'error');
-                    return;
-                  }
-                }
-              }
-            } else {
-              await sbClient.from('vehicle_documents').delete().in('vehicle_id', chunkIds);
-              const { error: vErr } = await sbClient.from('vehicles').delete().in('id', chunkIds);
-              if (vErr) {
-                showSystemBanner(`تعذر حذف المركبات: ${vErr.message}`, 'error');
-                return;
-              }
-            }
-          }
-
-          await recordActionLog(
-            isAccidentsSection ? 'حذف سجل حادث فقط' : (isSectionOnly ? `حذف جماعي (${cfg.label})` : 'حذف جماعي للمركبات'),
-            `${uniqueIds.length} عنصر`,
-            isAccidentsSection ? 'تم حذف سجل الحادث فقط والإبقاء على المركبة' : (isSectionOnly ? `إزالة سجل ${cfg.label}` : 'حذف كامل للمركبات')
-          );
-
-          uniqueIds.forEach(id => selectedVehicleIds.delete(id));
+        if (isCloudMode()) {
+          if (!sbClient) throw new Error('اتصال Supabase غير متاح.');
+          const { error } = await sbClient.from('vehicle_accidents').delete().eq('id', String(accidentId));
+          if (error) throw new Error(error.message);
           await refreshCloudData(false, false);
         } else {
-          if (isSectionOnly) {
-            for (const v of state.vehicles || []) {
-              if (uniqueIds.includes(String(v.id))) {
-                if (v.docs) delete v.docs[activeDocSection];
-                if (isAccidentsSection) {
-                  v.accidents = null;
-                  v.notes = stripAccidentPayloadFromNotes(v.notes || '');
-                }
-              }
-            }
-          } else {
-            state.vehicles = (state.vehicles || []).filter(v => !uniqueIds.includes(String(v.id)));
-          }
-
-          uniqueIds.forEach(id => selectedVehicleIds.delete(id));
-          saveLocalState();
-          await recordActionLog(
-            isAccidentsSection ? 'حذف سجل حادث فقط' : (isSectionOnly ? `حذف جماعي (${cfg.label})` : 'حذف جماعي للمركبات'),
-            `${uniqueIds.length} عنصر`,
-            isAccidentsSection ? 'تم حذف سجل الحادث فقط والإبقاء على المركبة' : (isSectionOnly ? `إزالة سجل ${cfg.label}` : 'حذف كامل للمركبات')
-          );
-          renderAll();
+          const remaining = getVehicleAccidents(vehicle).filter(a => String(a.id) !== String(accidentId));
+          vehicle.accidentsList = remaining; vehicle.accidents = remaining[0] || null;
+          if (remaining.length) vehicle.docs = { ...(vehicle.docs || {}), accidents: remaining[0].date || '' };
+          else if (vehicle.docs) delete vehicle.docs.accidents;
+          vehicle.notes = composeNotesWithAccidents(stripAccidentPayloadFromNotes(vehicle.notes || ''), remaining);
+          saveLocalState(); renderAll();
         }
-
-        showSystemBanner(
-          isAccidentsSection
-            ? `تم حذف (${uniqueIds.length}) سجل حادث فقط مع الإبقاء على المركبات كاملة.`
-            : isSectionOnly
-              ? `تم حذف (${uniqueIds.length}) سجل من قسم (${cfg.label}) بنجاح.`
-              : `تم حذف (${uniqueIds.length}) مركبة بنجاح.`,
-          'success'
-        );
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    async function deleteVehicle(vehicleId) {
-      if (!canDeleteRecords()) {
-        showSystemBanner('ليس لديك صلاحية حذف السجلات؛ هذا الحساب بصلاحية مشاهد (Viewer) فقط.', 'error');
-        return;
-      }
-      const target = (state.vehicles || []).find(v => String(v.id) === String(vehicleId));
-      const cfg = DOC_SECTION_CONFIG[activeDocSection] || DOC_SECTION_CONFIG.all;
-      const isAccidentsSection = activeDocSection === 'accidents';
-      const isSectionOnly = activeDocSection !== 'all';
-
-      const ok = await openSecurityConfirmModal({
-        title: isAccidentsSection
-          ? 'تأكيد حذف سجل الحادث فقط'
-          : (isSectionOnly ? `تأكيد حذف سجل (${cfg.label})` : 'تأكيد حذف المركبة نهائياً'),
-        description: isAccidentsSection
-          ? 'سيتم حذف سجل الحادث فقط مع الإبقاء على المركبة وجميع وثائقها وبياناتها دون حذف.'
-          : (isSectionOnly
-              ? `سيتم إزالة بيانات (${cfg.label}) لهذه المركبة مع الإبقاء على بقية أقسام المركبة.`
-              : 'سيتم حذف المركبة وجميع وثائقها المرتبطة بها نهائياً ولا يمكن التراجع عن هذا الإجراء.'),
-        details: target ? [
-          `المركبة: ${target.vehicle_name || 'غير محدد'}`,
-          `رقم اللوحة: ${target.plate_number || 'غير محدد'}`,
-          `السائق: ${target.assigned_driver || 'غير محدد'}`
-        ] : [`معرّف السجل: ${vehicleId}`],
-        confirmText: isAccidentsSection ? 'نعم، احذف سجل الحادث فقط' : 'نعم، احذف السجل',
-        variant: 'danger'
-      });
-      if (!ok) return;
-      await deleteVehiclesBatch([vehicleId]);
-    }
-
-    async function deleteSelectedVehicles() {
-      if (!canDeleteRecords()) {
-        showSystemBanner('ليس لديك صلاحية حذف السجلات؛ هذا الحساب بصلاحية مشاهد (Viewer) فقط.', 'error');
-        return;
-      }
-      const ids = Array.from(selectedVehicleIds);
-      if (!ids.length) return;
-      const cfg = DOC_SECTION_CONFIG[activeDocSection] || DOC_SECTION_CONFIG.all;
-      const isAccidentsSection = activeDocSection === 'accidents';
-      const isSectionOnly = activeDocSection !== 'all';
-
-      const sampleNames = (state.vehicles || [])
-        .filter(v => ids.includes(String(v.id)))
-        .slice(0, 5)
-        .map(v => `${v.vehicle_name} (${v.plate_number})`);
-
-      const ok = await openSecurityConfirmModal({
-        title: isAccidentsSection
-          ? `تأكيد حذف (${ids.length}) سجل حادث فقط`
-          : `تأكيد حذف (${ids.length}) سجل محدد`,
-        description: isAccidentsSection
-          ? `سيتم حذف سجل الحادث فقط لعدد (${ids.length}) مركبة محددة مع الإبقاء على المركبات.`
-          : (isSectionOnly
-              ? `سيتم حذف بيانات قسم (${cfg.label}) لعدد (${ids.length}) مركبة محددة.`
-              : `تحذير أمني: سيتم حذف (${ids.length}) مركبة وجميع وثائقها نهائياً.`),
-        details: sampleNames.length ? [...sampleNames, ...(ids.length > 5 ? [`... وعدد (${ids.length - 5}) سجلات أخرى`] : [])] : [],
-        confirmText: isAccidentsSection ? `حذف (${ids.length}) حادث فقط` : `حذف (${ids.length}) سجل`,
-        variant: 'danger',
-        requireKeyword: !isSectionOnly && ids.length >= 5 ? 'حذف' : ''
-      });
-      if (!ok) return;
-      await deleteVehiclesBatch(ids);
+        if (currentDetailsVehicleId && String(currentDetailsVehicleId) === String(vehicleId)) openVehicleDetailsModal(vehicleId);
+        if (currentVehicleAccidentsScreenId && String(currentVehicleAccidentsScreenId) === String(vehicleId)) renderVehicleAccidentsScreen();
+        const drawer = document.getElementById('driverDetailsDrawer');
+        if (drawer && !drawer.classList.contains('hidden') && activeDrawerDriverId) openDriverDetailsDrawer(activeDrawerDriverId);
+        showSystemBanner('تم حذف سجل الحادث وإعادة تحديث أعداد الحوادث.', 'success');
+      } catch (error) { showSystemBanner(`تعذر حذف سجل الحادث: ${error.message || error}`, 'error'); }
+      finally { setLoading(false); }
     }
 
     function openUserModal(userIdentifier = null) {
@@ -4524,7 +4591,7 @@
               reportNumber,
               status: statusColValue || 'تحت المعالجة',
               faultPercent,
-              cost: costVal
+              cost: costVal, driverName: assignedDriver || ''
             } : null;
 
             const serialNo = String(toWesternDigits(pickColumnValue(row, ['الرقم التسلسلي']) || '')).trim();
@@ -4545,11 +4612,14 @@
               accidentMeta
             };
 
-            if (!uniqueByPlate.has(plateKey)) {
-              uniqueByPlate.set(plateKey, candidate);
+            const importKey = isAccidentsImport
+              ? `${plateKey}|${expiryDate}|${reportNumber}`
+              : plateKey;
+            if (!uniqueByPlate.has(importKey)) {
+              uniqueByPlate.set(importKey, candidate);
             } else {
-              const chosen = selectBestRowForDuplicatePlate(uniqueByPlate.get(plateKey), candidate);
-              uniqueByPlate.set(plateKey, chosen);
+              const chosen = selectBestRowForDuplicatePlate(uniqueByPlate.get(importKey), candidate);
+              uniqueByPlate.set(importKey, chosen);
             }
           }
 
@@ -4581,13 +4651,11 @@
 
           if ((!isCloudMode() || !sbClient) && hasPermission(importPermissionSection, 'delete')) {
             for (const v of state.vehicles || []) {
-              if (v.docs && Object.prototype.hasOwnProperty.call(v.docs, targetDocType)) {
+              if (!isAccidentsImport && v.docs && Object.prototype.hasOwnProperty.call(v.docs, targetDocType)) {
                 delete v.docs[targetDocType];
               }
-              if (isAccidentsImport) {
-                v.accidents = null;
-                v.notes = stripAccidentPayloadFromNotes(v.notes || '');
-              }
+              // Accident imports are additive: never clear previously registered incidents.
+
             }
           }
 
@@ -4609,7 +4677,7 @@
             }
           });
 
-          const incomingNewVehicleCount = deduplicatedList.filter(item => !plateIndexMap.has(item.plateKey)).length;
+          const incomingNewVehicleCount = new Set(deduplicatedList.filter(item => !plateIndexMap.has(item.plateKey)).map(item => item.plateKey)).size;
           if (incomingNewVehicleCount > 0 && !hasPermission('vehicles', 'import')) {
             showSystemBanner('ملف الاستيراد يحتوي على مركبات غير مسجلة. يلزم منح صلاحية استيراد المركبات أيضاً قبل إنشاء سجلات جديدة.', 'error');
             return;
@@ -4629,13 +4697,17 @@
             const matchIndex = plateIndexMap.has(item.plateKey) ? plateIndexMap.get(item.plateKey) : -1;
 
             if (matchIndex >= 0) {
-              const existingV = state.vehicles[matchIndex];
+              const existingV = matchIndex < state.vehicles.length
+                ? state.vehicles[matchIndex]
+                : newVehiclesMeta[matchIndex - state.vehicles.length];
+              if (!existingV) throw new Error('تعذر ربط الحادث بالمركبة أثناء الاستيراد.');
               existingV.docs = existingV.docs || {};
-              existingV.docs[targetDocType] = item.expiryDate;
+              if (!isAccidentsImport) existingV.docs[targetDocType] = item.expiryDate;
 
               if (isAccidentsImport) {
-                existingV.accidents = item.accidentMeta;
-                existingV.notes = composeNotesWithAccident(existingV.notes, item.accidentMeta);
+                existingV.accidentsList = [...getVehicleAccidents(existingV), { ...item.accidentMeta, id: 'acc_import_' + Date.now() + '_' + i, driverName: existingV.assigned_driver || item.assignedDriver || '' }].sort((a,b) => String(b.date || '').localeCompare(String(a.date || '')));
+                existingV.accidents = existingV.accidentsList[0] || null;
+                existingV.notes = composeNotesWithAccidents(stripAccidentPayloadFromNotes(existingV.notes), existingV.accidentsList);
               }
 
               const patchFields = {};
@@ -4648,13 +4720,13 @@
                 patchFields.assigned_driver = item.assignedDriver;
               }
               if (isAccidentsImport && canUpdateVehicleMeta) {
-                patchFields.notes = composeNotesWithAccident(existingV.notes, item.accidentMeta);
+                patchFields.notes = stripAccidentPayloadFromNotes(existingV.notes);
               }
-              if (Object.keys(patchFields).length > 0 && existingV.id) {
+              if (Object.keys(patchFields).length > 0 && existingV.id && !existingV.isNewImportVehicle) {
                 vehicleMetaUpdates.push({ id: existingV.id, fields: patchFields });
               }
 
-              if (existingV.id) {
+              if (existingV.id && !existingV.isNewImportVehicle && !isAccidentsImport) {
                 existingDocUpserts.push({
                   vehicle_id: existingV.id,
                   doc_type: targetDocType,
@@ -4670,7 +4742,8 @@
                 vehicle_name: item.vehicleName,
                 assigned_driver: item.assignedDriver,
                 notes: stripAccidentPayloadFromNotes(item.notes),
-                docs: { [targetDocType]: item.expiryDate },
+                docs: isAccidentsImport ? {} : { [targetDocType]: item.expiryDate },
+                accidentsList: isAccidentsImport ? [{ ...item.accidentMeta, id: 'acc_import_' + Date.now() + '_' + i }] : [],
                 accidents: isAccidentsImport ? item.accidentMeta : null
               };
               newVehiclesMeta.push(newObj);
@@ -4678,7 +4751,7 @@
                 plate_number: item.plateNumber,
                 vehicle_name: item.vehicleName,
                 assigned_driver: item.assignedDriver,
-                notes: item.notes
+                notes: stripAccidentPayloadFromNotes(item.notes)
               });
               plateIndexMap.set(item.plateKey, state.vehicles.length + newVehiclesMeta.length - 1);
               newVehicles++;
@@ -4714,7 +4787,7 @@
                   const meta = chunkMeta[idx];
                   if (meta) {
                     meta.id = dbRow.id;
-                    allDocUpserts.push({
+                    if (!isAccidentsImport) allDocUpserts.push({
                       vehicle_id: dbRow.id,
                       doc_type: targetDocType,
                       expiry_date: meta.docs[targetDocType]
@@ -4739,6 +4812,35 @@
               }
             }
 
+            if (isAccidentsImport) {
+              const accidentRows = deduplicatedList.map((item, index) => {
+                const existingVehicle = (state.vehicles || []).find(v => normalizePlateKey(v.plate_number) === item.plateKey);
+                const insertedMeta = newVehiclesMeta.find(v => normalizePlateKey(v.plate_number) === item.plateKey);
+                const vehicleId = existingVehicle?.id || insertedMeta?.id;
+                if (!vehicleId) return null;
+                const meta = item.accidentMeta || {};
+                return {
+                  id: 'acc_import_' + Date.now() + '_' + index + '_' + Math.random().toString(36).slice(2,6),
+                  vehicle_id: String(vehicleId), vehicle_uuid: vehicleId,
+                  vehicle_name: existingVehicle?.vehicle_name || insertedMeta?.vehicle_name || item.vehicleName,
+                  plate_number: item.plateNumber,
+                  driver_name: meta.driverName || item.assignedDriver || '',
+                  accident_date: meta.date || item.expiryDate,
+                  report_number: meta.reportNumber || '', status: meta.status || 'تحت المعالجة',
+                  fault_percent: meta.faultPercent || '', estimated_cost: Number(meta.cost || 0),
+                  notes: meta.notes || '', updated_at: new Date().toISOString()
+                };
+              }).filter(Boolean);
+              for (let start = 0; start < accidentRows.length; start += CHUNK_SIZE) {
+                const { error: accidentImportError } = await sbClient.from('vehicle_accidents')
+                  .upsert(accidentRows.slice(start, start + CHUNK_SIZE), { onConflict: 'id' });
+                if (accidentImportError) {
+                  showSystemBanner(`تعذر حفظ الحوادث المستوردة في vehicle_accidents: ${accidentImportError.message}`, 'error');
+                  return;
+                }
+              }
+            }
+
             if (allDocUpserts.length > 0) {
               setLoading(true, `جاري حفظ ${allDocUpserts.length} سجل في قسم (${cfg.label})...`);
               for (let start = 0; start < allDocUpserts.length; start += CHUNK_SIZE) {
@@ -4754,7 +4856,7 @@
               }
             }
 
-            if (hasPermission(importPermissionSection, 'delete')) for (const vehicleId of staleDocumentVehicleIds) {
+            if (!isAccidentsImport && hasPermission(importPermissionSection, 'delete')) for (const vehicleId of staleDocumentVehicleIds) {
               const { error: staleDeleteError } = await sbClient
                 .from('vehicle_documents')
                 .delete()
@@ -4766,7 +4868,7 @@
               }
             }
 
-            if (staleDocumentVehicleIds.length && !hasPermission(importPermissionSection, 'delete')) staleCleanupFailed = true;
+            if (!isAccidentsImport && staleDocumentVehicleIds.length && !hasPermission(importPermissionSection, 'delete')) staleCleanupFailed = true;
             await recordActionLog(
               `استيراد (${cfg.label})`,
               file.name,
@@ -4774,6 +4876,7 @@
             );
             await refreshCloudData(false, false);
           } else {
+            newVehiclesMeta.forEach(v => { delete v.isNewImportVehicle; });
             state.vehicles.push(...newVehiclesMeta);
             saveLocalState();
             await recordActionLog(
@@ -5160,68 +5263,49 @@
     function buildAggregatedDriversList() {
       state.driversDirectory = state.driversDirectory || [];
       const mapByName = new Map();
-
+      const ensureDriver = (name, vehicle = null) => {
+        const fullName = String(name || '').trim();
+        if (!fullName || fullName === 'غير محدد') return null;
+        const key = fullName.toLowerCase();
+        if (!mapByName.has(key)) mapByName.set(key, {
+          id: 'drv_auto_' + encodeURIComponent(key), full_name: fullName, national_id: '', phone: '',
+          category: 'مندوب مبيعات', authorization_status: 'ساري', authorization_expiry: vehicle?.docs?.authorization || '',
+          id_expiry: '', license_expiry: '', status: 'نشط', notes: '', vehicles: [], incidents: [], isExplicitDirectory: false
+        });
+        return mapByName.get(key);
+      };
       for (const d of state.driversDirectory) {
-        const key = String(d.full_name || '').trim().toLowerCase();
-        if (!key) continue;
-        mapByName.set(key, {
-          id: d.id || ('drv_' + key),
-          full_name: d.full_name.trim(),
-          national_id: d.national_id || '',
-          phone: d.phone || '',
-          category: d.category || 'مندوب مبيعات',
-          authorization_status: d.authorization_status || 'ساري',
-          authorization_expiry: d.authorization_expiry || '',
-          id_expiry: d.id_expiry || '',
-          license_expiry: d.license_expiry || '',
-          status: d.status || 'نشط',
-          notes: d.notes || '',
-          vehicles: [],
-          incidents: [],
-          isExplicitDirectory: true
+        const entry = ensureDriver(d.full_name);
+        if (!entry) continue;
+        Object.assign(entry, {
+          id: d.id || entry.id, national_id: d.national_id || '', phone: d.phone || '',
+          category: d.category || 'مندوب مبيعات', authorization_status: d.authorization_status || 'ساري',
+          authorization_expiry: d.authorization_expiry || '', id_expiry: d.id_expiry || '',
+          license_expiry: d.license_expiry || '', status: d.status || 'نشط', notes: d.notes || '', isExplicitDirectory: true
         });
       }
-
       for (const v of state.vehicles || []) {
-        const dName = String(v.assigned_driver || '').trim();
-        if (!dName || dName === 'غير محدد') continue;
-        const key = dName.toLowerCase();
-        if (!mapByName.has(key)) {
-          mapByName.set(key, {
-            id: 'drv_auto_' + encodeURIComponent(key),
-            full_name: dName,
-            national_id: '',
-            phone: '',
-            category: 'مندوب مبيعات',
-            authorization_status: 'ساري',
-            authorization_expiry: v.docs?.authorization || '',
-            id_expiry: '',
-            license_expiry: '',
-            status: 'نشط',
-            notes: '',
-            vehicles: [],
-            incidents: [],
-            isExplicitDirectory: false
-          });
-        }
-        const entry = mapByName.get(key);
-        entry.vehicles.push(v);
-
-        if (v.accidents || v.docs?.accidents) {
-          entry.incidents.push({
-            vehicleId: v.id,
-            vehicleName: v.vehicle_name,
-            plateNumber: v.plate_number,
-            date: v.accidents?.date || v.docs?.accidents || '',
-            reportNumber: v.accidents?.reportNumber || '',
-            status: v.accidents?.status || 'تحت المعالجة',
-            faultPercent: v.accidents?.faultPercent || '',
-            cost: Number(v.accidents?.cost || 0),
-            notes: stripAccidentPayloadFromNotes(v.notes || '')
+        const current = ensureDriver(v.assigned_driver, v);
+        if (current && !current.vehicles.some(x => String(x.id) === String(v.id))) current.vehicles.push(v);
+        for (const inc of getVehicleAccidents(v)) {
+          const incidentDriver = ensureDriver(inc.driverName || v.assigned_driver, v);
+          if (!incidentDriver) continue;
+          incidentDriver.incidents.push({
+            ...inc, vehicleId: v.id, vehicleName: v.vehicle_name, plateNumber: v.plate_number,
+            date: inc.date || '', reportNumber: inc.reportNumber || '', status: inc.status || 'تحت المعالجة',
+            faultPercent: inc.faultPercent || '', cost: Number(inc.cost || 0), notes: inc.notes || ''
           });
         }
       }
-
+      for (const d of mapByName.values()) {
+        const unique = new Map();
+        for (const incident of d.incidents) {
+          const key = String(incident.id || `${incident.vehicleId}|${incident.date}|${incident.reportNumber}`);
+          if (!unique.has(key)) unique.set(key, incident);
+        }
+        d.incidents = Array.from(unique.values()).sort((a,b) => String(b.date || '').localeCompare(String(a.date || '')));
+        d.incidentCount = d.incidents.length;
+      }
       return Array.from(mapByName.values());
     }
 
@@ -5451,7 +5535,7 @@
         const opMeta = getDriverOperationalBadgeMeta(d.status);
 
         return `
-          <div onclick="openDriverDetailsDrawer('${escapeHtml(d.id)}')"
+          <div onclick="selectDriverCard('${escapeHtml(d.id)}')"
             class="cursor-pointer rounded-2xl p-3.5 border transition ${isSelected ? 'bg-blue-50/80 border-blue-400 shadow-sm' : 'bg-white border-slate-200 hover:border-blue-300'}">
             <div class="flex items-start justify-between gap-2">
               <div class="flex items-start gap-2.5">
@@ -5471,7 +5555,7 @@
             <div class="mt-2.5 flex flex-wrap items-center gap-1.5 text-[11px] font-bold">
               <span class="px-2 py-0.5 rounded-md ${authMeta.cls}">تفويض: ${escapeHtml(authMeta.label)}</span>
               <span class="px-2 py-0.5 rounded-md bg-sky-50 text-sky-800">مركبات: ${d.vehicles.length}</span>
-              <span class="px-2 py-0.5 rounded-md ${d.incidents.length ? 'bg-rose-50 text-rose-700' : 'bg-slate-100 text-slate-600'}">حوادث: ${d.incidents.length}</span>
+              <span class="px-2 py-0.5 rounded-md ${d.incidents.length ? 'bg-rose-50 text-rose-700' : 'bg-slate-100 text-slate-600'}">${d.incidents.length} حوادث</span>
             </div>
           </div>
         `;
@@ -5481,137 +5565,224 @@
       syncDriversBulkBar();
     }
 
-    function renderDriverProfileSummary(drv) {
-      const panel = document.getElementById('driverProfileDetailPanel');
-      if (!panel) return;
-      if (!drv) {
-        panel.innerHTML = `<div class="py-12 text-center text-xs font-bold text-slate-400">اختر سائقاً لعرض ملخص ملفه.</div>`;
-        return;
-      }
-
-      const authMeta = getDriverAuthBadgeMeta(drv.authorization_status, drv.authorization_expiry);
-      const opMeta = getDriverOperationalBadgeMeta(drv.status);
-
-      panel.innerHTML = `
-        <div class="flex flex-wrap items-start justify-between gap-3 border-b border-slate-100 pb-3.5">
-          <div>
-            <h3 class="text-base sm:text-lg font-extrabold text-slate-900">${escapeHtml(drv.full_name)}</h3>
-            <p class="text-xs text-slate-500 font-semibold mt-0.5">
-              ${escapeHtml(drv.category || 'مندوب مبيعات')} ${drv.phone ? `· <span class="font-mono" dir="ltr">${escapeHtml(drv.phone)}</span>` : ''}
-            </p>
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="px-2.5 py-1 rounded-lg text-xs font-bold ${opMeta.cls}">${escapeHtml(opMeta.label)}</span>
-            <span class="px-2.5 py-1 rounded-lg text-xs font-bold ${authMeta.cls}">${escapeHtml(authMeta.label)}</span>
-            <button type="button" onclick="openDriverDetailsDrawer('${escapeHtml(drv.id)}')"
-              class="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold">
-              فتح النافذة الجانبية الكاملة
-            </button>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-3 gap-3 text-center">
-          <div class="p-3 rounded-2xl bg-sky-50/70 border border-sky-200/70">
-            <div class="text-lg font-extrabold text-sky-900">${drv.vehicles.length}</div>
-            <div class="text-[11px] font-bold text-sky-700">المركبات المرتبطة</div>
-          </div>
-          <div class="p-3 rounded-2xl bg-rose-50/70 border border-rose-200/70">
-            <div class="text-lg font-extrabold text-rose-800">${drv.incidents.length}</div>
-            <div class="text-[11px] font-bold text-rose-700">سجل الحوادث</div>
-          </div>
-        </div>
-
-        <div class="space-y-2">
-          <h4 class="text-xs font-extrabold text-slate-800">المركبات المستلمة حالياً:</h4>
-          ${drv.vehicles.length ? drv.vehicles.map(v => `
-            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between gap-2 text-xs">
-              <div>
-                <span class="font-bold text-slate-900">${escapeHtml(v.vehicle_name)}</span>
-                <span class="text-slate-500 font-mono mx-1.5" dir="ltr">[${escapeHtml(v.plate_number)}]</span>
-              </div>
-              <button type="button" onclick="openVehicleDetailsModal('${escapeHtml(v.id)}')" class="px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-blue-700 font-bold hover:bg-blue-50">
-                ملف المركبة
-              </button>
-            </div>
-          `).join('') : '<div class="p-4 rounded-xl bg-slate-50 text-xs text-slate-400 font-semibold text-center">لا توجد مركبات مرتبطة بهذا السائق حالياً.</div>'}
-        </div>
-      `;
+    function selectDriverCard(driverId) {
+      activeDrawerDriverId = driverId;
+      const selectedDriver = buildAggregatedDriversList().find(d => String(d.id) === String(driverId));
+      if (!selectedDriver) return;
+      renderDriversDirectory();
     }
 
-    function openDriverDetailsDrawer(driverId) {
-      const drv = buildAggregatedDriversList().find(d => String(d.id) === String(driverId));
-      if (!drv) return;
-      activeDrawerDriverId = drv.id;
-
+    function getDriverDetailsMarkup(drv, compact = false) {
       const authMeta = getDriverAuthBadgeMeta(drv.authorization_status, drv.authorization_expiry);
       const opMeta = getDriverOperationalBadgeMeta(drv.status);
-
-      document.getElementById('drawerDriverName').textContent = drv.full_name;
-      document.getElementById('drawerDriverSubtitle').textContent =
-        `${drv.category || 'مندوب مبيعات'} · هوية: ${drv.national_id || 'غير محدد'} · جوال: ${drv.phone || 'غير محدد'}`;
-
+      const driverIncidents = [...(drv.incidents || [])].sort((a,b) => String(b.date || '').localeCompare(String(a.date || '')));
       const driverLogs = (state.logs || []).filter(l =>
-        String(l.target_label || '').toLowerCase().includes(drv.full_name.toLowerCase()) ||
-        String(l.details || '').toLowerCase().includes(drv.full_name.toLowerCase())
+        String(l.target_label || '').toLowerCase().includes(String(drv.full_name || '').toLowerCase()) ||
+        String(l.details || '').toLowerCase().includes(String(drv.full_name || '').toLowerCase())
       ).slice(0, 8);
-
-      document.getElementById('drawerDriverBody').innerHTML = `
-        <div class="flex flex-wrap items-center gap-2">
-          <span class="px-2.5 py-1 rounded-lg text-xs font-bold ${opMeta.cls}">الحالة: ${escapeHtml(opMeta.label)}</span>
-          <span class="px-2.5 py-1 rounded-lg text-xs font-bold ${authMeta.cls}">التفويض: ${escapeHtml(authMeta.label)}</span>
+      const sectionClass = compact ? 'space-y-1.5' : 'space-y-2';
+      const itemClass = compact ? 'p-2 rounded-lg' : 'p-3 rounded-xl';
+      return `
+        <div class="flex flex-wrap items-center gap-2 text-xs">
+          <span class="px-2.5 py-1 rounded-lg font-bold ${opMeta.cls}">الحالة: ${escapeHtml(opMeta.label)}</span>
+          <span class="px-2.5 py-1 rounded-lg font-bold ${authMeta.cls}">التفويض: ${escapeHtml(authMeta.label)}</span>
         </div>
-
-        <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5 text-xs">
+        <div class="${itemClass} rounded-xl bg-slate-50 border border-slate-200 ${compact ? 'space-y-1 text-[11px]' : 'space-y-1.5 text-xs'}">
           <div class="font-extrabold text-slate-800">مواعيد الوثائق والامتثال:</div>
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
             <div><span class="text-slate-500">التفويض:</span> <span class="font-mono font-bold" dir="ltr">${escapeHtml(drv.authorization_expiry || 'غير محدد')}</span></div>
             <div><span class="text-slate-500">الهوية/الإقامة:</span> <span class="font-mono font-bold" dir="ltr">${escapeHtml(drv.id_expiry || 'غير محدد')}</span></div>
             <div><span class="text-slate-500">الرخصة:</span> <span class="font-mono font-bold" dir="ltr">${escapeHtml(drv.license_expiry || 'غير محدد')}</span></div>
           </div>
-          <div class="pt-1.5 text-slate-600"><span class="font-bold text-slate-700">ملاحظات:</span> ${escapeHtml(drv.notes || 'لا توجد ملاحظات مسجلة')}</div>
+          <div class="pt-1 text-slate-600"><span class="font-bold text-slate-700">ملاحظات:</span> ${escapeHtml(drv.notes || 'لا توجد ملاحظات مسجلة')}</div>
         </div>
-
-        <div class="space-y-2">
+        <div class="${sectionClass}">
           <h4 class="text-xs font-extrabold text-slate-800">المركبات المستلمة (${drv.vehicles.length}):</h4>
           ${drv.vehicles.length ? drv.vehicles.map(v => `
-            <div class="p-3 rounded-xl border border-slate-200 bg-white flex items-center justify-between text-xs">
-              <div>
-                <div class="font-bold text-slate-900">${escapeHtml(v.vehicle_name)}</div>
-                <div class="text-slate-500 font-mono" dir="ltr">${escapeHtml(v.plate_number)}</div>
-              </div>
+            <div class="${itemClass} rounded-xl border border-slate-200 bg-white flex items-center justify-between gap-2 text-xs">
+              <div><div class="font-bold text-slate-900">${escapeHtml(v.vehicle_name)}</div><div class="text-slate-500 font-mono" dir="ltr">${escapeHtml(v.plate_number)}</div></div>
               <span class="text-[11px] font-bold text-slate-600">تفويض: ${escapeHtml(v.docs?.authorization || '—')}</span>
-            </div>
-          `).join('') : '<div class="text-xs text-slate-400">لا توجد مركبات مرتبطة.</div>'}
+            </div>`).join('') : '<div class="text-xs text-slate-400">لا توجد مركبات مرتبطة.</div>'}
         </div>
-
-        <div class="space-y-2">
-          <h4 class="text-xs font-extrabold text-slate-800">سجل الحوادث (${drv.incidents.length}):</h4>
-          ${drv.incidents.length ? drv.incidents.map(inc => `
-            <div class="p-3 rounded-xl border border-rose-200/80 bg-rose-50/40 text-xs space-y-1">
-              <div class="flex items-center justify-between font-bold">
-                <span>${escapeHtml(inc.vehicleName)} (${escapeHtml(inc.plateNumber)})</span>
-                <span class="text-rose-700">${escapeHtml(inc.status)}</span>
-              </div>
-              <div class="text-slate-600">التاريخ: <span class="font-mono" dir="ltr">${escapeHtml(inc.date || '—')}</span> | التكلفة: <span class="font-mono" dir="ltr">${Number(inc.cost || 0)} SAR</span></div>
-            </div>
-          `).join('') : '<div class="text-xs text-slate-400">لا توجد حوادث مسجلة.</div>'}
+        <div class="${sectionClass}">
+          <h4 class="text-xs font-extrabold text-slate-800">سجل جميع الحوادث (${driverIncidents.length}):</h4>
+          ${driverIncidents.length ? driverIncidents.map(inc => `
+            <div class="${itemClass} rounded-xl border border-rose-200/80 bg-rose-50/40 text-xs space-y-1">
+              <div class="flex items-center justify-between gap-2 font-bold"><span>${escapeHtml(inc.vehicleName)} (${escapeHtml(inc.plateNumber)})</span><span class="text-rose-700">${escapeHtml(inc.status)}</span></div>
+              <div class="text-slate-600">التاريخ: <span class="font-mono" dir="ltr">${escapeHtml(inc.date || '—')}</span> | التكلفة: <span class="font-mono" dir="ltr">${Number(inc.cost || 0).toLocaleString('en-US')} SAR</span></div><div class="text-slate-600">رقم التقرير: ${escapeHtml(inc.reportNumber || '—')}</div><div class="text-slate-600">الوصف: ${escapeHtml(inc.notes || 'لا يوجد وصف مسجل')}</div>
+              ${(hasPermission('accidents', 'edit') || hasPermission('accidents', 'delete')) ? `<div class="pt-1 flex flex-wrap items-center gap-2">${hasPermission('accidents', 'edit') ? `<button type="button" onclick="editAccidentRecord('${escapeHtml(inc.vehicleId)}','${escapeHtml(inc.id)}')" class="px-2.5 py-1 rounded-lg bg-white border border-blue-200 text-blue-700 hover:bg-blue-50 text-[11px] font-bold">تعديل</button>` : ''}${hasPermission('accidents', 'delete') ? `<button type="button" onclick="deleteAccidentRecord('${escapeHtml(inc.vehicleId)}','${escapeHtml(inc.id)}')" class="px-2.5 py-1 rounded-lg bg-white border border-rose-200 text-rose-700 hover:bg-rose-50 text-[11px] font-bold">حذف الحادث</button>` : ''}</div>` : ''}
+            </div>`).join('') : '<div class="text-xs text-slate-400">لا توجد حوادث مسجلة.</div>'}
         </div>
-
-        <div class="space-y-2">
+        <div class="${sectionClass}">
           <h4 class="text-xs font-extrabold text-slate-800">سجل التعديلات والعمليات المرتبطة:</h4>
           ${driverLogs.length ? driverLogs.map(l => `
-            <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200/70 text-[11px] flex items-center justify-between gap-2">
+            <div class="${itemClass} rounded-lg bg-slate-50 border border-slate-200/70 text-[11px] flex items-center justify-between gap-2">
               <span class="font-bold text-blue-800">${escapeHtml(l.action_type)} — ${escapeHtml(l.details || '')}</span>
               <span class="text-slate-400 shrink-0">${escapeHtml(new Date(l.created_at).toLocaleDateString('ar-SA'))}</span>
-            </div>
-          `).join('') : '<div class="text-xs text-slate-400">لا توجد تعديلات سابقة مسجلة لهذا السائق.</div>'}
-        </div>
-      `;
-
-
-      document.getElementById('driverDetailsDrawer').classList.remove('hidden');
-      renderDriversDirectory();
+            </div>`).join('') : '<div class="text-xs text-slate-400">لا توجد تعديلات سابقة مسجلة لهذا السائق.</div>'}
+        </div>`;
     }
+
+    function renderDriverProfileSummary(drv) {
+      const panel = document.getElementById('driverProfileDetailPanel');
+      if (!panel) return;
+      if (!drv) {
+        panel.innerHTML = `<div class="py-12 text-center text-xs font-bold text-slate-400">اختر سائقاً لعرض تفاصيل ملفه.</div>`;
+        return;
+      }
+      panel.innerHTML = `
+        <div class="flex flex-wrap items-start justify-between gap-3 border-b border-slate-100 pb-3.5">
+          <div><h3 class="text-base sm:text-lg font-extrabold text-slate-900">${escapeHtml(drv.full_name)}</h3>
+            <p class="text-xs text-slate-500 font-semibold mt-0.5">${escapeHtml(drv.category || 'مندوب مبيعات')} ${drv.phone ? `· <span class="font-mono" dir="ltr">${escapeHtml(drv.phone)}</span>` : ''}</p>
+          </div>
+          <button type="button" onclick="openDriverDetailsDrawer('${escapeHtml(drv.id)}')" class="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shrink-0">فتح النافذة الجانبية الكاملة</button>
+        </div>
+        <div class="space-y-3 pt-2">${getDriverDetailsMarkup(drv, true)}</div>`;
+    }
+
+    function openDriverDetailsDrawer(driverId) {
+      const drv = buildAggregatedDriversList().find(d => String(d.id) === String(driverId));
+      if (!drv) return;
+      activeDrawerDriverId = drv.id;
+      document.getElementById('drawerDriverName').textContent = drv.full_name;
+      document.getElementById('drawerDriverSubtitle').textContent = `${drv.category || 'مندوب مبيعات'} · هوية: ${drv.national_id || 'غير محدد'} · جوال: ${drv.phone || 'غير محدد'}`;
+      const drawerEditBtn = document.getElementById('drawerEditDriverBtn');
+      if (drawerEditBtn) drawerEditBtn.classList.toggle('hidden', !hasPermission('drivers', 'edit'));
+      document.getElementById('drawerDriverBody').innerHTML = getDriverDetailsMarkup(drv, false);
+      const driverDrawer = document.getElementById('driverDetailsDrawer');
+      driverDrawer.dataset.driverId = String(drv.id);
+      const printButton = document.getElementById('printDriverDetailsBtn');
+      if (printButton) printButton.dataset.driverId = String(drv.id);
+      driverDrawer.classList.remove('hidden');
+    }
+
+    function getDriverPrintDocument(details) {
+      const driverName = document.getElementById('drawerDriverName')?.textContent || 'ملف السائق';
+      const driverSubtitle = document.getElementById('drawerDriverSubtitle')?.textContent || '';
+      const escapePrintText = value => String(value).replace(/[<>&"']/g, ch => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[ch]));
+      const content = details.innerHTML;
+      return {
+        title: escapePrintText(driverName),
+        subtitle: escapePrintText(driverSubtitle),
+        content,
+        html: `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>طباعة ${escapePrintText(driverName)}</title>
+<style>
+@page{size:auto;margin:12mm}*{box-sizing:border-box}body{margin:0;padding:18px;color:#111827;background:#fff;font-family:Tahoma,Arial,sans-serif;font-size:12px;line-height:1.7}.print-header{border-bottom:2px solid #334155;padding-bottom:12px;margin-bottom:18px}h1{margin:0 0 4px;font-size:20px}.subtitle{color:#475569;font-size:11px}.print-content{width:100%}.print-content *{max-width:100%}.print-content .hidden{display:none!important}.print-content table{width:100%;border-collapse:collapse}.print-content th,.print-content td{border:1px solid #cbd5e1;padding:6px;text-align:right}.print-content button,.print-content [role="button"],.print-content .no-print{display:none!important}.print-content .shadow,.print-content [class*="shadow-"]{box-shadow:none!important}.print-content .rounded-xl,.print-content .rounded-2xl{border-radius:6px!important}@media print{body{padding:0}tr,.print-content>div{break-inside:avoid}}
+</style></head><body><header class="print-header"><h1>${escapePrintText(driverName)}</h1><div class="subtitle">${escapePrintText(driverSubtitle)}</div></header><main class="print-content">${content}</main>
+<div class="print-actions" style="margin-top:18px;text-align:center"><button onclick="window.focus();window.print()" style="padding:9px 18px;border:0;border-radius:8px;background:#1d4ed8;color:#fff;font-weight:bold;cursor:pointer">طباعة الملف</button></div>
+<script>window.addEventListener('load',function(){try{window.focus();window.print()}catch(e){document.getElementById('print-status').textContent='تعذر بدء الطباعة تلقائياً. استخدم زر طباعة الملف.'}});<\/script></body></html>`
+      };
+    }
+
+    function showDriverPrintPreview(printData, popupBlocked = false) {
+      let layer = document.getElementById('driverPrintPreviewLayer');
+      if (!layer) {
+        layer = document.createElement('section');
+        layer.id = 'driverPrintPreviewLayer';
+        layer.setAttribute('aria-label', 'معاينة طباعة ملف السائق');
+        document.body.appendChild(layer);
+      }
+      layer.innerHTML = `<div class="driver-print-preview-shell"><div class="driver-print-preview-actions"><button type="button" data-driver-preview-print class="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-bold">طباعة الملف</button><button type="button" data-driver-preview-close class="px-4 py-2 rounded-lg bg-slate-200 text-slate-800 text-sm font-bold">إغلاق المعاينة</button></div><div class="driver-print-preview-content"><header style="border-bottom:2px solid #334155;padding-bottom:12px;margin-bottom:18px"><h1 style="font-size:20px;font-weight:800;margin:0 0 4px">${printData.title}</h1><div style="font-size:11px;color:#475569">${printData.subtitle}</div></header>${printData.content}</div></div>`;
+      layer.classList.add('is-open');
+      if (popupBlocked) showSystemBanner('حجب المتصفح نافذة الطباعة المنبثقة؛ تم فتح معاينة طباعة داخل الصفحة. استخدم زر «طباعة الملف» من المعاينة.', 'warning');
+      else showSystemBanner('تعذر بدء الطباعة في النافذة المستقلة؛ يمكنك الطباعة من المعاينة الحالية.', 'warning');
+    }
+
+    function openDriverPrintWindow(printData) {
+      let printWindow = null;
+      try { printWindow = window.open('', '_blank'); }
+      catch (error) { console.warn('Could not open driver print window:', error); }
+      if (!printWindow) return false;
+      try {
+        printWindow.document.open();
+        printWindow.document.write(printData.html);
+        printWindow.document.close();
+        return true;
+      } catch (error) {
+        try { printWindow.close(); } catch (_) {}
+        console.warn('Could not prepare driver print window:', error);
+        return false;
+      }
+    }
+
+    function printDriverDetails(driverId = null) {
+      const drawer = document.getElementById('driverDetailsDrawer');
+      const details = document.getElementById('drawerDriverBody');
+      const openedDriverId = drawer?.dataset.driverId || activeDrawerDriverId;
+      const requestedDriverId = driverId == null ? openedDriverId : String(driverId);
+      if (!drawer || drawer.classList.contains('hidden') || !details || !details.innerHTML.trim() ||
+          !openedDriverId || String(openedDriverId) !== String(requestedDriverId)) {
+        showSystemBanner('افتح ملف السائق المطلوب أولاً قبل الطباعة.', 'warning');
+        return;
+      }
+
+      const printData = getDriverPrintDocument(details);
+      // المحاولة الأولى: تبويب مستقل يُفتح مباشرة ضمن نقرة المستخدم.
+      const popupOpened = openDriverPrintWindow(printData);
+      if (popupOpened) {
+        // إذا كان الإطار لا يسمح بخروج النوافذ المنبثقة من sandbox، قد يبقى التبويب مقيدًا.
+        const frame = window.frameElement;
+        const sandboxed = frame ? frame.hasAttribute('sandbox') : (window.self !== window.top);
+        const tokens = frame && sandboxed ? String(frame.getAttribute('sandbox') || '').split(/\s+/).filter(Boolean) : [];
+        if (sandboxed && (!frame || !tokens.includes('allow-popups-to-escape-sandbox'))) {
+          showDriverPrintPreview(printData, false);
+          showSystemBanner('تم فتح تبويب الطباعة، لكن قيود sandbox قد تمنع نافذته من الطباعة. استخدم معاينة الطباعة داخل الصفحة أو افتح المشروع في تبويب مستقل.', 'warning');
+        }
+        return;
+      }
+
+      // المسار الاحتياطي عند حجب النافذة المنبثقة أو تعذر تجهيزها.
+      showDriverPrintPreview(printData, true);
+    }
+
+    window.printDriverDetails = printDriverDetails;
+
+    // تفويض الحدث على document ليدعم إعادة رسم زر الطباعة ديناميكيًا.
+    if (!document.documentElement.dataset.driverPrintDelegationBound) {
+      document.documentElement.dataset.driverPrintDelegationBound = 'true';
+      document.addEventListener('click', function (event) {
+        const target = event.target;
+        if (!target || !target.closest) return;
+        const printButton = target.closest('#printDriverDetailsBtn, [data-action="print-driver-details"]');
+        if (printButton) {
+          event.preventDefault();
+          event.stopPropagation();
+          if (event.stopImmediatePropagation) event.stopImmediatePropagation();
+          const drawer = document.getElementById('driverDetailsDrawer');
+          printDriverDetails(printButton.dataset.driverId || drawer?.dataset.driverId || activeDrawerDriverId);
+          return;
+        }
+        if (target.closest('[data-driver-preview-close]')) {
+          event.preventDefault();
+          document.getElementById('driverPrintPreviewLayer')?.classList.remove('is-open');
+          return;
+        }
+        if (target.closest('[data-driver-preview-print]')) {
+          event.preventDefault();
+          const frame = window.frameElement;
+          const sandboxed = frame ? frame.hasAttribute('sandbox') : (window.self !== window.top);
+          const tokens = frame && sandboxed ? String(frame.getAttribute('sandbox') || '').split(/\s+/).filter(Boolean) : [];
+          if (sandboxed && (!frame || !tokens.includes('allow-modals'))) {
+            showSystemBanner('المعاينة جاهزة، لكن المتصفح يمنع نافذة الطباعة بسبب sandbox. يلزم السماح بـ allow-modals أو فتح المشروع في تبويب مستقل.', 'error');
+            return;
+          }
+          try {
+            document.body.classList.add('driver-print-preview-active');
+            if (typeof window.print !== 'function') throw new Error('window.print is unavailable');
+            window.print();
+          } catch (error) {
+            document.body.classList.remove('driver-print-preview-active');
+            console.error('Driver preview print failed:', error);
+            showSystemBanner('تعذر بدء الطباعة من المعاينة. افتح المشروع في تبويب مستقل أو تحقق من إعدادات الطباعة في المتصفح.', 'error');
+          }
+          return;
+        }
+      }, true);
+    }
+
+    window.addEventListener('afterprint', function () {
+      document.body.classList.remove('driver-print-preview-active');
+    });
 
     function closeDriverDetailsDrawer() {
       document.getElementById('driverDetailsDrawer').classList.add('hidden');
@@ -5623,6 +5794,11 @@
         return;
       }
       const form = document.getElementById('driverDirectoryForm');
+      form.dataset.saving = 'false';
+      const saveStatus = document.getElementById('driverDirectorySaveStatus');
+      if (saveStatus) { saveStatus.textContent = ''; saveStatus.classList.add('hidden'); }
+      const saveButton = document.getElementById('saveDriverDirectoryBtn');
+      if (saveButton) { saveButton.disabled = false; saveButton.textContent = 'حفظ السائق'; }
       form.reset();
       document.getElementById('driverDirEditId').value = '';
       document.getElementById('ddDriverStatus').value = 'نشط';
@@ -5658,12 +5834,39 @@
 
     async function saveDriverDirectoryForm(event) {
       event.preventDefault();
-      const driverEditIdForPermission = document.getElementById('driverDirEditId')?.value.trim();
-      if (!hasPermission('drivers', driverEditIdForPermission ? 'edit' : 'create')) return;
+      const form = document.getElementById('driverDirectoryForm');
+      const saveBtn = document.getElementById('saveDriverDirectoryBtn');
+      const statusEl = document.getElementById('driverDirectorySaveStatus');
+      const setFormStatus = (message, type = 'error') => {
+        if (!statusEl) return;
+        const styles = {
+          success: 'bg-emerald-50 text-emerald-800 border border-emerald-200',
+          error: 'bg-rose-50 text-rose-800 border border-rose-200',
+          info: 'bg-blue-50 text-blue-800 border border-blue-200'
+        };
+        statusEl.className = `rounded-xl px-3 py-2 text-xs font-bold ${styles[type] || styles.error}`;
+        statusEl.textContent = message;
+        statusEl.classList.remove('hidden');
+      };
+      if (!form || form.dataset.saving === 'true') return;
+      if (!form.reportValidity()) return;
 
       const editId = document.getElementById('driverDirEditId').value.trim();
+      const isEditing = Boolean(editId);
+      if (!hasPermission('drivers', isEditing ? 'edit' : 'create')) {
+        const message = 'ليس لديك صلاحية ' + (isEditing ? 'تعديل' : 'إضافة') + ' السائقين. راجع مسؤول النظام.';
+        setFormStatus(message, 'error');
+        showSystemBanner(message, 'error');
+        return;
+      }
+
+      const originalDriver = editId ? buildAggregatedDriversList().find(d => String(d.id) === String(editId)) : null;
+      const originalDriverName = originalDriver?.full_name || '';
+      const drawerWasOpen = !document.getElementById('driverDetailsDrawer')?.classList.contains('hidden');
       const full_name = document.getElementById('ddFullName').value.trim();
-      const national_id = toWesternDigits(document.getElementById('ddNationalId').value || '').trim();
+      const nationalIdInput = toWesternDigits(document.getElementById('ddNationalId').value || '').trim();
+      // الحقل اختياري: أرسل null بدل سلسلة فارغة حتى لا تُعامل كقيمة هوية مكررة.
+      const national_id = nationalIdInput || null;
       const phone = toWesternDigits(document.getElementById('ddPhone').value || '').trim();
       const category = document.getElementById('ddCategory').value || 'مندوب مبيعات';
       const authorization_status = document.getElementById('ddAuthStatus').value;
@@ -5672,47 +5875,140 @@
       const license_expiry = document.getElementById('ddLicenseExpiry').value || '';
       const status = document.getElementById('ddDriverStatus').value;
       const notes = document.getElementById('ddNotes').value.trim();
+      const hasLinkedVehiclesToRename = originalDriverName && originalDriverName.toLowerCase() !== full_name.toLowerCase() &&
+        (state.vehicles || []).some(v => String(v.assigned_driver || '').trim().toLowerCase() === originalDriverName.toLowerCase());
+      if (hasLinkedVehiclesToRename && !hasPermission('vehicles', 'edit')) {
+        const message = 'لا يمكن تغيير اسم السائق المرتبط بمركبات دون صلاحية تعديل المركبات.';
+        setFormStatus(message, 'error');
+        showSystemBanner(message, 'error');
+        return;
+      }
 
-      if (!full_name) return;
-
+      form.dataset.saving = 'true';
+      if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'جاري الحفظ...'; }
+      setFormStatus('جارٍ حفظ بيانات السائق والتحقق من اكتمال العملية...', 'info');
       setLoading(true, 'جاري حفظ بيانات السائق...');
       try {
         state.driversDirectory = state.driversDirectory || [];
-        const record = {
-          id: editId && !editId.startsWith('drv_auto_') ? editId : ('drv_' + Date.now()),
-          full_name,
-          national_id,
-          phone,
-          category,
-          authorization_status,
-          authorization_expiry,
-          id_expiry,
-          license_expiry,
-          status,
-          notes
+        // category is a UI/import field and is not present in the current public.drivers schema.
+        // Keep it in the client-side record, but never send it to Supabase.
+        const payload = {
+          full_name, national_id, phone, authorization_status,
+          authorization_expiry, id_expiry, license_expiry, status, notes
         };
-
+        let record;
         if (isCloudMode()) {
-          if (!sbClient) throw new Error('اتصال Supabase غير متاح.');
-          const { error } = await sbClient.from('drivers').upsert([record], { onConflict: 'id' });
-          if (error) throw error;
-          const idx = state.driversDirectory.findIndex(x => String(x.id) === String(editId) || x.full_name.toLowerCase() === full_name.toLowerCase());
-          if (idx >= 0) state.driversDirectory[idx] = record;
-          else state.driversDirectory.unshift(record);
+          if (!sbClient) throw new Error('اتصال Supabase غير متاح. تحقق من الاتصال ثم حاول مجددًا.');
+          const isPersistedId = isEditing && !String(editId).startsWith('drv_auto_');
+          // لا ترسل حقول الواجهة غير المضمونة في مخطط public.drivers.
+          // عند اختلاف المخطط، استخرج اسم العمود المفقود من صيغ PostgREST/PostgreSQL واحذفه ثم أعد المحاولة.
+          const dbPayload = { ...payload };
+          const ignoredColumns = [];
+          let result;
+
+          // تحقق مسبق من رقم الهوية، مع استثناء سجل السائق الجاري تعديله.
+          if (national_id) {
+            let duplicateQuery = sbClient.from('drivers').select('id').eq('national_id', national_id).limit(1);
+            if (isPersistedId) duplicateQuery = duplicateQuery.neq('id', editId);
+            const { data: duplicateRows, error: duplicateCheckError } = await duplicateQuery;
+            if (duplicateCheckError) throw duplicateCheckError;
+            if (Array.isArray(duplicateRows) && duplicateRows.length) {
+              const duplicateError = new Error('رقم الهوية/الإقامة مستخدم بالفعل لدى سائق آخر. يرجى التأكد من الرقم أو إدخال رقم صحيح.');
+              duplicateError.code = 'DRIVER_NATIONAL_ID_DUPLICATE';
+              throw duplicateError;
+            }
+          }
+
+          const maxSchemaRetries = Object.keys(dbPayload).length;
+          for (let attempt = 0; attempt <= maxSchemaRetries; attempt++) {
+            // التعديل يتم دائمًا على id السجل الحالي؛ الإدراج يقتصر على السائق الجديد/التلقائي غير المسجل.
+            result = isPersistedId
+              ? await sbClient.from('drivers').update(dbPayload).eq('id', editId).select().maybeSingle()
+              : await sbClient.from('drivers').insert([dbPayload]).select().single();
+            if (!result.error) break;
+            const errorText = String(result.error.message || result.error.details || result.error.hint || result.error);
+            const missingColumnMatch =
+              errorText.match(/Could not find the ['"]([^'"]+)['"] column of ['"]drivers['"] in the schema cache/i) ||
+              errorText.match(/column\s+['"]?(?:public\.)?drivers\.([a-zA-Z_][a-zA-Z0-9_]*)['"]?\s+does not exist/i) ||
+              errorText.match(/column\s+['"]?([a-zA-Z_][a-zA-Z0-9_]*)['"]?\s+of relation\s+['"]?drivers['"]?\s+does not exist/i) ||
+              errorText.match(/Could not find the ['"]([^'"]+)['"] column/i);
+            const missingColumn = missingColumnMatch?.[1];
+            const isMissingColumnError = ['PGRST204', '42703'].includes(String(result.error.code || '')) || Boolean(missingColumnMatch);
+            if (isMissingColumnError && missingColumn && Object.prototype.hasOwnProperty.call(dbPayload, missingColumn)) {
+              ignoredColumns.push(missingColumn);
+              delete dbPayload[missingColumn];
+              continue;
+            }
+            throw result.error;
+          }
+          if (result?.error) throw result.error;
+          if (!result?.data) throw new Error(isPersistedId
+            ? 'لم يتم العثور على سجل السائق في قاعدة البيانات؛ لم تُحفظ التعديلات.'
+            : 'لم تُرجع قاعدة البيانات سجل السائق بعد الإضافة.');
+          // احتفظ بقيم الحقول غير المدعومة في عرض الواجهة، دون إرسالها إلى قاعدة البيانات.
+          record = { ...payload, ...result.data, category };
+          if (ignoredColumns.length) {
+            console.warn('تم تجاوز أعمدة غير موجودة في جدول drivers:', ignoredColumns);
+          }
         } else {
-          const idx = state.driversDirectory.findIndex(x => String(x.id) === String(editId) || x.full_name.toLowerCase() === full_name.toLowerCase());
-          if (idx >= 0) state.driversDirectory[idx] = record;
-          else state.driversDirectory.unshift(record);
+          record = { id: (isEditing && !String(editId).startsWith('drv_auto_')) ? editId : ('drv_' + Date.now()), ...payload, category };
+        }
+
+        // حدّث سجل الواجهة باستخدام المعرّف الحقيقي أو الاسم السابق فقط، لتجنب استبدال سجل آخر بالاسم الجديد.
+        const existingIndex = state.driversDirectory.findIndex(x =>
+          (record.id && String(x.id) === String(record.id)) ||
+          (originalDriverName && String(x.full_name || '').trim().toLowerCase() === originalDriverName.trim().toLowerCase())
+        );
+        if (existingIndex >= 0) state.driversDirectory[existingIndex] = record;
+        else state.driversDirectory.unshift(record);
+
+        // تحديث ارتباطات المركبات عملية تابعة؛ لا نعرض حفظ السائق كفشل إذا تعثر تحديث ارتباط منفصل.
+        const followUpWarnings = [];
+        if (originalDriverName && originalDriverName.toLowerCase() !== full_name.toLowerCase()) {
+          const linkedVehicles = (state.vehicles || []).filter(v => String(v.assigned_driver || '').trim().toLowerCase() === originalDriverName.toLowerCase());
+          if (isCloudMode()) {
+            for (const vehicle of linkedVehicles) {
+              const { error: vehicleError } = await sbClient.from('vehicles').update({ assigned_driver: full_name }).eq('id', vehicle.id);
+              if (vehicleError) {
+                followUpWarnings.push(`تعذر تحديث ارتباط المركبة ${vehicle.plate_number || vehicle.id}: ${vehicleError.message || vehicleError}`);
+              } else {
+                vehicle.assigned_driver = full_name;
+              }
+            }
+          } else {
+            linkedVehicles.forEach(vehicle => { vehicle.assigned_driver = full_name; });
+          }
         }
 
         saveLocalState();
-        await recordActionLog(editId ? 'تعديل سائق' : 'إضافة سائق', full_name, `الحالة: ${status} | التفويض: ${authorization_status}`);
+        // سجل النشاط ليس شرطًا لنجاح حفظ بيانات السائق.
+        try {
+          await recordActionLog(isEditing ? 'تعديل سائق' : 'إضافة سائق', full_name, `الحالة: ${status} | التفويض: ${authorization_status}`);
+        } catch (logError) {
+          console.warn('تعذر تسجيل نشاط حفظ السائق:', logError);
+        }
+        activeDrawerDriverId = record.id;
         closeDriverDirectoryModal();
         renderAll();
-        showSystemBanner(`تم حفظ بيانات السائق (${full_name}) بنجاح.`, 'success');
+        if (drawerWasOpen) openDriverDetailsDrawer(record.id);
+        showSystemBanner('تم الحفظ', 'success');
+        if (followUpWarnings.length) {
+          console.warn('تم حفظ السائق مع وجود تنبيهات في ارتباط المركبات:', followUpWarnings);
+          showSystemBanner(followUpWarnings[0], 'warning');
+        }
       } catch (error) {
-        showSystemBanner(`تعذر حفظ بيانات السائق: ${error.message || error}`, 'error');
+        const errorCode = String(error?.code || '');
+        const errorText = String(error?.message || error?.details || error || '');
+        const isDuplicateNationalId = errorCode === 'DRIVER_NATIONAL_ID_DUPLICATE' ||
+          (errorCode === '23505' && /drivers_national_id_key|national_id/i.test(errorText));
+        const message = isDuplicateNationalId
+          ? 'رقم الهوية/الإقامة مستخدم بالفعل لدى سائق آخر. يرجى تصحيح الرقم قبل الحفظ.'
+          : (error?.message || String(error) || 'حدث خطأ غير معروف أثناء الحفظ.');
+        setFormStatus(`تعذر إكمال الحفظ: ${message}`, 'error');
+        showSystemBanner(`تعذر حفظ بيانات السائق: ${message}`, 'error');
       } finally {
+        form.dataset.saving = 'false';
+        if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'حفظ السائق'; }
         setLoading(false);
       }
     }
@@ -6037,17 +6333,23 @@
           </div>`;
       }).join('');
 
-      const acc = v.accidents;
-      const accSectionHtml = acc || docs.accidents ? `
-        <div class="p-4 rounded-2xl border border-rose-200/90 bg-rose-50/40 space-y-1.5 text-xs">
-          <div class="font-extrabold text-rose-900">سجل الحادث المرتبط بالمركبة</div>
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
-            <div><span class="text-slate-500">التاريخ:</span> <span class="font-mono font-bold" dir="ltr">${escapeHtml(acc?.date || docs.accidents || '—')}</span></div>
-            <div><span class="text-slate-500">رقم التقرير:</span> <span class="font-mono font-bold" dir="ltr">${escapeHtml(acc?.reportNumber || '—')}</span></div>
-            <div><span class="text-slate-500">الحالة:</span> <span class="font-bold">${escapeHtml(acc?.status || 'تحت المعالجة')}</span></div>
-            <div><span class="text-slate-500">التكلفة:</span> <span class="font-mono font-bold" dir="ltr">${Number(acc?.cost || 0).toLocaleString('en-US')} SAR</span></div>
-          </div>
-        </div>` : '';
+      const vehicleIncidents = getVehicleAccidents(v);
+      const accSectionHtml = `
+        <div class="p-4 rounded-2xl border border-rose-200/90 bg-rose-50/40 space-y-2 text-xs">
+          <div class="font-extrabold text-rose-900">سجل جميع الحوادث المرتبطة بالمركبة (${vehicleIncidents.length})</div>
+          ${vehicleIncidents.length ? vehicleIncidents.map((acc, index) => `
+            <div class="rounded-xl border border-rose-100 bg-white/80 p-3 space-y-1">
+              <div class="flex flex-wrap justify-between gap-2 font-bold"><span>حادث #${index + 1} — ${escapeHtml(acc.driverName || 'السائق غير محدد')}</span><span>${escapeHtml(acc.status || 'تحت المعالجة')}</span></div>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <div>التاريخ: <b class="font-mono" dir="ltr">${escapeHtml(acc.date || '—')}</b></div>
+                <div>التقرير: <b dir="ltr">${escapeHtml(acc.reportNumber || '—')}</b></div>
+                <div>التكلفة: <b class="font-mono" dir="ltr">${Number(acc.cost || 0).toLocaleString('en-US')} SAR</b></div>
+                <div>المسؤولية: <b>${escapeHtml(acc.faultPercent || '—')}</b></div>
+              </div>
+              ${acc.notes ? `<div class="text-slate-600">التفاصيل: ${escapeHtml(acc.notes)}</div>` : ''}
+              ${(hasPermission('accidents', 'edit') || hasPermission('accidents', 'delete')) ? `<div class="pt-1 flex flex-wrap items-center gap-2">${hasPermission('accidents', 'edit') ? `<button type="button" onclick="editAccidentRecord('${escapeHtml(v.id)}','${escapeHtml(acc.id)}')" class="px-2.5 py-1 rounded-lg bg-white border border-blue-200 text-blue-700 hover:bg-blue-50 text-[11px] font-bold">تعديل</button>` : ''}${hasPermission('accidents', 'delete') ? `<button type="button" onclick="deleteAccidentRecord('${escapeHtml(v.id)}','${escapeHtml(acc.id)}')" class="px-2.5 py-1 rounded-lg bg-white border border-rose-200 text-rose-700 hover:bg-rose-50 text-[11px] font-bold">حذف الحادث</button>` : ''}</div>` : ''}
+            </div>`).join('') : '<div class="text-slate-500">لا توجد حوادث مسجلة لهذه المركبة.</div>'}
+        </div>`;
 
       const cleanNotes = stripAccidentPayloadFromNotes(v.notes || '');
 
@@ -6060,6 +6362,74 @@
         </div>`;
 
       document.getElementById('vehicleDetailsModal').classList.remove('hidden');
+    }
+
+    let currentVehicleAccidentsScreenId = null;
+    let currentVehicleAccidentsFilter = 'all';
+
+    function openVehicleAccidentsScreen(vehicleId) {
+      const v = (state.vehicles || []).find(item => String(item.id) === String(vehicleId));
+      if (!v) return;
+      currentVehicleAccidentsScreenId = String(v.id);
+      currentVehicleAccidentsFilter = 'all';
+      renderVehicleAccidentsScreen();
+      document.getElementById('vehicleAccidentsScreen').classList.remove('hidden');
+    }
+
+    function closeVehicleAccidentsScreen() {
+      document.getElementById('vehicleAccidentsScreen')?.classList.add('hidden');
+      currentVehicleAccidentsScreenId = null;
+      currentVehicleAccidentsFilter = 'all';
+    }
+
+    function setVehicleAccidentsFilter(filter) {
+      currentVehicleAccidentsFilter = ['all', 'open', 'closed'].includes(filter) ? filter : 'all';
+      renderVehicleAccidentsScreen();
+    }
+
+    function renderVehicleAccidentsScreen() {
+      const v = (state.vehicles || []).find(item => String(item.id) === String(currentVehicleAccidentsScreenId));
+      if (!v) return;
+      const incidents = getVehicleAccidents(v);
+      const open = incidents.filter(item => !isAccidentClosed(item.status));
+      const closed = incidents.filter(item => isAccidentClosed(item.status));
+      const totalCost = incidents.reduce((sum, item) => sum + Number(item.cost || 0), 0);
+      document.getElementById('vehicleAccidentsScreenTitle').textContent = `سجل حوادث ${v.vehicle_name || 'المركبة'}`;
+      document.getElementById('vehicleAccidentsScreenSubtitle').textContent = `رقم اللوحة: ${v.plate_number || '—'} | السائق / المفوّض: ${v.assigned_driver || 'غير محدد'}`;
+      document.getElementById('vehicleAccidentsSummary').innerHTML = [
+        ['إجمالي الحوادث', incidents.length, 'bg-slate-50 border-slate-200 text-slate-800'],
+        ['الحوادث المفتوحة', open.length, 'bg-amber-50 border-amber-200 text-amber-800'],
+        ['الحوادث المغلقة', closed.length, 'bg-emerald-50 border-emerald-200 text-emerald-800'],
+        ['إجمالي التكاليف', `${totalCost.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})} SAR`, 'bg-blue-50 border-blue-200 text-blue-800']
+      ].map(([label,value,cls]) => `<div class="rounded-xl border p-3 ${cls}"><div class="text-[11px] font-bold opacity-80">${label}</div><div class="text-xl font-extrabold mt-1">${value}</div></div>`).join('');
+      document.querySelectorAll('.vehicle-acc-filter').forEach(btn => {
+        const active = btn.dataset.accFilter === currentVehicleAccidentsFilter;
+        btn.className = `vehicle-acc-filter px-3 py-2 rounded-lg text-xs font-bold border ${active ? 'bg-slate-800 text-white border-slate-800' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`;
+        btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+      });
+      const shown = incidents.filter(item => currentVehicleAccidentsFilter === 'all' || (currentVehicleAccidentsFilter === 'closed' ? isAccidentClosed(item.status) : !isAccidentClosed(item.status)));
+      const canEdit = hasPermission('accidents','edit');
+      const canDelete = hasPermission('accidents','delete');
+      document.getElementById('vehicleAccidentsScreenList').innerHTML = shown.length ? shown.map((acc,index) => `
+        <article class="rounded-xl border border-slate-200 bg-white p-3 sm:p-4 space-y-2">
+          <div class="flex flex-wrap justify-between gap-2"><div class="font-extrabold text-slate-900">حادث #${index+1} — ${escapeHtml(acc.driverName || 'السائق غير محدد')}</div><span class="px-2.5 py-1 rounded-lg text-xs font-bold ${isAccidentClosed(acc.status) ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-800'}">${escapeHtml(acc.status || 'تحت المعالجة')}</span></div>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs text-slate-600"><div>التاريخ: <b dir="ltr" class="font-mono">${escapeHtml(acc.date || '—')}</b></div><div>رقم التقرير: <b>${escapeHtml(acc.reportNumber || '—')}</b></div><div>المسؤولية: <b>${escapeHtml(acc.faultPercent || '—')}</b></div><div>التكلفة: <b dir="ltr" class="font-mono">${Number(acc.cost || 0).toLocaleString('en-US')} SAR</b></div></div>
+          ${acc.notes ? `<div class="text-xs text-slate-600">التفاصيل: ${escapeHtml(acc.notes)}</div>` : ''}
+          ${(canEdit || canDelete) ? `<div class="flex flex-wrap gap-2 pt-1">${canEdit ? `<button type="button" onclick="editAccidentRecord('${escapeHtml(v.id)}','${escapeHtml(acc.id)}')" class="px-3 py-1.5 rounded-lg border border-blue-200 text-blue-700 bg-blue-50 text-xs font-bold">تعديل</button>` : ''}${canDelete ? `<button type="button" onclick="deleteAccidentRecord('${escapeHtml(v.id)}','${escapeHtml(acc.id)}')" class="px-3 py-1.5 rounded-lg border border-rose-200 text-rose-700 bg-rose-50 text-xs font-bold">حذف الحادث</button>` : ''}</div>` : ''}
+        </article>`).join('') : '<div class="rounded-xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500">لا توجد حوادث ضمن هذا الفلتر.</div>';
+    }
+
+    function printVehicleAccidentsScreen() {
+      const v = (state.vehicles || []).find(item => String(item.id) === String(currentVehicleAccidentsScreenId));
+      if (!v) return;
+      const incidents = getVehicleAccidents(v);
+      const open = incidents.filter(item => !isAccidentClosed(item.status));
+      const closed = incidents.filter(item => isAccidentClosed(item.status));
+      const totalCost = incidents.reduce((sum, item) => sum + Number(item.cost || 0), 0);
+      const rows = incidents.map((acc, index) => `<tr><td>${index+1}</td><td dir="ltr">${escapeHtml(acc.date || '—')}</td><td>${escapeHtml(acc.driverName || '—')}</td><td>${escapeHtml(acc.reportNumber || '—')}</td><td>${escapeHtml(acc.status || 'تحت المعالجة')}</td><td>${escapeHtml(acc.faultPercent || '—')}</td><td dir="ltr">${Number(acc.cost || 0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})} SAR</td><td>${escapeHtml(acc.notes || '—')}</td></tr>`).join('');
+      const summary = `<div class="grid grid-cols-4 gap-2"><div class="summary-card"><b>إجمالي الحوادث</b><h2>${incidents.length}</h2></div><div class="summary-card"><b>المفتوحة</b><h2>${open.length}</h2></div><div class="summary-card"><b>المغلقة</b><h2>${closed.length}</h2></div><div class="summary-card"><b>إجمالي التكاليف</b><h2>${totalCost.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})} SAR</h2></div></div>`;
+      const table = `<table><thead><tr><th>#</th><th>التاريخ</th><th>السائق</th><th>رقم التقرير</th><th>الحالة</th><th>المسؤولية</th><th>التكلفة</th><th>التفاصيل</th></tr></thead><tbody>${rows || '<tr><td colspan="8">لا توجد حوادث مسجلة</td></tr>'}</tbody></table>`;
+      openReportPrintWindow(`سجل حوادث المركبة — ${v.vehicle_name || ''} (${v.plate_number || ''})`, `<p><strong>بيانات المركبة:</strong> ${escapeHtml(v.vehicle_name || '—')} | <strong>رقم اللوحة:</strong> ${escapeHtml(v.plate_number || '—')} | <strong>السائق / المفوّض:</strong> ${escapeHtml(v.assigned_driver || 'غير محدد')}</p>${summary}${table}`, {audience:'internal'});
     }
 
     function closeVehicleDetailsModal() {
@@ -6917,7 +7287,7 @@
       }
 
       if (costContainer) {
-        const accidentsCost = (state.vehicles || []).reduce((s, v) => s + Number(v.accidents?.cost || 0), 0);
+        const accidentsCost = (state.vehicles || []).reduce((sum, v) => sum + getVehicleAccidents(v).reduce((n, a) => n + Number(a.cost || 0), 0), 0);
         const maxVal = Math.max(1, accidentsCost);
 
         const items = [
