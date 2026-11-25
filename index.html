@@ -37,6 +37,12 @@
       background-color: rgba(15, 23, 42, 0.62);
       backdrop-filter: blur(4px);
     }
+    /* Accident editor must overlay the vehicle accident history dialog. */
+    #accidentModal {
+      position: fixed !important;
+      z-index: 2147483647 !important;
+      isolation: isolate;
+    }
     .form-input-pro {
       width: 100%;
       padding: 0.625rem 0.875rem;
@@ -3908,7 +3914,13 @@
         populateAccidentVehiclesDatalist();
         document.getElementById('accMatchedHint').textContent = 'ابحث باللوحة أو اسم السيارة من القائمة، أو اكتب بيانات مركبة جديدة مباشرة.';
       }
-      document.getElementById('accidentModal').classList.remove('hidden');
+      const accidentModal = document.getElementById('accidentModal');
+      // Keep the edit form outside any nested stacking context and above the vehicle-accidents screen.
+      if (accidentModal.parentElement !== document.body) document.body.appendChild(accidentModal);
+      accidentModal.style.setProperty('z-index', '2147483647', 'important');
+      accidentModal.style.setProperty('position', 'fixed', 'important');
+      accidentModal.setAttribute('aria-modal', 'true');
+      accidentModal.classList.remove('hidden');
       updatePreviousOpenAccidentsWarning(existingVehicle?.id || '', existingVehicle?.plate_number || '');
     }
 
