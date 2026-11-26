@@ -1371,12 +1371,28 @@
               class="form-input-pro" />
           </div>
           <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">السائق / المفوّض *</label>
-            <input id="vAssignedDriver" type="text" required placeholder="اسم السائق"
-              class="form-input-pro" />
+            <label class="block text-xs font-bold text-slate-700 mb-1">
+              السائق / المفوّض
+            </label>
+
+            <input
+              id="vDriverSearch"
+              type="text"
+              class="form-input-pro"
+              placeholder="ابحث باسم السائق..."
+              autocomplete="off"
+            />
+
+            <select id="vAssignedDriver" class="hidden" aria-hidden="true" tabindex="-1">
+              <option value="">بدون سائق</option>
+            </select>
+
+            <div
+              id="vDriverSearchResults"
+              class="hidden mt-1 max-h-52 overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-lg"
+            ></div>
           </div>
         </div>
-
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">انتهاء التفويض</label>
@@ -2594,6 +2610,11 @@
         if (readError?.error) {
           throw new Error(`تعذر قراءة بيانات Supabase: ${readError.error.message}`);
         }
+        if (!Array.isArray(drvRes.data)) {
+          throw new Error('تعذر تحميل دليل السائقين من قاعدة البيانات.');
+        }
+
+        state.driversDirectory = drvRes.data;
 
         const docsByVehicle = {};
         if (Array.isArray(dRes.data)) {
@@ -2636,11 +2657,18 @@
               id: `legacy_${v.id}_${vDocs.accidents}`, date: vDocs.accidents, reportNumber: '',
               status: 'تحت المعالجة', faultPercent: '', cost: 0, driverName: v.assigned_driver || ''
             }] : []);
-            const normalizedVehicle = {
-              id: v.id, plate_number: v.plate_number, vehicle_name: v.vehicle_name,
-              assigned_driver: v.assigned_driver, notes: cleanNotes, docs: vDocs,
-              accidentsList: accidentList
-            };
+            
+          const normalizedVehicle = {
+            id: v.id,
+            plate_number: v.plate_number,
+            vehicle_name: v.vehicle_name,
+            assigned_driver: v.assigned_driver,
+            assigned_driver_id: v.assigned_driver_id || null,
+            assigned_at: v.assigned_at || null,
+            notes: cleanNotes,
+            docs: vDocs,
+            accidentsList: accidentList
+          };
             normalizedVehicle.accidents = getLatestVehicleAccident(normalizedVehicle);
             return normalizedVehicle;
           });
@@ -2658,9 +2686,6 @@
           state.logs = lRes.data;
         }
 
-        if (Array.isArray(drvRes.data)) {
-          state.driversDirectory = drvRes.data;
-        }
 
         saveLocalState();
         renderAll();
@@ -3401,6 +3426,159 @@
       `).join('');
     }
 
+    
+    function populateVehicleDriverSelect(selectedDriverId = null, legacyDriverName = '') {
+      const select = document.getElementById('vAssignedDriver');
+      const input = document.getElementById('vDriverSearch');
+
+      if (!select) return;
+
+      const drivers = Array.isArray(state.driversDirectory)
+        ? state.driversDirectory
+        : [];
+
+      const selectedId = String(selectedDriverId || '').trim();
+      const legacyName = String(legacyDriverName || '').trim();
+
+      const activeDrivers = drivers
+        .filter(d => d && d.id && String(d.full_name || '').trim())
+        .sort((a, b) =>
+          String(a.full_name).localeCompare(String(b.full_name), 'ar')
+        );
+
+      select.innerHTML = '<option value="">بدون سائق</option>';
+
+      activeDrivers.forEach(driver => {
+        const option = document.createElement('option');
+        option.value = String(driver.id);
+        option.textContent = String(driver.full_name).trim();
+        select.appendChild(option);
+      });
+
+      if (selectedId && activeDrivers.some(d => String(d.id) === selectedId)) {
+        // السائق المرتبط فعليًا بالمركبة
+        select.value = selectedId;
+
+      } else if (legacyName && legacyName !== 'غير محدد') {
+        // الاحتفاظ بالاسم القديم دون ربطه بسائق آخر تلقائيًا
+        const legacyOption = document.createElement('option');
+        legacyOption.value = '__legacy__';
+        legacyOption.textContent = `الاسم القديم غير المرتبط: ${legacyName}`;
+        select.appendChild(legacyOption);
+
+        // مهم: نحتفظ بقيمة __legacy__ بدل اختيار "بدون سائق"
+        select.value = '__legacy__';
+
+      } else {
+        select.value = '';
+      }
+
+      if (input) {
+        const selectedOption = select.options[select.selectedIndex];
+        input.value = selectedOption?.textContent || '';
+      }
+
+      setupVehicleDriverSearch();
+    }
+
+      function setupVehicleDriverSearch() {
+        const input = document.getElementById('vDriverSearch');
+        const select = document.getElementById('vAssignedDriver');
+        const results = document.getElementById('vDriverSearchResults');
+
+        if (!input || !select || !results) return;
+
+        const normalize = value =>
+          String(value || '')
+            .trim()
+            .toLowerCase()
+            .replace(/\s+/g, ' ')
+            .replace(/[أإآ]/g, 'ا')
+            .replace(/ى/g, 'ي');
+
+        function syncSelectedValue() {
+          const selectedOption = select.options[select.selectedIndex];
+          input.value = selectedOption?.textContent || '';
+        }
+
+        function renderResults() {
+          const query = normalize(input.value);
+
+          results.innerHTML = '';
+
+          function addResult(label, value) {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className =
+              'w-full text-right px-3 py-2.5 text-sm hover:bg-slate-100 border-b border-slate-100 last:border-b-0';
+
+            button.textContent = label;
+
+            button.addEventListener('click', () => {
+              select.value = value;
+              syncSelectedValue();
+              results.classList.add('hidden');
+            });
+
+            results.appendChild(button);
+          }
+
+          // خيار عدم إسناد سائق
+          if (!query || normalize('بدون سائق').includes(query)) {
+            addResult('بدون سائق', '');
+          }
+
+          // البحث في السائقين المسجلين فقط
+          const driverOptions = Array.from(select.options).filter(option =>
+            option.value &&
+            option.value !== '__legacy__'
+          );
+
+          const filteredDrivers = driverOptions.filter(option =>
+            normalize(option.textContent).includes(query)
+          );
+
+          filteredDrivers.forEach(option => {
+            addResult(option.textContent, option.value);
+          });
+
+          if (
+            !results.children.length ||
+            (!filteredDrivers.length && query && normalize('بدون سائق') !== query)
+          ) {
+            const empty = document.createElement('div');
+            empty.className = 'px-3 py-2.5 text-sm text-slate-500';
+            empty.textContent = 'لا توجد نتائج مطابقة';
+            results.appendChild(empty);
+          }
+
+          results.classList.remove('hidden');
+        }
+
+        // لا نكرر ربط الأحداث عند فتح نافذة المركبة أكثر من مرة
+        if (input.dataset.searchBound === 'true') {
+          syncSelectedValue();
+          return;
+        }
+
+        input.dataset.searchBound = 'true';
+
+        input.addEventListener('input', renderResults);
+        input.addEventListener('focus', renderResults);
+
+        document.addEventListener('click', event => {
+          if (
+            !input.contains(event.target) &&
+            !results.contains(event.target)
+          ) {
+            results.classList.add('hidden');
+            syncSelectedValue();
+          }
+        });
+
+        syncSelectedValue();
+      }
+
     function renderAll() {
       updateHeaderBadges();
       renderComplianceAlertsBanner();
@@ -3789,27 +3967,48 @@
       form.reset();
       document.getElementById('vehicleEditId').value = '';
 
+      // تعبئة قائمة السائقين عند فتح النافذة
+      populateVehicleDriverSelect();
+
       if (vehicleId) {
-        const v = (state.vehicles || []).find(item => String(item.id) === String(vehicleId));
+        const v = (state.vehicles || []).find(
+          item => String(item.id) === String(vehicleId)
+        );
+
         if (v) {
-          document.getElementById('vehicleModalTitle').textContent = 'تعديل بيانات المركبة والوثائق';
+          document.getElementById('vehicleModalTitle').textContent =
+            'تعديل بيانات المركبة والوثائق';
+
           document.getElementById('vehicleEditId').value = v.id;
           document.getElementById('vPlateNumber').value = v.plate_number || '';
           document.getElementById('vVehicleName').value = v.vehicle_name || '';
-          document.getElementById('vAssignedDriver').value = v.assigned_driver || '';
-          document.getElementById('vDocAuth').value = v.docs?.authorization || '';
-          document.getElementById('vDocReg').value = v.docs?.registration || '';
-          document.getElementById('vDocInsp').value = v.docs?.periodic_inspection || '';
-          document.getElementById('vDocIns').value = v.docs?.insurance || '';
-          document.getElementById('vNotes').value = stripAccidentPayloadFromNotes(v.notes || '');
+
+          // تحديد السائق باستخدام UUID مع الاحتفاظ بالاسم القديم
+          populateVehicleDriverSelect(
+            v.assigned_driver_id || null,
+            v.assigned_driver || ''
+          );
+
+          document.getElementById('vDocAuth').value =
+            v.docs?.authorization || '';
+          document.getElementById('vDocReg').value =
+            v.docs?.registration || '';
+          document.getElementById('vDocInsp').value =
+            v.docs?.periodic_inspection || '';
+          document.getElementById('vDocIns').value =
+            v.docs?.insurance || '';
+          document.getElementById('vNotes').value =
+            stripAccidentPayloadFromNotes(v.notes || '');
         }
       } else {
-        document.getElementById('vehicleModalTitle').textContent = 'إضافة مركبة جديدة';
+        document.getElementById('vehicleModalTitle').textContent =
+          'إضافة مركبة جديدة';
       }
 
       document.getElementById('vehicleModal').classList.remove('hidden');
     }
 
+    
     function closeVehicleModal() {
       document.getElementById('vehicleModal').classList.add('hidden');
     }
@@ -3825,14 +4024,49 @@
       const editId = document.getElementById('vehicleEditId').value.trim();
       const plate_number = document.getElementById('vPlateNumber').value.trim();
       const vehicle_name = document.getElementById('vVehicleName').value.trim();
-      const assigned_driver = document.getElementById('vAssignedDriver').value.trim();
-      const baseNotes = stripAccidentPayloadFromNotes(document.getElementById('vNotes').value.trim());
-
+      const selectedDriverId = document.getElementById('vAssignedDriver').value;
       const existingVehicle = editId
         ? (state.vehicles || []).find(v => String(v.id) === String(editId))
         : null;
-      const notes = composeNotesWithAccidents(baseNotes, existingVehicle ? getVehicleAccidents(existingVehicle) : []);
 
+      let assigned_driver = 'غير محدد';
+      let assigned_driver_id = null;
+      let assigned_at = null;
+
+      if (selectedDriverId === '__legacy__') {
+        // الاحتفاظ ببيانات السائق القديم دون ربطه تلقائياً
+        assigned_driver = existingVehicle?.assigned_driver || 'غير محدد';
+        assigned_driver_id = existingVehicle?.assigned_driver_id || null;
+        assigned_at = existingVehicle?.assigned_at || null;
+
+      } else if (selectedDriverId) {
+        const selectedDriver = (state.driversDirectory || []).find(
+          d => String(d.id) === String(selectedDriverId)
+        );
+
+        if (!selectedDriver) {
+          showSystemBanner('السائق المحدد غير موجود في دليل السائقين. حدّث البيانات ثم حاول مجدداً.', 'error');
+          return;
+        }
+
+        assigned_driver = selectedDriver.full_name;
+        assigned_driver_id = selectedDriver.id;
+
+        // الاحتفاظ بتاريخ الإسناد إذا لم يتغير السائق
+        assigned_at =
+          String(existingVehicle?.assigned_driver_id || '') === String(selectedDriver.id)
+            ? (existingVehicle?.assigned_at || new Date().toISOString())
+            : new Date().toISOString();
+      }
+
+      const baseNotes = stripAccidentPayloadFromNotes(
+        document.getElementById('vNotes').value.trim()
+      );
+
+      const notes = composeNotesWithAccidents(
+        baseNotes,
+        existingVehicle ? getVehicleAccidents(existingVehicle) : []
+      );
       const docs = {
         authorization: document.getElementById('vDocAuth').value || '',
         registration: document.getElementById('vDocReg').value || '',
@@ -3862,7 +4096,15 @@
           if (editId) {
             const { error } = await sbClient
               .from('vehicles')
-              .update({ plate_number, vehicle_name, assigned_driver, notes, updated_at: new Date().toISOString() })
+              .update({
+                plate_number,
+                vehicle_name,
+                assigned_driver,
+                assigned_driver_id,
+                assigned_at,
+                notes,
+                updated_at: new Date().toISOString()
+              })
               .eq('id', editId);
             if (error) {
               showSystemBanner(`تعذر تحديث المركبة: ${error.message}`, 'error');
@@ -3871,7 +4113,14 @@
           } else {
             const { data: inserted, error } = await sbClient
               .from('vehicles')
-              .insert([{ plate_number, vehicle_name, assigned_driver, notes }])
+              .insert([{
+                plate_number,
+                vehicle_name,
+                assigned_driver,
+                assigned_driver_id,
+                assigned_at,
+                notes
+              }])
               .select()
               .single();
             if (error || !inserted) {
@@ -3924,13 +4173,15 @@
             const idx = state.vehicles.findIndex(v => String(v.id) === String(editId));
             if (idx >= 0) {
               state.vehicles[idx] = {
-                ...state.vehicles[idx],
-                plate_number,
-                vehicle_name,
-                assigned_driver,
-                notes,
-                docs: { ...(state.vehicles[idx].docs || {}), ...cleanDocs }
-              };
+              ...state.vehicles[idx],
+              plate_number,
+              vehicle_name,
+              assigned_driver,
+              assigned_driver_id,
+              assigned_at,
+              notes,
+              docs: { ...(state.vehicles[idx].docs || {}), ...cleanDocs }
+            };
               for (const k of Object.keys(docs)) {
                 if (!docs[k]) delete state.vehicles[idx].docs[k];
               }
@@ -3941,6 +4192,8 @@
               plate_number,
               vehicle_name,
               assigned_driver,
+              assigned_driver_id,
+              assigned_at,
               notes: baseNotes,
               docs: cleanDocs,
               accidents: null
@@ -5404,55 +5657,212 @@
       return { label: st || 'نشط', cls: 'bg-emerald-100 text-emerald-700' };
     }
 
-    function buildAggregatedDriversList() {
-      state.driversDirectory = state.driversDirectory || [];
-      const mapByName = new Map();
-      const ensureDriver = (name, vehicle = null) => {
-        const fullName = String(name || '').trim();
-        if (!fullName || fullName === 'غير محدد') return null;
-        const key = fullName.toLowerCase();
-        if (!mapByName.has(key)) mapByName.set(key, {
-          id: 'drv_auto_' + encodeURIComponent(key), full_name: fullName, national_id: '', phone: '',
-          category: 'مندوب مبيعات', authorization_status: 'ساري', authorization_expiry: vehicle?.docs?.authorization || '',
-          id_expiry: '', license_expiry: '', status: 'نشط', notes: '', vehicles: [], incidents: [], isExplicitDirectory: false
-        });
-        return mapByName.get(key);
-      };
-      for (const d of state.driversDirectory) {
-        const entry = ensureDriver(d.full_name);
-        if (!entry) continue;
-        Object.assign(entry, {
-          id: d.id || entry.id, national_id: d.national_id || '', phone: d.phone || '',
-          category: d.category || 'مندوب مبيعات', authorization_status: d.authorization_status || 'ساري',
-          authorization_expiry: d.authorization_expiry || '', id_expiry: d.id_expiry || '',
-          license_expiry: d.license_expiry || '', status: d.status || 'نشط', notes: d.notes || '', isExplicitDirectory: true
-        });
-      }
-      for (const v of state.vehicles || []) {
-        const current = ensureDriver(v.assigned_driver, v);
-        if (current && !current.vehicles.some(x => String(x.id) === String(v.id))) current.vehicles.push(v);
-        for (const inc of getVehicleAccidents(v)) {
-          const incidentDriver = ensureDriver(inc.driverName || v.assigned_driver, v);
-          if (!incidentDriver) continue;
-          incidentDriver.incidents.push({
-            ...inc, vehicleId: v.id, vehicleName: v.vehicle_name, plateNumber: v.plate_number,
-            date: inc.date || '', reportNumber: inc.reportNumber || '', status: inc.status || 'تحت المعالجة',
-            faultPercent: inc.faultPercent || '', cost: Number(inc.cost || 0), notes: inc.notes || ''
-          });
-        }
-      }
-      for (const d of mapByName.values()) {
-        const unique = new Map();
-        for (const incident of d.incidents) {
-          const key = String(incident.id || `${incident.vehicleId}|${incident.date}|${incident.reportNumber}`);
-          if (!unique.has(key)) unique.set(key, incident);
-        }
-        d.incidents = Array.from(unique.values()).sort((a,b) => String(b.date || '').localeCompare(String(a.date || '')));
-        d.incidentCount = d.incidents.length;
-      }
-      return Array.from(mapByName.values());
+    
+function buildAggregatedDriversList() {
+  state.driversDirectory = state.driversDirectory || [];
+
+  // UUID هو المفتاح الأساسي للسائق المسجل.
+  const mapById = new Map();
+  const legacyByName = new Map();
+  const directoryByName = new Map();
+
+  const normalizeName = name =>
+    String(name || '').trim().toLowerCase().replace(/\s+/g, ' ');
+
+  function addToNameIndex(driver) {
+    const key = normalizeName(driver.full_name);
+    if (!key) return;
+
+    if (!directoryByName.has(key)) {
+      directoryByName.set(key, []);
     }
 
+    directoryByName.get(key).push(driver);
+  }
+
+  function createDriver(name, id, explicit = false, vehicle = null) {
+    return {
+      id,
+      full_name: String(name || '').trim(),
+      national_id: '',
+      phone: '',
+      category: 'مندوب مبيعات',
+      authorization_status: 'ساري',
+      authorization_expiry: vehicle?.docs?.authorization || '',
+      id_expiry: '',
+      license_expiry: '',
+      status: 'نشط',
+      notes: '',
+      vehicles: [],
+      incidents: [],
+      isExplicitDirectory: explicit
+    };
+  }
+
+  // 1) تحميل السائقين المسجلين مع الحفاظ على UUID.
+  for (const d of state.driversDirectory) {
+    const name = String(d.full_name || '').trim();
+    const id = String(d.id || '').trim();
+
+    if (!name || !id) continue;
+
+    const entry = createDriver(name, id, true);
+
+    Object.assign(entry, {
+      national_id: d.national_id || '',
+      phone: d.phone || '',
+      category: d.category || 'مندوب مبيعات',
+      authorization_status: d.authorization_status || 'ساري',
+      authorization_expiry: d.authorization_expiry || '',
+      id_expiry: d.id_expiry || '',
+      license_expiry: d.license_expiry || '',
+      status: d.status || 'نشط',
+      notes: d.notes || ''
+    });
+
+    mapById.set(id, entry);
+    addToNameIndex(entry);
+  }
+
+  // مطابقة الاسم مع سائق مسجل فقط إذا كان الاسم فريدًا.
+  function findUniqueDirectoryDriver(name) {
+    const matches = directoryByName.get(normalizeName(name)) || [];
+    return matches.length === 1 ? matches[0] : null;
+  }
+
+  // 2) إنشاء سجلات للأسماء التاريخية المرتبطة بالمركبات فقط.
+  function ensureLegacyDriver(name, vehicle = null) {
+    const fullName = String(name || '').trim();
+
+    if (!fullName || fullName === 'غير محدد') return null;
+
+    const key = normalizeName(fullName);
+
+    const matchedDriver = findUniqueDirectoryDriver(fullName);
+    if (matchedDriver) return matchedDriver;
+
+    if (!legacyByName.has(key)) {
+      legacyByName.set(
+        key,
+        createDriver(
+          fullName,
+          'drv_auto_' + encodeURIComponent(key),
+          false,
+          vehicle
+        )
+      );
+    }
+
+    return legacyByName.get(key);
+  }
+
+  // 3) تحديد السائق الحالي للمركبة باستخدام UUID أولًا.
+  function resolveVehicleDriver(vehicle) {
+    const driverId = String(vehicle.assigned_driver_id || '').trim();
+    const driverName = String(vehicle.assigned_driver || '').trim();
+
+    if (driverId) {
+      if (mapById.has(driverId)) {
+        return mapById.get(driverId);
+      }
+
+      // الاحتفاظ بالسائق المرتبط بالـ UUID حتى لو لم يكن محملًا في الدليل.
+      const entry = createDriver(driverName, driverId, true, vehicle);
+
+      mapById.set(driverId, entry);
+      addToNameIndex(entry);
+
+      return entry;
+    }
+
+    return ensureLegacyDriver(driverName, vehicle);
+  }
+
+  // 4) إسناد المركبات والحوادث.
+  for (const v of state.vehicles || []) {
+    const currentDriver = resolveVehicleDriver(v);
+
+    if (
+      currentDriver &&
+      !currentDriver.vehicles.some(
+        x => String(x.id) === String(v.id)
+      )
+    ) {
+      currentDriver.vehicles.push(v);
+    }
+
+    for (const inc of getVehicleAccidents(v)) {
+      const incidentName = String(
+        inc.driverName || v.assigned_driver || ''
+      ).trim();
+
+      let incidentDriver = null;
+
+      // إذا طابق اسم الحادث سائق المركبة الحالي، نربطه به.
+      if (
+        currentDriver &&
+        normalizeName(incidentName) === normalizeName(v.assigned_driver)
+      ) {
+        incidentDriver = currentDriver;
+      } else {
+        // وإلا نربطه بسائق مسجل فقط إذا كان الاسم فريدًا.
+        // لا ننشئ سائقًا جديدًا من حادث تاريخي.
+        incidentDriver = findUniqueDirectoryDriver(incidentName);
+      }
+
+      if (!incidentDriver) continue;
+
+      incidentDriver.incidents.push({
+        ...inc,
+
+        // الاحتفاظ باسم السائق وقت وقوع الحادث.
+        driverName: incidentName,
+
+        vehicleId: v.id,
+        vehicleName: v.vehicle_name || '',
+        plateNumber: v.plate_number || '',
+        date: inc.date || '',
+        reportNumber: inc.reportNumber || '',
+        status: inc.status || 'تحت المعالجة',
+        faultPercent: inc.faultPercent || '',
+        cost: Number(inc.cost || 0),
+        notes: inc.notes || ''
+      });
+    }
+  }
+
+  // 5) إزالة تكرار الحوادث وترتيبها من الأحدث إلى الأقدم.
+  const allDrivers = [
+    ...mapById.values(),
+    ...legacyByName.values()
+  ];
+
+  for (const d of allDrivers) {
+    const unique = new Map();
+
+    for (const incident of d.incidents) {
+      const key = String(
+        incident.id ||
+        `${incident.vehicleId}|${incident.date}|${incident.reportNumber}`
+      );
+
+      if (!unique.has(key)) {
+        unique.set(key, incident);
+      }
+    }
+
+    d.incidents = Array.from(unique.values()).sort(
+      (a, b) =>
+        String(b.date || '').localeCompare(String(a.date || ''))
+    );
+
+    d.incidentCount = d.incidents.length;
+  }
+
+  return allDrivers;
+}
+
+   
     function resetDriverDirectoryFilters() {
       activeQuickDriverFilter = 'all';
       const s = document.getElementById('driverDirectorySearchInput');
@@ -5950,9 +6360,14 @@
       document.getElementById('ddCategory').value = 'مندوب مبيعات';
 
       if (driverId) {
-        const d = buildAggregatedDriversList().find(item => String(item.id) === String(driverId));
+        const d = buildAggregatedDriversList().find(
+          item => String(item.id) === String(driverId)
+        );
+
         if (d) {
-          document.getElementById('driverDirModalTitle').textContent = 'تعديل بيانات السائق / المفوّض';
+          document.getElementById('driverDirModalTitle').textContent =
+            'تعديل بيانات السائق / المفوّض';
+
           document.getElementById('driverDirEditId').value = d.id;
           document.getElementById('ddFullName').value = d.full_name || '';
           document.getElementById('ddNationalId').value = d.national_id || '';
@@ -5964,9 +6379,18 @@
           document.getElementById('ddLicenseExpiry').value = d.license_expiry || '';
           document.getElementById('ddDriverStatus').value = d.status || 'نشط';
           document.getElementById('ddNotes').value = d.notes || '';
+
+        } else {
+          showSystemBanner(
+            'تعذر العثور على السائق المطلوب تعديله. لم يتم فتح نافذة التعديل.',
+            'error'
+          );
+          return;
         }
+
       } else {
-        document.getElementById('driverDirModalTitle').textContent = 'إضافة سائق / مفوّض جديد';
+        document.getElementById('driverDirModalTitle').textContent =
+          'إضافة سائق / مفوّض جديد';
       }
 
       document.getElementById('driverDirectoryModal').classList.remove('hidden');
@@ -6046,6 +6470,12 @@
           const isPersistedId = isEditing && !String(editId).startsWith('drv_auto_');
           // لا ترسل حقول الواجهة غير المضمونة في مخطط public.drivers.
           // عند اختلاف المخطط، استخرج اسم العمود المفقود من صيغ PostgREST/PostgreSQL واحذفه ثم أعد المحاولة.
+          console.log('DRIVER SAVE CHECK:', {
+            editId,
+            isEditing,
+            isPersistedId,
+            newFullName: full_name
+          });
           const dbPayload = {
               ...payload,
               authorization_expiry: payload.authorization_expiry || null,
@@ -6100,6 +6530,10 @@
             : 'لم تُرجع قاعدة البيانات سجل السائق بعد الإضافة.');
           // احتفظ بقيم الحقول غير المدعومة في عرض الواجهة، دون إرسالها إلى قاعدة البيانات.
           record = { ...payload, ...result.data, category };
+          console.log('DRIVER SAVE RESULT:', {
+          returnedId: result.data?.id,
+          returnedName: result.data?.full_name
+        });
         } else {
           record = { id: (isEditing && !String(editId).startsWith('drv_auto_')) ? editId : ('drv_' + Date.now()), ...payload, category };
         }
