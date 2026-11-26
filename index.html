@@ -304,7 +304,7 @@
     <div class="w-full max-w-md glass-card rounded-3xl p-6 sm:p-8">
       <div class="flex items-center gap-3.5 mb-4">
         <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex items-center justify-center font-extrabold text-lg shadow-lg shadow-blue-600/25">
-          FS
+          MD
         </div>
         <div>
           <h1 class="text-xl font-extrabold text-slate-900">تسجيل الدخول إلى النظام</h1>
@@ -363,10 +363,10 @@
       <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center font-extrabold text-base shadow-md shadow-blue-600/30">
-            FS
+            MD
           </div>
           <div>
-            <h1 class="text-base sm:text-lg font-extrabold tracking-tight">نظام متابعة وثائق وتفاويض وحوادث الأسطول</h1>
+            <h1 class="text-base sm:text-lg font-extrabold tracking-tight"> MasarDoc نظام متابعة وثائق وتفاويض وحوادث الأسطول</h1>
             <p id="todayDateLabel" class="text-[11px] text-slate-300"></p>
           </div>
         </div>
@@ -6670,7 +6670,7 @@
       const preparedBody = applyExternalReportColumnPolicy(bodyHtml, settings);
       const identityIsCompany = settings.identity === 'company';
       const reportBrandName = identityIsCompany ? settings.companyName : 'إدارة ومتابعة الأسطول';
-      const reportBrandMark = identityIsCompany ? 'CO' : 'FS';
+      const reportBrandMark = identityIsCompany ? 'CO' : 'MD';
       const audienceLabel = settings.audience === 'external' ? 'تقرير خارجي' : 'تقرير داخلي';
       const confidentialityLabel = settings.audience === 'external' ? 'خارجي — للمشاركة حسب الغرض المحدد' : 'داخلي — للاستخدام الإداري';
       if (identityIsCompany && !settings.companyName) { showSystemBanner('أدخل اسم الشركة في إعدادات التقارير قبل استخدام هوية الشركة.', 'warning'); return; }
